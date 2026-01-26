@@ -69,11 +69,16 @@
 
 <!--
   ACTION REQUIRED: The content in this section represents placeholders.
-  Fill them out with the right edge cases.
+  Fill them out with the right edge cases, especially offline scenarios.
 -->
 
 - What happens when [boundary condition]?
 - How does system handle [error scenario]?
+- **Offline Scenarios** (REQUIRED per Constitution I):
+  - What happens when user performs this action offline?
+  - How is data synced when connectivity returns?
+  - What happens if conflict occurs during sync?
+  - How does user know sync status?
 
 ## Requirements *(mandatory)*
 
@@ -85,10 +90,23 @@
 ### Functional Requirements
 
 - **FR-001**: System MUST [specific capability, e.g., "allow users to create accounts"]
-- **FR-002**: System MUST [specific capability, e.g., "validate email addresses"]  
+- **FR-002**: System MUST [specific capability, e.g., "validate email addresses"]
 - **FR-003**: Users MUST be able to [key interaction, e.g., "reset their password"]
 - **FR-004**: System MUST [data requirement, e.g., "persist user preferences"]
 - **FR-005**: System MUST [behavior, e.g., "log all security events"]
+
+*Offline-First Requirements (per Constitution I):*
+
+- **FR-OFFLINE-001**: Feature MUST work fully without network connectivity
+- **FR-OFFLINE-002**: Data MUST be persisted locally first, synced later
+- **FR-OFFLINE-003**: User MUST receive clear sync status feedback
+- **FR-OFFLINE-004**: Conflicts MUST be resolved [automatically via LWW | with user input]
+
+*Simplicity Requirements (per Constitution III):*
+
+- **FR-UX-001**: Primary task MUST be completable in ≤3 taps/clicks
+- **FR-UX-002**: Forms MUST use smart defaults from historical data
+- **FR-UX-003**: UI MUST respond in <100ms for user actions
 
 *Example of marking unclear requirements:*
 

@@ -20,10 +20,15 @@ description: "Task list template for feature implementation"
 
 ## Path Conventions
 
-- **Single project**: `src/`, `tests/` at repository root
-- **Web app**: `backend/src/`, `frontend/src/`
-- **Mobile**: `api/src/`, `ios/src/` or `android/src/`
-- Paths shown below assume single project - adjust based on plan.md structure
+Per Constitution II (Feature-Based Organization):
+
+- **Feature-based (RECOMMENDED)**: `src/features/[feature-name]/models/`, `src/features/[feature-name]/services/`, `src/features/[feature-name]/ui/`, `src/features/[feature-name]/tests/`
+- **Shared code**: `src/shared/`, `src/core/`
+- **Traditional**: `src/`, `tests/` at repository root (only if justified)
+- **Web app**: `backend/src/features/`, `frontend/src/features/`
+- **Mobile**: Feature-based within platform directory
+
+Paths shown below should follow feature-based structure per plan.md
 
 <!-- 
   ============================================================================
@@ -60,14 +65,17 @@ description: "Task list template for feature implementation"
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-Examples of foundational tasks (adjust based on your project):
+Examples of foundational tasks (adjust based on your project and Constitution requirements):
 
-- [ ] T004 Setup database schema and migrations framework
-- [ ] T005 [P] Implement authentication/authorization framework
-- [ ] T006 [P] Setup API routing and middleware structure
-- [ ] T007 Create base models/entities that all stories depend on
-- [ ] T008 Configure error handling and logging infrastructure
-- [ ] T009 Setup environment configuration management
+- [ ] T004 Setup local database (SQLite/Realm) for offline-first storage (Constitution I)
+- [ ] T005 [P] Implement offline queue and sync engine infrastructure (Constitution I, IV)
+- [ ] T006 [P] Setup conflict resolution framework (LWW + custom handlers) (Constitution IV)
+- [ ] T007 [P] Implement authentication with offline capability (Constitution I)
+- [ ] T008 [P] Setup API client with retry/queue logic (Constitution I)
+- [ ] T009 Create base models with timestamp/version tracking (Constitution IV)
+- [ ] T010 Configure error handling and logging infrastructure
+- [ ] T011 Setup environment configuration management
+- [ ] T012 Create shared UI components following simplicity principles (Constitution III)
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -88,12 +96,16 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Implementation for User Story 1
 
-- [ ] T012 [P] [US1] Create [Entity1] model in src/models/[entity1].py
-- [ ] T013 [P] [US1] Create [Entity2] model in src/models/[entity2].py
-- [ ] T014 [US1] Implement [Service] in src/services/[service].py (depends on T012, T013)
-- [ ] T015 [US1] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T016 [US1] Add validation and error handling
-- [ ] T017 [US1] Add logging for user story 1 operations
+Per Constitution II (Feature-Based Organization):
+
+- [ ] T012 [P] [US1] Create [Entity1] model in src/features/[feature-name]/models/[entity1].py (with sync metadata)
+- [ ] T013 [P] [US1] Create [Entity2] model in src/features/[feature-name]/models/[entity2].py (with sync metadata)
+- [ ] T014 [US1] Implement [Service] with offline-first logic in src/features/[feature-name]/services/[service].py (depends on T012, T013)
+- [ ] T015 [US1] Implement sync strategy for [Entity] (Constitution I, IV)
+- [ ] T016 [US1] Implement UI in src/features/[feature-name]/ui/[component].* (≤3 taps, Constitution III)
+- [ ] T017 [US1] Add validation (local + will-sync-validate) and error handling
+- [ ] T018 [US1] Add sync status feedback UI (Constitution I)
+- [ ] T019 [US1] Add logging and audit trail for operations
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 

@@ -29,9 +29,45 @@
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-[Gates determined based on constitution file]
+Review against constitution principles in `.specify/memory/constitution.md`:
+
+- **I. Offline-First Architecture**
+  - [ ] Feature works fully offline without network connectivity
+  - [ ] Local storage is primary data source
+  - [ ] Sync strategy defined for all entities
+  - [ ] Conflict resolution approach documented
+  - [ ] Visual sync status feedback specified
+
+- **II. Feature-Based Organization**
+  - [ ] Code organized in `src/features/[feature-name]/` structure
+  - [ ] Each feature has models/, services/, ui/, tests/ subdirectories
+  - [ ] Shared code properly placed in src/shared/ or src/core/
+  - [ ] Cross-feature dependencies minimized and documented
+  - [ ] Feature is independently testable
+
+- **III. Simplicity-First UX**
+  - [ ] Common tasks completable in ≤3 taps/clicks
+  - [ ] Smart defaults defined based on historical data
+  - [ ] Input optimized for field use (large targets, minimal typing)
+  - [ ] Immediate visual feedback specified
+  - [ ] Error messages in plain language
+  - [ ] Navigation shallow (≤3 levels)
+  - [ ] No dark patterns or unnecessary confirmations
+
+- **IV. Data Integrity & Synchronization**
+  - [ ] Timestamps/versioning strategy defined
+  - [ ] Conflict resolution strategy specified (LWW or custom)
+  - [ ] Incremental sync approach documented
+  - [ ] Audit trail for critical operations
+  - [ ] Data validation both local and server-side
+
+- **V. Testing & Quality**
+  - [ ] Integration tests planned for critical workflows
+  - [ ] Sync conflict scenarios test coverage planned
+  - [ ] Performance targets defined (response time, sync time)
+  - [ ] Manual device testing plan included
 
 ## Project Structure
 
@@ -48,6 +84,7 @@ specs/[###-feature]/
 ```
 
 ### Source Code (repository root)
+
 <!--
   ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
   for this feature. Delete unused options and expand the chosen structure with
@@ -56,39 +93,29 @@ specs/[###-feature]/
 -->
 
 ```text
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
+# [REMOVE IF UNUSED] Option 1: Feature-based mobile app (RECOMMENDED for this project)
 src/
-├── models/
-├── services/
-├── cli/
-└── lib/
-
-tests/
-├── contract/
-├── integration/
-└── unit/
-
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
-
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
-
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+├── features/
+│   ├── production-tracking/
+│   │   ├── models/
+│   │   ├── services/
+│   │   ├── ui/
+│   │   └── tests/
+│   ├── inventory-management/
+│   │   ├── models/
+│   │   ├── services/
+│   │   ├── ui/
+│   │   └── tests/
+│   └── [other-features]/
+├── shared/
+│   ├── database/
+│   ├── sync/
+│   ├── ui-components/
+│   └── utils/
+└── core/
+    ├── auth/
+    ├── navigation/
+    └── config/
 ```
 
 **Structure Decision**: [Document the selected structure and reference the real
@@ -98,7 +125,7 @@ directories captured above]
 
 > **Fill ONLY if Constitution Check has violations that must be justified**
 
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
+| Violation                  | Why Needed         | Simpler Alternative Rejected Because |
+| -------------------------- | ------------------ | ------------------------------------ |
+| [e.g., 4th project]        | [current need]     | [why 3 projects insufficient]        |
+| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient]  |
