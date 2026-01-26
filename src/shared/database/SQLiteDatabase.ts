@@ -12,7 +12,7 @@
  * await initDatabase();
  *
  * // Get database instance for queries
- * const db = await getDatabase();
+ * const db = getDatabase();
  * const result = await db.getAllAsync('SELECT * FROM users');
  * ```
  */
@@ -191,7 +191,7 @@ export async function initDatabase(): Promise<void> {
  * @returns Database instance
  * @throws Error if database not initialized
  */
-export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
+export function getDatabase(): SQLite.SQLiteDatabase {
   if (!databaseInstance) {
     throw new Error(
       'Database not initialized. Call initDatabase() first during app startup.'
@@ -232,10 +232,12 @@ export async function executeQuery<T>(
   sql: string,
   params?: SQLite.SQLiteBindParams
 ): Promise<T[]> {
-  const db = await getDatabase();
+  const db = getDatabase();
 
   try {
-    const result = await db.getAllAsync<T>(sql, params);
+    const result = params
+      ? await db.getAllAsync<T>(sql, params)
+      : await db.getAllAsync<T>(sql);
     return result;
   } catch (error) {
     console.error('❌ Query execution failed:', error);
@@ -256,10 +258,12 @@ export async function executeQueryFirst<T>(
   sql: string,
   params?: SQLite.SQLiteBindParams
 ): Promise<T | null> {
-  const db = await getDatabase();
+  const db = getDatabase();
 
   try {
-    const result = await db.getFirstAsync<T>(sql, params);
+    const result = params
+      ? await db.getFirstAsync<T>(sql, params)
+      : await db.getFirstAsync<T>(sql);
     return result;
   } catch (error) {
     console.error('❌ Query execution failed:', error);
@@ -280,10 +284,12 @@ export async function executeStatement(
   sql: string,
   params?: SQLite.SQLiteBindParams
 ): Promise<SQLite.SQLiteRunResult> {
-  const db = await getDatabase();
+  const db = getDatabase();
 
   try {
-    const result = await db.runAsync(sql, params);
+    const result = params
+      ? await db.runAsync(sql, params)
+      : await db.runAsync(sql);
     return result;
   } catch (error) {
     console.error('❌ Statement execution failed:', error);
@@ -298,17 +304,20 @@ export async function executeStatement(
  *
  * Ensures atomicity - all statements succeed or all fail.
  *
- * @param callback Function that executes statements
- * @returns Result of the callback
+ * @param callback Function that executes statements within the transaction
+ * @example
+ * await executeTransaction(async () => {
+ *   await db.runAsync('INSERT INTO users ...');
+ *   await db.runAsync('UPDATE chicken_lots ...');
+ * });
  */
-export async function executeTransaction<T>(
-  callback: () => Promise<T>
-): Promise<T> {
-  const db = await getDatabase();
+export async function executeTransaction(
+  callback: () => Promise<void>
+): Promise<void> {
+  const db = getDatabase();
 
   try {
-    const result = await db.withTransactionAsync(callback);
-    return result;
+    await db.withTransactionAsync(callback);
   } catch (error) {
     console.error('❌ Transaction failed:', error);
     throw error;
@@ -321,7 +330,7 @@ export async function executeTransaction<T>(
  * @warning This will delete ALL data in the database
  */
 export async function dropAllTables(): Promise<void> {
-  const db = await getDatabase();
+  const db = getDatabase();
 
   console.warn('⚠️ Dropping all tables - ALL DATA WILL BE LOST');
 
