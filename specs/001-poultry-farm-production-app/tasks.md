@@ -60,7 +60,7 @@ Per Constitution II (Feature-Based Organization):
 
 ### Firebase Configuration
 
-- [ ] T017 [P] Create Firebase config initialization in src/core/config/firebase.ts with app initialization, auth, and firestore exports
+- [X] T017 [P] Create Firebase config initialization in src/core/config/firebase.ts with app initialization, auth, and firestore exports
 - [ ] T018 [P] Create Firebase security rules in firestore.rules file for all collections
 - [ ] T019 [P] Create environment variables loader in src/core/config/env.ts to validate EXPO*PUBLIC_FIREBASE*\* variables
 
