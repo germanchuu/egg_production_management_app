@@ -56,7 +56,7 @@ Per Constitution II (Feature-Based Organization):
 - [X] T013 Create SQLite schema initialization in src/shared/database/schema.ts with all tables (users, invitations, chicken_houses, chicken_lots, production_records, mortality_records, feed_batches, feeding_records, health_events, biosecurity_events, sync_queue, audit_log_local)
 - [X] T014 Implement database initialization function in src/shared/database/SQLiteDatabase.ts to open database and run schema migrations
 - [X] T015 Create database connection singleton in src/shared/database/index.ts
-- [ ] T016 [P] Create shared TypeScript types in src/shared/types/entities.ts for all entities (User, Invitation, ChickenHouse, ChickenLot, ProductionRecord, MortalityRecord, FeedBatch, FeedingRecord, HealthEvent, BiosecurityEvent)
+- [X] T016 [P] Create shared TypeScript types in src/shared/types/entities.ts for all entities (User, Invitation, ChickenHouse, ChickenLot, ProductionRecord, MortalityRecord, FeedBatch, FeedingRecord, LotEvent)
 
 ### Firebase Configuration
 
