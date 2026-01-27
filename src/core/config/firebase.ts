@@ -18,7 +18,13 @@
  */
 
 import { initializeApp, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth, Auth, initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import {
+  getAuth,
+  Auth,
+  initializeAuth,
+  // @ts-ignore - getReactNativePersistence exists but TypeScript can't find it due to Metro bundler resolution (see: https://github.com/firebase/firebase-js-sdk/issues/7584)
+  getReactNativePersistence,
+} from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
