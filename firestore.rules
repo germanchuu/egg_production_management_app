@@ -1,0 +1,223 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ==================== HELPER FUNCTIONS ====================
+
+    // Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Check if user is admin
+    function isAdmin() {
+      return isAuthenticated()
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Check if user owns the document (recordedBy/createdBy/preparedBy fields)
+    function isOwner(docData) {
+      return isAuthenticated()
+        && (docData.recordedBy == request.auth.uid
+            || docData.createdBy == request.auth.uid
+            || docData.preparedBy == request.auth.uid);
+    }
+
+    // Check if date is not in the future
+    function isValidDate(date) {
+      return date <= request.time;
+    }
+
+    // Check if user is active
+    function isActiveUser() {
+      return isAuthenticated()
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isActive == true;
+    }
+
+    // ==================== USERS COLLECTION ====================
+
+    match /users/{userId} {
+      // Admins: Full access to all users
+      // Users: Read and update own document only (cannot change role)
+      allow read: if isAuthenticated()
+        && (isAdmin() || request.auth.uid == userId);
+
+      allow create: if isAdmin();
+
+      allow update: if isAuthenticated()
+        && (isAdmin()
+            || (request.auth.uid == userId
+                && request.resource.data.role == resource.data.role)); // Cannot change own role
+
+      allow delete: if isAdmin();
+    }
+
+    // ==================== INVITATIONS COLLECTION ====================
+
+    match /invitations/{invitationId} {
+      // Only admins can access invitations
+      // Regular users have no access
+      allow read, write: if isAdmin();
+    }
+
+    // ==================== CHICKEN HOUSES COLLECTION ====================
+
+    match /chickenHouses/{houseId} {
+      // Admins: Full CRUD access
+      // Users: Read-only access
+      allow read: if isActiveUser();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ==================== CHICKEN LOTS COLLECTION ====================
+
+    match /chickenLots/{lotId} {
+      // Admins: Full CRUD access
+      // Users: Read-only access
+      allow read: if isActiveUser();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ==================== PRODUCTION RECORDS COLLECTION ====================
+
+    match /productionRecords/{recordId} {
+      // Admins: Full CRUD access
+      // Users: Create, read all, update own records
+      allow read: if isActiveUser();
+
+      allow create: if isActiveUser()
+        && request.resource.data.recordedBy == request.auth.uid
+        && isValidDate(request.resource.data.date)
+        && request.resource.data.eggsCollected >= 0;
+
+      allow update: if isActiveUser()
+        && (isAdmin() || isOwner(resource.data))
+        && isValidDate(request.resource.data.date)
+        && request.resource.data.eggsCollected >= 0;
+
+      allow delete: if isAdmin();
+    }
+
+    // ==================== MORTALITY RECORDS COLLECTION ====================
+
+    match /mortalityRecords/{recordId} {
+      // Admins: Full CRUD access
+      // Users: Create, read all, update own records
+      allow read: if isActiveUser();
+
+      allow create: if isActiveUser()
+        && request.resource.data.recordedBy == request.auth.uid
+        && isValidDate(request.resource.data.date)
+        && request.resource.data.hensDied > 0;
+
+      allow update: if isActiveUser()
+        && (isAdmin() || isOwner(resource.data))
+        && isValidDate(request.resource.data.date)
+        && request.resource.data.hensDied > 0;
+
+      allow delete: if isAdmin();
+    }
+
+    // ==================== FEED BATCHES COLLECTION ====================
+
+    match /feedBatches/{batchId} {
+      // Admins: Full CRUD access
+      // Users: Create, read all, update own batches
+      allow read: if isActiveUser();
+
+      allow create: if isActiveUser()
+        && request.resource.data.preparedBy == request.auth.uid
+        && isValidDate(request.resource.data.preparationDate)
+        && request.resource.data.quantityKg > 0;
+
+      allow update: if isActiveUser()
+        && (isAdmin() || isOwner(resource.data))
+        && isValidDate(request.resource.data.preparationDate)
+        && request.resource.data.quantityKg > 0;
+
+      allow delete: if isAdmin();
+    }
+
+    // ==================== FEEDING RECORDS COLLECTION ====================
+
+    match /feedingRecords/{recordId} {
+      // Admins: Full CRUD access
+      // Users: Create, read all, update own records
+      allow read: if isActiveUser();
+
+      allow create: if isActiveUser()
+        && request.resource.data.recordedBy == request.auth.uid
+        && isValidDate(request.resource.data.date)
+        && request.resource.data.quantityFedKg > 0;
+
+      allow update: if isActiveUser()
+        && (isAdmin() || isOwner(resource.data))
+        && isValidDate(request.resource.data.date)
+        && request.resource.data.quantityFedKg > 0;
+
+      allow delete: if isAdmin();
+    }
+
+    // ==================== HEALTH EVENTS COLLECTION ====================
+
+    match /healthEvents/{eventId} {
+      // Admins: Full CRUD access
+      // Users: Create, read all, update own events
+      allow read: if isActiveUser();
+
+      allow create: if isActiveUser()
+        && request.resource.data.recordedBy == request.auth.uid
+        && isValidDate(request.resource.data.eventDate)
+        && request.resource.data.eventType == 'vaccination'
+        && request.resource.data.productName.size() > 0;
+
+      allow update: if isActiveUser()
+        && (isAdmin() || isOwner(resource.data))
+        && isValidDate(request.resource.data.eventDate)
+        && request.resource.data.eventType == 'vaccination'
+        && request.resource.data.productName.size() > 0;
+
+      allow delete: if isAdmin();
+    }
+
+    // ==================== BIOSECURITY EVENTS COLLECTION ====================
+
+    match /biosecurityEvents/{eventId} {
+      // Admins: Full CRUD access
+      // Users: Create, read all, update own events
+      allow read: if isActiveUser();
+
+      allow create: if isActiveUser()
+        && request.resource.data.recordedBy == request.auth.uid
+        && isValidDate(request.resource.data.eventDate)
+        && request.resource.data.eventType == 'disinfection'
+        && request.resource.data.productName.size() > 0;
+
+      allow update: if isActiveUser()
+        && (isAdmin() || isOwner(resource.data))
+        && isValidDate(request.resource.data.eventDate)
+        && request.resource.data.eventType == 'disinfection'
+        && request.resource.data.productName.size() > 0;
+
+      allow delete: if isAdmin();
+    }
+
+    // ==================== AUDIT LOGS COLLECTION ====================
+
+    match /auditLogs/{auditId} {
+      // Audit logs are write-only from backend/server
+      // Admins can read for audit trail inspection
+      // No client writes allowed (server-side only)
+      allow read: if isAdmin();
+      allow write: if false; // Only server can write
+    }
+
+    // ==================== DEFAULT DENY ====================
+
+    // Deny all other collections by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

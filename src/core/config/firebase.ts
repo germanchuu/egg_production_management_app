@@ -108,7 +108,9 @@ function initializeFirebaseAuth(app: FirebaseApp): Auth {
     return getAuth(app);
   } catch {
     // Initialize auth with React Native persistence
-    console.log('🔐 Initializing Firebase Auth with AsyncStorage persistence...');
+    console.log(
+      '🔐 Initializing Firebase Auth with AsyncStorage persistence...'
+    );
     const auth = initializeAuth(app, {
       persistence: getReactNativePersistence(AsyncStorage),
     });
