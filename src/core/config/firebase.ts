@@ -27,61 +27,37 @@ import {
 } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getEnv } from './env';
+
+/**
+ * Load and validate environment variables
+ */
+const env = getEnv();
 
 /**
  * Firebase configuration object
  *
- * Values are loaded from environment variables (EXPO_PUBLIC_FIREBASE_*)
+ * Values are loaded and validated from environment variables (EXPO_PUBLIC_FIREBASE_*)
  */
 const firebaseConfig = {
-  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID, // Optional
+  apiKey: env.FIREBASE_API_KEY,
+  authDomain: env.FIREBASE_AUTH_DOMAIN,
+  projectId: env.FIREBASE_PROJECT_ID,
+  storageBucket: env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: env.FIREBASE_APP_ID,
+  measurementId: env.FIREBASE_MEASUREMENT_ID, // Optional
 };
-
-/**
- * Validates Firebase configuration
- *
- * Ensures all required environment variables are present.
- * Throws error if any required variable is missing.
- */
-function validateFirebaseConfig(): void {
-  const requiredFields = [
-    'apiKey',
-    'authDomain',
-    'projectId',
-    'storageBucket',
-    'messagingSenderId',
-    'appId',
-  ];
-
-  const missingFields = requiredFields.filter(
-    (field) => !firebaseConfig[field as keyof typeof firebaseConfig]
-  );
-
-  if (missingFields.length > 0) {
-    throw new Error(
-      `Missing required Firebase environment variables: ${missingFields.map((f) => `EXPO_PUBLIC_FIREBASE_${f.toUpperCase()}`).join(', ')}`
-    );
-  }
-}
 
 /**
  * Initializes Firebase app
  *
  * Creates or retrieves existing Firebase app instance.
- * Validates configuration before initialization.
+ * Configuration is validated by getEnv() at module load time.
  *
  * @returns Firebase app instance
  */
 function initializeFirebaseApp(): FirebaseApp {
-  // Validate configuration
-  validateFirebaseConfig();
-
   try {
     // Try to get existing app instance
     return getApp();
