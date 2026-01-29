@@ -82,7 +82,7 @@ Per Constitution II (Feature-Based Organization):
 ### Shared Utilities
 
 - [X] T029 [P] Create validation schemas in src/shared/utils/validation.ts with Zod schemas for date (no future), positive integers, decimals, email, UUID
-- [ ] T030 [P] Create date utilities in src/shared/utils/date.ts for date formatting, week calculations, and ISO-8601 conversions
+- [X] T030 [P] Create date utilities in src/shared/utils/date.ts for date formatting, week calculations, and ISO-8601 conversions
 - [ ] T031 [P] Create ID generation utility in src/shared/utils/id.ts using UUID v4
 
 ### App Layout & Navigation
