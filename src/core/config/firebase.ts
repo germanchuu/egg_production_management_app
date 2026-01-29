@@ -87,7 +87,7 @@ function initializeFirebaseApp(): FirebaseApp {
     return getApp();
   } catch {
     // App doesn't exist, initialize new one
-    console.log('🔥 Initializing Firebase app...');
+    console.log('Initializing Firebase app...');
     const app = initializeApp(firebaseConfig);
     console.log('✅ Firebase app initialized');
     return app;
@@ -108,9 +108,7 @@ function initializeFirebaseAuth(app: FirebaseApp): Auth {
     return getAuth(app);
   } catch {
     // Initialize auth with React Native persistence
-    console.log(
-      '🔐 Initializing Firebase Auth with AsyncStorage persistence...'
-    );
+    console.log('Initializing Firebase Auth with AsyncStorage persistence...');
     const auth = initializeAuth(app, {
       persistence: getReactNativePersistence(AsyncStorage),
     });

@@ -31,7 +31,7 @@ jest.mock('firebase/firestore', () => ({
 
 // Mock Expo modules
 jest.mock('expo-secure-store');
-jest.mock('expo-sqlite');
+jest.mock('expo-sqlite'); // Uses improved mock with better-sqlite3
 jest.mock('@react-native-community/netinfo');
 jest.mock('expo-router', () => ({
   useRouter: jest.fn(() => ({

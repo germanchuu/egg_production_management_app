@@ -6,6 +6,16 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
+      isolatedModules: true,
+      tsconfig: {
+        jsx: 'react',
+        esModuleInterop: true,
+        allowSyntheticDefaultImports: true,
+        strict: false,
+      },
+    }],
+    '^.+\\.jsx?$': ['ts-jest', {
+      isolatedModules: true,
       tsconfig: {
         jsx: 'react',
         esModuleInterop: true,
@@ -22,6 +32,9 @@ module.exports = {
     '<rootDir>/tests/integration/**/*.test.{ts,tsx}',
   ],
   testPathIgnorePatterns: ['/node_modules/', '/e2e/'],
+  transformIgnorePatterns: [
+    'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@sentry/react-native|native-base|react-native-svg|expo-sqlite-mock|expo-sqlite)',
+  ],
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
     '!src/**/*.d.ts',
@@ -43,9 +56,4 @@ module.exports = {
     },
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
-  globals: {
-    'ts-jest': {
-      isolatedModules: true,
-    },
-  },
 };

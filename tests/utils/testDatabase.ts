@@ -7,13 +7,29 @@ import * as SQLite from 'expo-sqlite';
 export async function createTestDatabase(): Promise<SQLite.SQLiteDatabase> {
   const db = await SQLite.openDatabaseAsync(':memory:');
 
-  // Import and run schema initialization
-  const { getSchemaSQL } = await import('@/shared/database/schema');
-  const schemaSQL = getSchemaSQL();
+  try {
+    // Enable foreign key constraints first
+    await db.execAsync('PRAGMA foreign_keys = ON');
 
-  await db.execAsync(schemaSQL);
+    // Import schema
+    const { getSchemaSQL, getSchemaVersion } =
+      await import('@/shared/database/schema');
+    const schemaSQL = getSchemaSQL();
+    const version = getSchemaVersion();
 
-  return db;
+    // Execute all schema statements as a single batch
+    // Join with semicolons and newlines for proper SQL execution
+    const batchSQL = schemaSQL.join(';\n') + ';';
+    await db.execAsync(batchSQL);
+
+    // Set schema version
+    await db.execAsync(`PRAGMA user_version = ${version}`);
+
+    return db;
+  } catch (error) {
+    console.error('Failed to create test database:', error);
+    throw error;
+  }
 }
 
 /**
@@ -34,7 +50,7 @@ export async function seedTestData(
 
       await db.runAsync(
         `INSERT INTO ${tableName} (${columnNames}) VALUES (${placeholders})`,
-        values
+        ...(values as SQLite.SQLiteBindValue[])
       );
     }
   }
@@ -44,7 +60,9 @@ export async function seedTestData(
  * Cleans up and closes the test database
  * @param db - SQLite database instance
  */
-export async function cleanupTestDatabase(db: SQLite.SQLiteDatabase): Promise<void> {
+export async function cleanupTestDatabase(
+  db: SQLite.SQLiteDatabase
+): Promise<void> {
   await db.closeAsync();
 }
 

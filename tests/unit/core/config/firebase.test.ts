@@ -5,19 +5,20 @@
  * Firebase functions are mocked in tests/setup.ts
  */
 
-import { initializeApp } from 'firebase/app';
-import { getAuth, initializeAuth, getReactNativePersistence } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-
 // Mock modules are already set up in tests/setup.ts
 
 describe('Firebase Configuration', () => {
   beforeEach(() => {
+    // Clear mocks and reset module cache to force re-initialization
     jest.clearAllMocks();
+    jest.resetModules();
   });
 
   describe('Firebase App Initialization', () => {
     it('should initialize Firebase app', () => {
+      // Import mocks after reset to get fresh instances
+      const { initializeApp } = require('firebase/app');
+
       // Import triggers initialization
       require('@/core/config/firebase');
 
@@ -25,6 +26,8 @@ describe('Firebase Configuration', () => {
     });
 
     it('should initialize Firebase app with config object', () => {
+      const { initializeApp } = require('firebase/app');
+
       require('@/core/config/firebase');
 
       expect(initializeApp).toHaveBeenCalledWith(
@@ -37,6 +40,8 @@ describe('Firebase Configuration', () => {
 
   describe('Firebase Auth Initialization', () => {
     it('should initialize auth', () => {
+      const { getAuth } = require('firebase/auth');
+
       require('@/core/config/firebase');
 
       // Either getAuth or initializeAuth should be called
@@ -46,6 +51,8 @@ describe('Firebase Configuration', () => {
 
   describe('Firestore Initialization', () => {
     it('should initialize Firestore', () => {
+      const { getFirestore } = require('firebase/firestore');
+
       require('@/core/config/firebase');
 
       expect(getFirestore).toHaveBeenCalled();

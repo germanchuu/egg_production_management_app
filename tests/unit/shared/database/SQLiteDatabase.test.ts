@@ -1,8 +1,8 @@
 import * as SQLite from 'expo-sqlite';
-import { createTestDatabase, cleanupTestDatabase } from '../../../utils/testDatabase';
-
-// Note: We test using the real implementation with in-memory database
-// This provides better coverage than mocking
+import {
+  createTestDatabase,
+  cleanupTestDatabase,
+} from '../../../utils/testDatabase';
 
 describe('SQLiteDatabase', () => {
   let db: SQLite.SQLiteDatabase;
@@ -22,7 +22,7 @@ describe('SQLiteDatabase', () => {
         "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
       );
 
-      const tableNames = tables.map(t => t.name);
+      const tableNames = tables.map((t) => t.name);
 
       expect(tableNames).toContain('users');
       expect(tableNames).toContain('invitations');
@@ -110,10 +110,10 @@ describe('SQLiteDatabase', () => {
       );
 
       // Update
-      await db.runAsync(
-        'UPDATE users SET display_name = ? WHERE id = ?',
-        ['Updated Name', userId]
-      );
+      await db.runAsync('UPDATE users SET display_name = ? WHERE id = ?', [
+        'Updated Name',
+        userId,
+      ]);
 
       // Verify
       const user = await db.getFirstAsync<{ display_name: string }>(
@@ -139,10 +139,9 @@ describe('SQLiteDatabase', () => {
       await db.runAsync('DELETE FROM users WHERE id = ?', [userId]);
 
       // Verify
-      const user = await db.getFirstAsync(
-        'SELECT * FROM users WHERE id = ?',
-        [userId]
-      );
+      const user = await db.getFirstAsync('SELECT * FROM users WHERE id = ?', [
+        userId,
+      ]);
 
       expect(user).toBeNull();
     });
@@ -226,7 +225,7 @@ describe('SQLiteDatabase', () => {
         "SELECT name FROM sqlite_master WHERE type='index' AND name LIKE 'idx_%' ORDER BY name"
       );
 
-      const indexNames = indexes.map(idx => idx.name);
+      const indexNames = indexes.map((idx) => idx.name);
 
       // Verify key indexes exist
       expect(indexNames).toContain('idx_users_role');
@@ -262,10 +261,9 @@ describe('SQLiteDatabase', () => {
       }
 
       // Verify first user was NOT inserted (transaction rolled back)
-      const user = await db.getFirstAsync(
-        'SELECT * FROM users WHERE id = ?',
-        [userId]
-      );
+      const user = await db.getFirstAsync('SELECT * FROM users WHERE id = ?', [
+        userId,
+      ]);
 
       expect(user).toBeNull();
     });
