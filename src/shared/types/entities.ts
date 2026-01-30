@@ -17,10 +17,14 @@ export enum UserRole {
 
 /**
  * User authentication status
+ * - pending: User created but invitation not accepted yet
+ * - authenticated: User has accepted invitation and can access the app
+ * - revoked: Admin has permanently revoked user access (irreversible)
  */
 export enum AuthStatus {
   Pending = 'pending',
   Authenticated = 'authenticated',
+  Revoked = 'revoked',
 }
 
 /**

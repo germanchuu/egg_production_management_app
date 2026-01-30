@@ -57,7 +57,10 @@ The system must support secure, closed-access authentication where administrator
 4. **Given** a user sees the invitation confirmation, **When** they accept the invitation, **Then** they are marked as authenticated and can access the app
 5. **Given** a user has authenticated once, **When** they open the app offline, **Then** they can access the app using cached session data without requiring internet
 6. **Given** a user opens the app with internet connectivity and cached session, **When** the app loads, **Then** session validation occurs in the background before any sync, and invalid sessions prompt re-authentication
-7. **Given** invitations have been generated, **When** the administrator views user management, **Then** they see user authentication status (pending, authenticated)
+7. **Given** invitations have been generated, **When** the administrator views user management, **Then** they see user authentication status (pending, authenticated, revoked)
+8. **Given** an authenticated user exists, **When** the administrator revokes the user, **Then** the user's authStatus is set to 'revoked' and all authorized devices are cleared
+9. **Given** a user has been revoked, **When** they open the app and go online, **Then** session validation fails and they see "Access Denied" message
+10. **Given** a user has been revoked, **When** the administrator tries to re-enable them, **Then** the system prevents re-activation (revocation is permanent)
 
 ---
 
@@ -132,6 +135,12 @@ Users need to record health events (vaccinations) and biosecurity events (disinf
 - **FR-014**: Invitation deep links MUST expire 7 days after creation for security purposes
 - **FR-015**: Invitation tokens MUST be one-time use only, becoming invalid after acceptance
 - **FR-016**: Administrators MUST be able to regenerate expired invitations for pending users
+- **FR-017**: Administrators MUST be able to permanently revoke user access by setting authStatus to 'revoked'
+- **FR-018**: User revocation MUST be permanent and irreversible (revoked users cannot be re-enabled)
+- **FR-019**: When a user is revoked, all authorized devices MUST be cleared immediately
+- **FR-020**: Revoked users MUST be denied access on next session validation (background check at app start or before sync)
+- **FR-021**: Revoked users MUST see "Access Denied" message and cannot access the app
+- **FR-022**: Revoked users MUST NOT be able to accept new invitations
 
 **Facility & Lot Management:**
 

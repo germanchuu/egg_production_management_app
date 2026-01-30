@@ -59,7 +59,7 @@ This document defines the data entities, relationships, validation rules, and st
 | `id` | UUID | Yes | Unique user identifier | Auto-generated |
 | `displayName` | String | Yes | User's full name | 2-100 characters |
 | `role` | Enum | Yes | User role: `admin` or `user` | One of: ['admin', 'user'] |
-| `authStatus` | Enum | Yes | Authentication status | One of: ['pending', 'authenticated'] |
+| `authStatus` | Enum | Yes | Authentication status | One of: ['pending', 'authenticated', 'revoked'] |
 | `authorizedDevices` | Array | No | List of authorized devices (max 3) | Array of {deviceId: UUID, deviceName: String, authorizedAt: Timestamp} |
 | `createdAt` | Timestamp | Yes | Account creation timestamp | ISO-8601 |
 | `lastAccessAt` | Timestamp | No | Last app access timestamp | ISO-8601 |
@@ -76,7 +76,7 @@ CREATE TABLE users (
   id TEXT PRIMARY KEY,
   display_name TEXT NOT NULL,
   role TEXT NOT NULL CHECK(role IN ('admin', 'user')),
-  auth_status TEXT NOT NULL CHECK(auth_status IN ('pending', 'authenticated')),
+  auth_status TEXT NOT NULL CHECK(auth_status IN ('pending', 'authenticated', 'revoked')),
   authorized_devices TEXT, -- JSON array: [{deviceId, deviceName, authorizedAt}]
   created_at TEXT NOT NULL,
   last_access_at TEXT,
@@ -92,10 +92,15 @@ CREATE TABLE users (
 **Validation Rules**:
 - displayName must be 2-100 characters
 - Role cannot be changed after account creation (immutable)
-- authStatus transitions: pending → authenticated (one-way, no reversal)
+- authStatus transitions:
+  - pending → authenticated (when user accepts invitation)
+  - pending → revoked (admin revokes before user accepts)
+  - authenticated → revoked (admin permanently revokes access)
+  - revoked is PERMANENT (cannot be reversed, user cannot be re-enabled)
 - authorizedDevices: Maximum 3 devices per user (enforced server-side)
 - authorizedDevices: Each device must have unique deviceId
 - Only admins can create new users and generate invitations (enforced by Firebase rules)
+- Only admins can revoke user access (enforced by Firebase rules)
 
 **Access Control**:
 - Admins: Can read all users, create users, generate invitations, update user status
@@ -125,8 +130,8 @@ Local session data is stored in expo-secure-store (encrypted storage) to enable 
 2. **App Start**: On every app launch:
    - Read session from expo-secure-store
    - If session exists: Allow offline access
-   - If online: Validate session in background (check if device still in User.authorizedDevices)
-   - If validation fails (device revoked): Clear local session and redirect to pending state
+   - If online: Validate session in background (check if user.authStatus != 'revoked' AND device still in User.authorizedDevices)
+   - If validation fails (user revoked OR device removed): Clear local session, show "Access Denied" message, prevent app access
 
 3. **Before Sync**: Every sync operation MUST validate session first:
    - Check if online
@@ -134,10 +139,20 @@ Local session data is stored in expo-secure-store (encrypted storage) to enable 
    - If validation fails: Block sync, clear session, redirect to pending state
    - If validation succeeds: Update lastValidatedAt and proceed with sync
 
-4. **Session Revocation** (Admin action):
+4. **Session Revocation** (Admin actions):
+
+   **Device Revocation** (revokes single device):
    - Admin removes device from User.authorizedDevices array
    - Next time device goes online: Session validation fails
-   - Local session cleared, user cannot sync until new invitation accepted
+   - Local session cleared, user can re-authenticate from another device
+
+   **User Revocation** (PERMANENT, revokes all access):
+   - Admin sets User.authStatus = 'revoked'
+   - All devices cleared from User.authorizedDevices
+   - Next time ANY device goes online: Session validation fails
+   - Local session cleared on all devices
+   - User CANNOT be re-enabled (permanent revocation)
+   - User cannot accept new invitations
 
 **Security Considerations**:
 - Session data encrypted at rest via expo-secure-store

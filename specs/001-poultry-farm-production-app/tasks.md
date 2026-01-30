@@ -105,23 +105,25 @@ Per Constitution II (Feature-Based Organization):
 
 - [ ] T035 [P] [US3] Create User model in src/features/auth/models/User.ts with TypeScript interface matching data-model.md
 - [ ] T036 [P] [US3] Create Invitation model in src/features/auth/models/Invitation.ts with status transitions (pending → accepted/expired)
-- [ ] T037 [US3] Create AuthService in src/features/auth/services/AuthService.ts with methods: acceptInvitation(), logout(), validateSession(), getStoredSession(), storeSession() using expo-secure-store
+- [ ] T037 [US3] Create AuthService in src/features/auth/services/AuthService.ts with methods: acceptInvitation(), logout(), validateSession(), getStoredSession(), storeSession(), revokeUser() using expo-secure-store
 - [ ] T038 [US3] Create InvitationService in src/features/auth/services/InvitationService.ts with methods: generateDeepLink(), validateInvitationToken(), acceptInvitation(), regenerateInvitation()
 - [ ] T039 [US3] Implement session caching in AuthService using expo-secure-store for session persistence
-- [ ] T040 [US3] Implement background session validation in AuthService when online BEFORE any sync (validate session, mark invalid if expired)
+- [ ] T040 [US3] Implement background session validation in AuthService when online BEFORE any sync (validate authStatus != 'revoked' AND device in authorizedDevices, show "Access Denied" if revoked)
+- [ ] T040a [US3] Implement user revocation in AuthService.revokeUser() (set authStatus='revoked', clear authorizedDevices array, audit log)
 
 ### Firebase Functions
 
-- [ ] T041 [P] [US3] Create generateInvitation Firebase Function in functions/src/invitations/generateInvitation.ts (admin only, generates token for user, saves to Firestore, returns deep link)
-- [ ] T042 [P] [US3] Create validateInvitation Firebase Function in functions/src/invitations/validateInvitation.ts (public, checks token validity, expiry, and returns user info)
-- [ ] T043 [P] [US3] Create acceptInvitation Firebase Function in functions/src/invitations/acceptInvitation.ts (marks user as authenticated, updates user document, invalidates invitation token)
-- [ ] T044 [P] [US3] Create regenerateInvitation Firebase Function in functions/src/invitations/regenerateInvitation.ts (admin only, creates new invitation token for pending users)
+- [ ] T041 [P] [US3] Create generateInvitation Firebase Function in functions/src/auth/generateInvitation.ts (admin only, generates token for user, saves to Firestore, returns deep link, prevents invitations for revoked users)
+- [ ] T042 [P] [US3] Create validateInvitation Firebase Function in functions/src/auth/validateInvitation.ts (public, checks token validity, expiry, user not revoked, and returns user info)
+- [ ] T043 [P] [US3] Create acceptInvitation Firebase Function in functions/src/auth/acceptInvitation.ts (marks user as authenticated, updates user document, invalidates invitation token, prevents acceptance if user is revoked)
+- [ ] T044 [P] [US3] Create regenerateInvitation Firebase Function in functions/src/auth/regenerateInvitation.ts (admin only, creates new invitation token for pending users, prevents regeneration for revoked users)
+- [ ] T044a [P] [US3] Create revokeUser Firebase Function in functions/src/auth/revokeUser.ts (admin only, sets authStatus='revoked', clears authorizedDevices, creates audit log, prevents revocation of other admins)
 
 ### UI Components & Screens
 
 - [ ] T045 [P] [US3] Create InvitationConfirmation component in src/features/auth/components/InvitationConfirmation.tsx showing "Esta es una invitación para: [user_name]" with accept button
 - [ ] T046 [US3] Create invitation acceptance screen in src/app/(auth)/invite/[token].tsx that validates deep link token and shows confirmation component
-- [ ] T047 [P] [US3] Create user management screen in src/app/(tabs)/admin/users.tsx (admin only) showing user list with authentication status and generate invitation button
+- [ ] T047 [P] [US3] Create user management screen in src/app/(tabs)/admin/users.tsx (admin only) showing user list with authentication status (pending, authenticated, revoked), generate invitation button, and revoke user button (disabled for already revoked users)
 - [ ] T048 [US3] Implement deep link generation in InvitationService for Custom URL Scheme (myapp://invite/[token])
 - [ ] T049 [US3] Implement native share sheet integration for sharing invitation deep links (WhatsApp, SMS, etc.)
 - [ ] T050 [US3] Add auth state management using React Context in src/features/auth/contexts/AuthContext.tsx to track current user and auth status
@@ -132,6 +134,8 @@ Per Constitution II (Feature-Based Organization):
 - [ ] T052 [US3] Add audit logging for user creation and invitation acceptance in src/shared/sync/AuditService.ts
 - [ ] T053 [US3] Test offline app access with cached session (SC-010: <3s app launch offline)
 - [ ] T054 [US3] Test background session validation when online BEFORE any sync operations
+- [ ] T054a [US3] Test user revocation flow: admin revokes user → user goes online → session validation fails → "Access Denied" shown → user cannot access app
+- [ ] T054b [US3] Test revocation is permanent: revoked user cannot be re-enabled, cannot accept new invitations
 
 **Checkpoint**: Authentication system complete and independently testable
 
@@ -253,7 +257,7 @@ Per Constitution II (Feature-Based Organization):
 
 ### Cloud Functions for Server-Side Logic
 
-- [ ] T110 Create onMortalityRecordCreated Firestore trigger in functions/src/triggers/onMortalityRecordCreated.ts to update lot liveHenCount atomically on server
+- [ ] T110 Create onMortalityRecordCreated Firestore trigger in functions/src/mortality/onMortalityRecordCreated.ts to update lot liveHenCount atomically on server
 - [ ] T111 [P] Create batchSync Firebase Function in functions/src/sync/batchSync.ts to handle batch uploads from clients
 - [ ] T112 Add audit logging in Cloud Functions for critical operations (lot creation, mortality >10%)
 

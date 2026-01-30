@@ -25,7 +25,7 @@ export const CREATE_TABLES_SQL = [
     id TEXT PRIMARY KEY,
     display_name TEXT NOT NULL,
     role TEXT NOT NULL CHECK(role IN ('admin', 'user')),
-    auth_status TEXT NOT NULL CHECK(auth_status IN ('pending', 'authenticated')),
+    auth_status TEXT NOT NULL CHECK(auth_status IN ('pending', 'authenticated', 'revoked')),
     authorized_devices TEXT, -- JSON array: [{deviceId, deviceName, authorizedAt}]
     created_at TEXT NOT NULL,
     last_access_at TEXT,
