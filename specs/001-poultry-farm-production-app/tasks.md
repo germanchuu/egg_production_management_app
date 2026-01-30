@@ -87,7 +87,7 @@ Per Constitution II (Feature-Based Organization):
 
 ### App Layout & Navigation
 
-- [ ] T032 Create root layout in src/app/\_layout.tsx with database initialization on mount
+- [X] T032 Create root layout in src/app/\_layout.tsx with database initialization on mount
 - [ ] T033 Create tabs layout in src/app/(tabs)/\_layout.tsx for main navigation (Home, Production, Lots, Profile)
 - [ ] T034 [P] Create auth layout in src/app/(auth)/\_layout.tsx for login/invitation flows
 
