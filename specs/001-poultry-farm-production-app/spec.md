@@ -47,15 +47,17 @@ The system must support secure, closed-access authentication where administrator
 
 **Why this priority**: Security and access control are critical for a closed farm management system. Without proper authentication, the system cannot be deployed. Offline-first session management is essential for field workers.
 
-**Independent Test**: Can be fully tested by having an admin create an invitation, sending it to a new user, the user accepting and creating credentials, then verifying offline access works after first login and background validation occurs when online. Delivers security and enables offline work.
+**Independent Test**: Can be fully tested by having an admin create a user, generate an invitation deep link, share it via native sharing, user opens and accepts the invitation, then verifying offline access works after first authentication and background validation occurs when online. Delivers security and enables offline work.
 
 **Acceptance Scenarios**:
 
-1. **Given** an administrator is logged in, **When** they create a new user invitation with email and role, **Then** a unique invitation link is generated and can be shared
-2. **Given** a user receives an invitation link, **When** they click it and provide required credentials, **Then** their account is activated and they can log in
-3. **Given** a user has logged in once, **When** they open the app offline, **Then** they can access the app using cached session data without requiring internet
-4. **Given** a user opens the app with internet connectivity, **When** the app loads, **Then** session validation occurs in the background and invalid sessions prompt re-authentication
-5. **Given** an invitation has been sent, **When** the administrator views user management, **Then** they see invitation status (pending, accepted, expired)
+1. **Given** an administrator is logged in, **When** they create a new user with display name and role, **Then** the user is saved as "pending authentication"
+2. **Given** a pending user exists, **When** the administrator generates an invitation deep link (Custom URL Scheme), **Then** a unique link is created and can be shared via native share sheet (WhatsApp, SMS, etc.)
+3. **Given** a user receives an invitation deep link and has the app installed, **When** they open the link, **Then** they see a confirmation screen showing "Esta es una invitación para: [user_name]"
+4. **Given** a user sees the invitation confirmation, **When** they accept the invitation, **Then** they are marked as authenticated and can access the app
+5. **Given** a user has authenticated once, **When** they open the app offline, **Then** they can access the app using cached session data without requiring internet
+6. **Given** a user opens the app with internet connectivity and cached session, **When** the app loads, **Then** session validation occurs in the background before any sync, and invalid sessions prompt re-authentication
+7. **Given** invitations have been generated, **When** the administrator views user management, **Then** they see user authentication status (pending, authenticated)
 
 ---
 
@@ -114,21 +116,23 @@ Users need to record health events (vaccinations) and biosecurity events (disinf
 
 **Authentication & Access Control:**
 
-- **FR-001**: System MUST support invitation-based user registration where administrators create invitations with unique links
-- **FR-002**: System MUST allow users to set credentials (password/PIN) when accepting invitation links
-- **FR-003**: System MUST cache session data locally after first successful login to enable offline access
-- **FR-004**: System MUST perform background session validation when internet connectivity is detected
-- **FR-005**: System MUST support administrator role with permissions to create users and invitations
-- **FR-006**: System MUST support standard user role with permissions to record operational data
-- **FR-007**: Invitation links MUST expire 7 days after creation for security purposes
-- **FR-008**: Administrators MUST be able to resend expired invitations to users
+- **FR-001**: System MUST allow administrators to create users directly in the database with display name and role, marking them as "pending authentication"
+- **FR-002**: System MUST allow administrators to generate invitation deep links (Custom URL Scheme) for pending users and share them via native share sheet
+- **FR-003**: System MUST display user confirmation screen when opening invitation deep link showing "Esta es una invitación para: [user_name]" to prevent errors
+- **FR-004**: System MUST mark user as "authenticated" when they accept the invitation, allowing immediate app access
+- **FR-005**: System MUST cache session data locally after first authentication to enable offline access
+- **FR-006**: System MUST perform background session validation when internet connectivity is detected BEFORE any synchronization operations
+- **FR-007**: System MUST support administrator role with permissions to create users and generate invitations
+- **FR-008**: System MUST support standard user role with permissions to record operational data
+- **FR-009**: Invitation deep links MUST expire 7 days after creation for security purposes
+- **FR-010**: Administrators MUST be able to regenerate expired invitations for pending users
 
 **Facility & Lot Management:**
 
-- **FR-009**: Administrators MUST be able to register chicken houses with unique names/identifiers
-- **FR-010**: Administrators MUST be able to create chicken lots with purchase date, initial hen count, current age, and assigned chicken house
-- **FR-011**: System MUST display current live hen count for each lot
-- **FR-012**: System MUST allow viewing lot details including creation date, current age, house assignment, and historical metrics
+- **FR-011**: Administrators MUST be able to register chicken houses with unique names/identifiers
+- **FR-012**: Administrators MUST be able to create chicken lots with purchase date, initial hen count, current age, and assigned chicken house
+- **FR-013**: System MUST display current live hen count for each lot
+- **FR-014**: System MUST allow viewing lot details including creation date, current age, house assignment, and historical metrics
 
 **Production Tracking:**
 

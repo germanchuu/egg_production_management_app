@@ -50,36 +50,34 @@ This document defines the data entities, relationships, validation rules, and st
 
 ### 1. User
 
-**Description**: Represents system users (administrators and standard users).
+**Description**: Represents system users (administrators and standard users). Users are created by administrators and authenticated via invitation deep links.
 
 **Fields**:
 
 | Field | Type | Required | Description | Validation |
 |-------|------|----------|-------------|------------|
 | `id` | UUID | Yes | Unique user identifier | Auto-generated |
-| `email` | String | Yes | User email address | Valid email format |
 | `displayName` | String | Yes | User's full name | 2-100 characters |
 | `role` | Enum | Yes | User role: `admin` or `user` | One of: ['admin', 'user'] |
-| `passwordHash` | String | Yes | Hashed password (server-side only) | bcrypt hash (not stored locally) |
+| `authStatus` | Enum | Yes | Authentication status | One of: ['pending', 'authenticated'] |
 | `createdAt` | Timestamp | Yes | Account creation timestamp | ISO-8601 |
-| `lastLoginAt` | Timestamp | No | Last successful login | ISO-8601 |
+| `lastAccessAt` | Timestamp | No | Last app access timestamp | ISO-8601 |
 | `isActive` | Boolean | Yes | Account active status | Default: true |
-| `invitationId` | UUID | No | Reference to invitation used to create account | FK to Invitation |
+| `invitationId` | UUID | No | Reference to current/last invitation | FK to Invitation |
 
 **Indexes**:
 - Primary: `id`
-- Unique: `email`
-- Index: `role`, `isActive`
+- Index: `role`, `authStatus`, `isActive`
 
 **Local Storage (SQLite)**:
 ```sql
 CREATE TABLE users (
   id TEXT PRIMARY KEY,
-  email TEXT UNIQUE NOT NULL,
   display_name TEXT NOT NULL,
   role TEXT NOT NULL CHECK(role IN ('admin', 'user')),
+  auth_status TEXT NOT NULL CHECK(auth_status IN ('pending', 'authenticated')),
   created_at TEXT NOT NULL,
-  last_login_at TEXT,
+  last_access_at TEXT,
   is_active INTEGER NOT NULL DEFAULT 1,
   invitation_id TEXT,
   updated_at TEXT NOT NULL,
@@ -90,56 +88,53 @@ CREATE TABLE users (
 **Firestore Collection**: `users/{userId}`
 
 **Validation Rules**:
-- Email must be unique across all users
+- displayName must be 2-100 characters
 - Role cannot be changed after account creation (immutable)
-- Only admins can create new invitations (enforced by Firebase rules)
+- authStatus transitions: pending → authenticated (one-way, no reversal)
+- Only admins can create new users and generate invitations (enforced by Firebase rules)
 
 **Access Control**:
-- Admins: Can read all users, create/update users (except changing roles)
-- Users: Can read own user document, update own `displayName` and `lastLoginAt`
+- Admins: Can read all users, create users, generate invitations, update user status
+- Users: Can read own user document, update own `displayName` and `lastAccessAt`
 
 ---
 
 ### 2. Invitation
 
-**Description**: Invitation tokens for user registration (invitation-based auth system).
+**Description**: Invitation tokens for user authentication via deep links (Custom URL Scheme). Each invitation is generated for a specific pending user and shared via native share sheet.
 
 **Fields**:
 
 | Field | Type | Required | Description | Validation |
 |-------|------|----------|-------------|------------|
 | `id` | UUID | Yes | Unique invitation identifier | Auto-generated |
-| `email` | String | Yes | Invited user's email | Valid email format |
-| `role` | Enum | Yes | Role to assign: `admin` or `user` | One of: ['admin', 'user'] |
-| `token` | String | Yes | Unique invitation token | Cryptographically secure random string (32 chars) |
-| `createdBy` | UUID | Yes | User ID who created invitation | FK to User |
-| `createdAt` | Timestamp | Yes | Invitation creation timestamp | ISO-8601 |
-| `expiresAt` | Timestamp | Yes | Invitation expiry (7 days from creation) | createdAt + 7 days (FR-007) |
+| `userId` | UUID | Yes | User ID for whom invitation is generated | FK to User |
+| `token` | String | Yes | Unique invitation token for deep link | Cryptographically secure random string (32 chars) |
+| `createdBy` | UUID | Yes | Admin user ID who generated invitation | FK to User |
+| `createdAt` | Timestamp | Yes | Invitation generation timestamp | ISO-8601 |
+| `expiresAt` | Timestamp | Yes | Invitation expiry (7 days from creation) | createdAt + 7 days (FR-009) |
 | `status` | Enum | Yes | Invitation status | One of: ['pending', 'accepted', 'expired'] |
 | `acceptedAt` | Timestamp | No | When invitation was accepted | ISO-8601 |
-| `acceptedBy` | UUID | No | User ID who accepted invitation | FK to User |
 
 **Indexes**:
 - Primary: `id`
 - Unique: `token`
-- Index: `email`, `status`, `expiresAt`
+- Index: `userId`, `status`, `expiresAt`
 
 **Local Storage (SQLite)**:
 ```sql
 CREATE TABLE invitations (
   id TEXT PRIMARY KEY,
-  email TEXT NOT NULL,
-  role TEXT NOT NULL CHECK(role IN ('admin', 'user')),
+  user_id TEXT NOT NULL,
   token TEXT UNIQUE NOT NULL,
   created_by TEXT NOT NULL,
   created_at TEXT NOT NULL,
   expires_at TEXT NOT NULL,
   status TEXT NOT NULL CHECK(status IN ('pending', 'accepted', 'expired')),
   accepted_at TEXT,
-  accepted_by TEXT,
   updated_at TEXT NOT NULL,
-  FOREIGN KEY (created_by) REFERENCES users(id),
-  FOREIGN KEY (accepted_by) REFERENCES users(id)
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (created_by) REFERENCES users(id)
 );
 ```
 

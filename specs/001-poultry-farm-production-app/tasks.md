@@ -81,7 +81,7 @@ Per Constitution II (Feature-Based Organization):
 
 ### Shared Utilities
 
-- [X] T029 [P] Create validation schemas in src/shared/utils/validation.ts with Zod schemas for date (no future), positive integers, decimals, email, UUID
+- [X] T029 [P] Create validation schemas in src/shared/utils/validation.ts with Zod schemas for date (no future), positive integers, decimals, UUID
 - [X] T030 [P] Create date utilities in src/shared/utils/date.ts for date formatting, week calculations, and ISO-8601 conversions
 - [X] T031 [P] Create ID generation utility in src/shared/utils/id.ts using UUID v4
 
@@ -89,7 +89,7 @@ Per Constitution II (Feature-Based Organization):
 
 - [X] T032 Create root layout in src/app/\_layout.tsx with database initialization on mount
 - [X] T033 Create tabs layout in src/app/(tabs)/\_layout.tsx for main navigation (Home, Production, Lots, Profile)
-- [ ] T034 [P] Create auth layout in src/app/(auth)/\_layout.tsx for login/invitation flows
+- [ ] T034 [P] Create auth layout in src/app/(auth)/\_layout.tsx for invitation acceptance flow
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -105,33 +105,33 @@ Per Constitution II (Feature-Based Organization):
 
 - [ ] T035 [P] [US3] Create User model in src/features/auth/models/User.ts with TypeScript interface matching data-model.md
 - [ ] T036 [P] [US3] Create Invitation model in src/features/auth/models/Invitation.ts with status transitions (pending → accepted/expired)
-- [ ] T037 [US3] Create AuthService in src/features/auth/services/AuthService.ts with methods: login(), logout(), validateSession(), getStoredToken(), storeToken() using expo-secure-store
-- [ ] T038 [US3] Create InvitationService in src/features/auth/services/InvitationService.ts with methods: createInvitation(), validateInvitationToken(), acceptInvitation(), resendInvitation()
-- [ ] T039 [US3] Implement session caching in AuthService using expo-secure-store for auth token persistence
-- [ ] T040 [US3] Implement background token validation in AuthService when online (check Firebase token expiry, refresh if needed)
+- [ ] T037 [US3] Create AuthService in src/features/auth/services/AuthService.ts with methods: acceptInvitation(), logout(), validateSession(), getStoredSession(), storeSession() using expo-secure-store
+- [ ] T038 [US3] Create InvitationService in src/features/auth/services/InvitationService.ts with methods: generateDeepLink(), validateInvitationToken(), acceptInvitation(), regenerateInvitation()
+- [ ] T039 [US3] Implement session caching in AuthService using expo-secure-store for session persistence
+- [ ] T040 [US3] Implement background session validation in AuthService when online BEFORE any sync (validate session, mark invalid if expired)
 
 ### Firebase Functions
 
-- [ ] T041 [P] [US3] Create createInvitation Firebase Function in functions/src/invitations/createInvitation.ts (admin only, generates token, saves to Firestore, returns invitation link)
-- [ ] T042 [P] [US3] Create validateInvitation Firebase Function in functions/src/invitations/validateInvitation.ts (public, checks token validity and expiry)
-- [ ] T043 [P] [US3] Create acceptInvitation Firebase Function in functions/src/invitations/acceptInvitation.ts (creates Firebase auth user, updates invitation status, creates user document)
-- [ ] T044 [P] [US3] Create resendInvitation Firebase Function in functions/src/invitations/resendInvitation.ts (admin only, creates new invitation with new token)
+- [ ] T041 [P] [US3] Create generateInvitation Firebase Function in functions/src/invitations/generateInvitation.ts (admin only, generates token for user, saves to Firestore, returns deep link)
+- [ ] T042 [P] [US3] Create validateInvitation Firebase Function in functions/src/invitations/validateInvitation.ts (public, checks token validity, expiry, and returns user info)
+- [ ] T043 [P] [US3] Create acceptInvitation Firebase Function in functions/src/invitations/acceptInvitation.ts (marks user as authenticated, updates user document, invalidates invitation token)
+- [ ] T044 [P] [US3] Create regenerateInvitation Firebase Function in functions/src/invitations/regenerateInvitation.ts (admin only, creates new invitation token for pending users)
 
 ### UI Components & Screens
 
-- [ ] T045 [P] [US3] Create LoginForm component in src/features/auth/components/LoginForm.tsx with email/password inputs using React Hook Form + Zod validation
-- [ ] T046 [P] [US3] Create InvitationAcceptanceForm component in src/features/auth/components/InvitationAcceptanceForm.tsx for setting password and display name
-- [ ] T047 [US3] Create login screen in src/app/(auth)/login.tsx with offline access message and login form
-- [ ] T048 [US3] Create invitation acceptance screen in src/app/(auth)/invite/[token].tsx that validates token and shows acceptance form
-- [ ] T049 [P] [US3] Create user management screen in src/app/(tabs)/admin/users.tsx (admin only) showing invitation status, create invitation button, resend option
+- [ ] T045 [P] [US3] Create InvitationConfirmation component in src/features/auth/components/InvitationConfirmation.tsx showing "Esta es una invitación para: [user_name]" with accept button
+- [ ] T046 [US3] Create invitation acceptance screen in src/app/(auth)/invite/[token].tsx that validates deep link token and shows confirmation component
+- [ ] T047 [P] [US3] Create user management screen in src/app/(tabs)/admin/users.tsx (admin only) showing user list with authentication status and generate invitation button
+- [ ] T048 [US3] Implement deep link generation in InvitationService for Custom URL Scheme (myapp://invite/[token])
+- [ ] T049 [US3] Implement native share sheet integration for sharing invitation deep links (WhatsApp, SMS, etc.)
 - [ ] T050 [US3] Add auth state management using React Context in src/features/auth/contexts/AuthContext.tsx to track current user and auth status
 
 ### Integration & Validation
 
 - [ ] T051 [US3] Add validation for 7-day invitation expiry in InvitationService
-- [ ] T052 [US3] Add audit logging for invitation creation and acceptance in src/shared/sync/AuditService.ts
-- [ ] T053 [US3] Test offline login with cached credentials (SC-010: <3s app launch offline)
-- [ ] T054 [US3] Test background token validation when online
+- [ ] T052 [US3] Add audit logging for user creation and invitation acceptance in src/shared/sync/AuditService.ts
+- [ ] T053 [US3] Test offline app access with cached session (SC-010: <3s app launch offline)
+- [ ] T054 [US3] Test background session validation when online BEFORE any sync operations
 
 **Checkpoint**: Authentication system complete and independently testable
 
