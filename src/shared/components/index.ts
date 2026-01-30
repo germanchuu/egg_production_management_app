@@ -11,3 +11,4 @@ export {
   SyncStatusIndicator,
   type SyncStatusIndicatorProps,
 } from './SyncStatusIndicator';
+export { SplashScreen, type SplashScreenProps } from './SplashScreen';

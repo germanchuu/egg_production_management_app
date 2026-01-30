@@ -33,13 +33,13 @@ Per Constitution II (Feature-Based Organization):
 - [x] T003 [P] Install Firebase dependencies: firebase (JS SDK - compatible with Expo managed workflow)
 - [x] T004 [P] Configure NativeWind in babel.config.js and create tailwind.config.ts with theme (colors, spacing, typography)
 - [x] T005 [P] Configure ESLint and Prettier in .eslintrc.js and .prettierrc
-- [X] T006 [P] Create .env.example file with Firebase config placeholders (EXPO*PUBLIC_FIREBASE*\*)
-- [X] T007 Create src/ directory structure: features/, shared/, core/, app/
-- [X] T008 [P] Create feature directories: src/features/auth/, src/features/facilities/, src/features/production/, src/features/mortality/, src/features/feeding/, src/features/health-biosecurity/ (each with models/, services/, components/, screens/ subdirectories)
-- [X] T009 [P] Create shared directories: src/shared/database/, src/shared/sync/, src/shared/components/, src/shared/hooks/, src/shared/utils/, src/shared/types/
-- [X] T010 [P] Create core directories: src/core/config/, src/core/theme/
-- [X] T011 Configure TypeScript paths in tsconfig.json for @/* alias mapping to src/*
-- [X] T012 [P] Add .gitignore entries: .env, node_modules/, .expo/, dist/
+- [x] T006 [P] Create .env.example file with Firebase config placeholders (EXPO*PUBLIC_FIREBASE*\*)
+- [x] T007 Create src/ directory structure: features/, shared/, core/, app/
+- [x] T008 [P] Create feature directories: src/features/auth/, src/features/facilities/, src/features/production/, src/features/mortality/, src/features/feeding/, src/features/health-biosecurity/ (each with models/, services/, components/, screens/ subdirectories)
+- [x] T009 [P] Create shared directories: src/shared/database/, src/shared/sync/, src/shared/components/, src/shared/hooks/, src/shared/utils/, src/shared/types/
+- [x] T010 [P] Create core directories: src/core/config/, src/core/theme/
+- [x] T011 Configure TypeScript paths in tsconfig.json for @/_ alias mapping to src/_
+- [x] T012 [P] Add .gitignore entries: .env, node_modules/, .expo/, dist/
 
 **Checkpoint**: Project structure and tooling configured
 
@@ -53,43 +53,43 @@ Per Constitution II (Feature-Based Organization):
 
 ### Database & Storage
 
-- [X] T013 Create SQLite schema initialization in src/shared/database/schema.ts with all tables (users, invitations, chicken_houses, chicken_lots, production_records, mortality_records, feed_batches, feeding_records, health_events, biosecurity_events, sync_queue, audit_log_local)
-- [X] T014 Implement database initialization function in src/shared/database/SQLiteDatabase.ts to open database and run schema migrations
-- [X] T015 Create database connection singleton in src/shared/database/index.ts
-- [X] T016 [P] Create shared TypeScript types in src/shared/types/entities.ts for all entities (User, Invitation, ChickenHouse, ChickenLot, ProductionRecord, MortalityRecord, FeedBatch, FeedingRecord, LotEvent)
+- [x] T013 Create SQLite schema initialization in src/shared/database/schema.ts with all tables (users, invitations, chicken_houses, chicken_lots, production_records, mortality_records, feed_batches, feeding_records, health_events, biosecurity_events, sync_queue, audit_log_local)
+- [x] T014 Implement database initialization function in src/shared/database/SQLiteDatabase.ts to open database and run schema migrations
+- [x] T015 Create database connection singleton in src/shared/database/index.ts
+- [x] T016 [P] Create shared TypeScript types in src/shared/types/entities.ts for all entities (User, Invitation, ChickenHouse, ChickenLot, ProductionRecord, MortalityRecord, FeedBatch, FeedingRecord, LotEvent)
 
 ### Firebase Configuration
 
-- [X] T017 [P] Create Firebase config initialization in src/core/config/firebase.ts with app initialization, auth, and firestore exports
-- [X] T018 [P] Create Firebase security rules in firestore.rules file for all collections
-- [X] T019 [P] Create environment variables loader in src/core/config/env.ts to validate EXPO*PUBLIC_FIREBASE*\* variables
+- [x] T017 [P] Create Firebase config initialization in src/core/config/firebase.ts with app initialization, auth, and firestore exports
+- [x] T018 [P] Create Firebase security rules in firestore.rules file for all collections
+- [x] T019 [P] Create environment variables loader in src/core/config/env.ts to validate EXPO*PUBLIC_FIREBASE*\* variables
 
 ### Sync Infrastructure
 
-- [X] T020 Create SyncQueue service in src/shared/sync/SyncQueue.ts to manage local sync queue (insert, query pending, mark synced)
-- [X] T021 Create ConflictResolver in src/shared/sync/ConflictResolver.ts implementing Last-Write-Wins (LWW) based on timestamp comparison
-- [X] T022 Create SyncService in src/shared/sync/SyncService.ts with batch sync logic (upload pending changes, download updates, apply conflict resolution)
-- [X] T023 [P] Create network detection hook in src/shared/hooks/useNetInfo.ts using @react-native-community/netinfo
-- [X] T024 [P] Create sync status hook in src/shared/hooks/useSync.ts to trigger sync on connectivity and provide sync status (synced/pending/syncing/failed)
+- [x] T020 Create SyncQueue service in src/shared/sync/SyncQueue.ts to manage local sync queue (insert, query pending, mark synced)
+- [x] T021 Create ConflictResolver in src/shared/sync/ConflictResolver.ts implementing Last-Write-Wins (LWW) based on timestamp comparison
+- [x] T022 Create SyncService in src/shared/sync/SyncService.ts with batch sync logic (upload pending changes, download updates, apply conflict resolution)
+- [x] T023 [P] Create network detection hook in src/shared/hooks/useNetInfo.ts using @react-native-community/netinfo
+- [x] T024 [P] Create sync status hook in src/shared/hooks/useSync.ts to trigger sync on connectivity and provide sync status (synced/pending/syncing/failed)
 
 ### Shared UI Components (Constitution III: Simplicity-First)
 
-- [X] T025 [P] Create FormInput component in src/shared/components/FormInput.tsx with numeric keyboard support and 48dp touch target
-- [X] T026 [P] Create DatePicker component in src/shared/components/DatePicker.tsx with native date picker integration
-- [X] T027 [P] Create Button component in src/shared/components/Button.tsx with large touch targets (min 48dp) and haptic feedback
-- [X] T028 [P] Create SyncStatusIndicator component in src/shared/components/SyncStatusIndicator.tsx showing synced/pending/syncing/failed states with icons
+- [x] T025 [P] Create FormInput component in src/shared/components/FormInput.tsx with numeric keyboard support and 48dp touch target
+- [x] T026 [P] Create DatePicker component in src/shared/components/DatePicker.tsx with native date picker integration
+- [x] T027 [P] Create Button component in src/shared/components/Button.tsx with large touch targets (min 48dp) and haptic feedback
+- [x] T028 [P] Create SyncStatusIndicator component in src/shared/components/SyncStatusIndicator.tsx showing synced/pending/syncing/failed states with icons
 
 ### Shared Utilities
 
-- [X] T029 [P] Create validation schemas in src/shared/utils/validation.ts with Zod schemas for date (no future), positive integers, decimals, UUID
-- [X] T030 [P] Create date utilities in src/shared/utils/date.ts for date formatting, week calculations, and ISO-8601 conversions
-- [X] T031 [P] Create ID generation utility in src/shared/utils/id.ts using UUID v4
+- [x] T029 [P] Create validation schemas in src/shared/utils/validation.ts with Zod schemas for date (no future), positive integers, decimals, UUID
+- [x] T030 [P] Create date utilities in src/shared/utils/date.ts for date formatting, week calculations, and ISO-8601 conversions
+- [x] T031 [P] Create ID generation utility in src/shared/utils/id.ts using UUID v4
 
 ### App Layout & Navigation
 
-- [X] T032 Create root layout in src/app/\_layout.tsx with database initialization on mount
-- [X] T033 Create tabs layout in src/app/(tabs)/\_layout.tsx for main navigation (Home, Production, Lots, Profile)
-- [X] T034 [P] Create auth layout in src/app/(auth)/\_layout.tsx for invitation acceptance flow
+- [x] T032 Create root layout in src/app/\_layout.tsx with database initialization on mount
+- [x] T033 Create tabs layout in src/app/(tabs)/\_layout.tsx for main navigation (Home, Production, Lots, Profile)
+- [x] T034 [P] Create auth layout in src/app/(auth)/\_layout.tsx for invitation acceptance flow
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -121,9 +121,9 @@ Per Constitution II (Feature-Based Organization):
 
 ### UI Components & Screens
 
-- [ ] T045 [P] [US3] Create InvitationConfirmation component in src/features/auth/components/InvitationConfirmation.tsx showing "Esta es una invitación para: [user_name]" with accept button
+- [x] T045 [P] [US3] Create InvitationConfirmation component in src/features/auth/components/InvitationConfirmation.tsx showing "Esta es una invitación para: [user_name]" with accept button
 - [ ] T046 [US3] Create invitation acceptance screen in src/app/(auth)/invite/[token].tsx that validates deep link token and shows confirmation component
-- [ ] T047 [P] [US3] Create user management screen in src/app/(tabs)/admin/users.tsx (admin only) showing user list with authentication status (pending, authenticated, revoked), generate invitation button, and revoke user button (disabled for already revoked users)
+- [x] T047 [P] [US3] Create user management screen in src/app/(tabs)/admin/users.tsx (admin only) showing user list with authentication status (pending, authenticated, revoked), generate invitation button, and revoke user button (disabled for already revoked users)
 - [ ] T048 [US3] Implement deep link generation in InvitationService for Custom URL Scheme (myapp://invite/[token])
 - [ ] T049 [US3] Implement native share sheet integration for sharing invitation deep links (WhatsApp, SMS, etc.)
 - [ ] T050 [US3] Add auth state management using React Context in src/features/auth/contexts/AuthContext.tsx to track current user and auth status

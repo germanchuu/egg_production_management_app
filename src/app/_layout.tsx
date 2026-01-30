@@ -15,12 +15,13 @@
  */
 
 import { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator } from 'react-native';
-import { Slot, SplashScreen } from 'expo-router';
+import { View, Text } from 'react-native';
+import { Slot, SplashScreen as ExpoSplashScreen } from 'expo-router';
 import { initDatabase } from '@/shared/database';
+import { SplashScreen } from '@/shared/components';
 
 // Prevent the splash screen from auto-hiding
-SplashScreen.preventAutoHideAsync();
+ExpoSplashScreen.preventAutoHideAsync();
 
 /**
  * Initialization states
@@ -49,7 +50,7 @@ export default function RootLayout() {
         setInitState('error');
       } finally {
         // Hide the splash screen once initialization is complete
-        await SplashScreen.hideAsync();
+        await ExpoSplashScreen.hideAsync();
       }
     }
 
@@ -58,27 +59,22 @@ export default function RootLayout() {
 
   // Show loading state while initializing
   if (initState === 'loading') {
-    return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator size="large" color="#3b82f6" />
-        <Text className="mt-4 text-gray-600">Iniciando</Text>
-      </View>
-    );
+    return <SplashScreen isLoading={true} />;
   }
 
   // Show error state if initialization failed
   if (initState === 'error') {
     return (
-      <View className="flex-1 items-center justify-center bg-white p-6">
-        <Text className="text-xl font-bold text-error mb-2">
+      <View className="flex-1 items-center justify-center bg-background px-xl py-2xl">
+        <Text className="text-xl font-bold text-error mb-md">
           Error de Inicialización
         </Text>
-        <Text className="text-gray-700 text-center mb-4">
+        <Text className="text-text-primary text-center mb-lg">
           No se pudo inicializar la base de datos. Por favor, reinicia la
           aplicación.
         </Text>
         {error && (
-          <Text className="text-sm text-gray-500 text-center">
+          <Text className="text-sm text-text-tertiary text-center">
             {error.message}
           </Text>
         )}
