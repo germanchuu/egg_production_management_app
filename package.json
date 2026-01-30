@@ -21,10 +21,13 @@
     "lint": "eslint src/ tests/ --ext .ts,.tsx"
   },
   "dependencies": {
+    "@expo/vector-icons": "^15.0.3",
     "@hookform/resolvers": "^5.2.2",
     "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-native-community/datetimepicker": "^8.4.4",
     "@react-native-community/netinfo": "11.4.1",
     "expo": "~54.0.32",
+    "expo-haptics": "^15.0.8",
     "expo-router": "~6.0.22",
     "expo-secure-store": "~15.0.8",
     "expo-sqlite": "~16.0.10",

@@ -12,10 +12,9 @@
  * ```typescript
  * import { SyncService } from '@/shared/sync/SyncService';
  * import { getDatabase } from '@/shared/database';
- * import { getFirestore } from '@/core/config/firebase';
+ * import { firestore } from '@/core/config/firebase';
  *
  * const db = getDatabase();
- * const firestore = getFirestore();
  * const syncQueue = new SyncQueue(db);
  * const conflictResolver = new ConflictResolver();
  * const syncService = new SyncService(db, firestore, syncQueue, conflictResolver);
@@ -27,41 +26,21 @@
  */
 
 import * as SQLite from 'expo-sqlite';
+import {
+  Firestore,
+  collection,
+  doc,
+  getDoc,
+  setDoc,
+  deleteDoc,
+  query,
+  where,
+  getDocs,
+  type DocumentData,
+  type WhereFilterOp,
+} from 'firebase/firestore';
 import { SyncQueue, QueueRecord, SyncOperation } from './SyncQueue';
 import { ConflictResolver, TimestampedDocument } from './ConflictResolver';
-
-/**
- * Firestore interface (minimal subset we use)
- */
-export interface Firestore {
-  collection(path: string): CollectionReference;
-}
-
-export interface CollectionReference {
-  doc(id: string): DocumentReference;
-  where(field: string, op: string, value: any): Query;
-}
-
-export interface DocumentReference {
-  get(): Promise<DocumentSnapshot>;
-  set(data: any): Promise<void>;
-  delete(): Promise<void>;
-}
-
-export interface DocumentSnapshot {
-  exists(): boolean;
-  data(): any;
-  id: string;
-}
-
-export interface Query {
-  get(): Promise<QuerySnapshot>;
-}
-
-export interface QuerySnapshot {
-  docs: DocumentSnapshot[];
-  empty: boolean;
-}
 
 /**
  * Sync statistics result
@@ -141,11 +120,10 @@ export class SyncService {
       throw new Error(`Unknown entity type: ${entity_type}`);
     }
 
-    const collection = this.firestore.collection(collectionName);
-    const docRef = collection.doc(entity_id);
+    const docRef = doc(this.firestore, collectionName, entity_id);
 
     if (operation === 'DELETE') {
-      await docRef.delete();
+      await deleteDoc(docRef);
       return;
     }
 
@@ -160,7 +138,7 @@ export class SyncService {
     // Convert snake_case DB fields to camelCase for Firestore
     const firestoreData = this.convertToFirestoreFormat(entity_type, localData);
 
-    await docRef.set(firestoreData);
+    await setDoc(docRef, firestoreData);
   }
 
   /**
@@ -221,25 +199,28 @@ export class SyncService {
     const collections = ['production_records'];
 
     for (const collectionName of collections) {
-      const collection = this.firestore.collection(collectionName);
+      const collectionRef = collection(this.firestore, collectionName);
 
       // TODO: Add timestamp filtering: where('updatedAt', '>', lastSyncTimestamp)
       // For now, get all documents (will implement timestamp tracking later)
-      const query = collection.where('updatedAt', '>', '1970-01-01T00:00:00.000Z');
-      const snapshot = await query.get();
+      const q = query(
+        collectionRef,
+        where('updatedAt', '>', '1970-01-01T00:00:00.000Z')
+      );
+      const snapshot = await getDocs(q);
 
       if (snapshot.empty) {
         continue;
       }
 
-      for (const doc of snapshot.docs) {
-        if (!doc.exists()) {
+      for (const docSnapshot of snapshot.docs) {
+        if (!docSnapshot.exists()) {
           continue;
         }
 
-        const remoteData = doc.data();
+        const remoteData = docSnapshot.data();
         const entityType = collectionName;
-        const entityId = doc.id;
+        const entityId = docSnapshot.id;
 
         // Check if exists locally
         const localData = await this.readEntityFromLocalDB(entityType, entityId);

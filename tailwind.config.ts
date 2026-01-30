@@ -85,13 +85,11 @@ const config: Config = {
           secondary: "#F5F5F5",
           tertiary: "#E0F7FA",
         },
-        // Text
-        text: {
-          primary: "#212121",
-          secondary: "#616161",
-          tertiary: "#9E9E9E",
-          inverse: "#FFFFFF",
-        },
+        // Text colors (use as text-primary, text-secondary, etc.)
+        "text-primary": "#212121",
+        "text-secondary": "#616161",
+        "text-tertiary": "#9E9E9E",
+        "text-inverse": "#FFFFFF",
       },
       spacing: {
         xs: "4px",

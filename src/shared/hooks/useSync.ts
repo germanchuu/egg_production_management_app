@@ -12,7 +12,7 @@
  *
  * Usage:
  * ```typescript
- * import { useSync } from '@/shared/hooks/useSync';
+ * import { useSync } from '../hooks/useSync';
  *
  * function MyComponent() {
  *   const { status, pendingCount, sync, lastSyncAt } = useSync();
@@ -34,7 +34,7 @@ import { SyncService } from '@/shared/sync/SyncService';
 import { SyncQueue } from '@/shared/sync/SyncQueue';
 import { ConflictResolver } from '@/shared/sync/ConflictResolver';
 import { getDatabase } from '@/shared/database';
-import { getFirestore } from '@/core/config/firebase';
+import { firestore } from '@/core/config/firebase';
 
 /**
  * Sync status types
@@ -86,7 +86,6 @@ export function useSync(): UseSyncReturn {
   // Initialize services
   useEffect(() => {
     const db = getDatabase();
-    const firestore = getFirestore();
     const syncQueue = new SyncQueue(db);
     const conflictResolver = new ConflictResolver();
     const syncService = new SyncService(db, firestore, syncQueue, conflictResolver);

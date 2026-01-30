@@ -13,18 +13,30 @@ import {
   cleanupTestDatabase,
 } from '../../../utils/testDatabase';
 
-// Mock Firebase Firestore
-const mockFirestoreCollection = jest.fn();
-const mockFirestoreDoc = jest.fn();
-const mockFirestoreSet = jest.fn();
-const mockFirestoreGet = jest.fn();
-const mockFirestoreWhere = jest.fn();
-const mockFirestoreQuery = jest.fn();
-const mockFirestoreGetDocs = jest.fn();
+// Mock Firebase Firestore modular functions
+const mockCollection = jest.fn();
+const mockDoc = jest.fn();
+const mockGetDoc = jest.fn();
+const mockSetDoc = jest.fn();
+const mockDeleteDoc = jest.fn();
+const mockQuery = jest.fn();
+const mockWhere = jest.fn();
+const mockGetDocs = jest.fn();
 
-const mockFirestore = {
-  collection: mockFirestoreCollection,
-} as any;
+// Mock the firebase/firestore module
+jest.mock('firebase/firestore', () => ({
+  collection: (...args: any[]) => mockCollection(...args),
+  doc: (...args: any[]) => mockDoc(...args),
+  getDoc: (...args: any[]) => mockGetDoc(...args),
+  setDoc: (...args: any[]) => mockSetDoc(...args),
+  deleteDoc: (...args: any[]) => mockDeleteDoc(...args),
+  query: (...args: any[]) => mockQuery(...args),
+  where: (...args: any[]) => mockWhere(...args),
+  getDocs: (...args: any[]) => mockGetDocs(...args),
+}));
+
+// Mock Firestore instance
+const mockFirestore = {} as any;
 
 describe('SyncService', () => {
   let db: SQLite.SQLiteDatabase;
@@ -73,27 +85,18 @@ describe('SyncService', () => {
     jest.clearAllMocks();
 
     // Setup default mock implementations
-    mockFirestoreCollection.mockReturnValue({
-      doc: mockFirestoreDoc,
-      where: mockFirestoreWhere,
-    });
-
-    mockFirestoreDoc.mockReturnValue({
-      set: mockFirestoreSet,
-      get: mockFirestoreGet,
-    });
-
-    mockFirestoreSet.mockResolvedValue(undefined);
-    mockFirestoreGet.mockResolvedValue({
+    mockCollection.mockReturnValue('mock-collection-ref');
+    mockDoc.mockReturnValue('mock-doc-ref');
+    mockSetDoc.mockResolvedValue(undefined);
+    mockDeleteDoc.mockResolvedValue(undefined);
+    mockGetDoc.mockResolvedValue({
       exists: () => false,
       data: () => null,
+      id: 'mock-id',
     });
-
-    mockFirestoreWhere.mockReturnValue({
-      get: mockFirestoreGetDocs,
-    });
-
-    mockFirestoreGetDocs.mockResolvedValue({
+    mockWhere.mockReturnValue('mock-where-constraint');
+    mockQuery.mockReturnValue('mock-query');
+    mockGetDocs.mockResolvedValue({
       docs: [],
       empty: true,
     });
@@ -126,13 +129,12 @@ describe('SyncService', () => {
       // Upload
       await syncService.uploadPendingChanges();
 
-      // Verify Firestore was called
-      expect(mockFirestoreCollection).toHaveBeenCalledWith('production_records');
-      expect(mockFirestoreDoc).toHaveBeenCalledWith(recordId);
-      expect(mockFirestoreSet).toHaveBeenCalled();
+      // Verify Firestore functions were called
+      expect(mockDoc).toHaveBeenCalledWith(mockFirestore, 'production_records', recordId);
+      expect(mockSetDoc).toHaveBeenCalled();
 
       // Verify data uploaded includes all fields
-      const uploadedData = mockFirestoreSet.mock.calls[0][0];
+      const uploadedData = mockSetDoc.mock.calls[0][1];
       expect(uploadedData.id).toBe(recordId);
       expect(uploadedData.lotId).toBe('lot-1');
       expect(uploadedData.eggsCollected).toBe(100);
@@ -158,8 +160,8 @@ describe('SyncService', () => {
 
       await syncService.uploadPendingChanges();
 
-      expect(mockFirestoreSet).toHaveBeenCalled();
-      const uploadedData = mockFirestoreSet.mock.calls[0][0];
+      expect(mockSetDoc).toHaveBeenCalled();
+      const uploadedData = mockSetDoc.mock.calls[0][1];
       expect(uploadedData.eggsCollected).toBe(105);
     });
 
@@ -172,15 +174,10 @@ describe('SyncService', () => {
         operation: 'DELETE',
       });
 
-      const mockDelete = jest.fn().mockResolvedValue(undefined);
-      mockFirestoreDoc.mockReturnValue({
-        delete: mockDelete,
-      });
-
       await syncService.uploadPendingChanges();
 
-      expect(mockFirestoreDoc).toHaveBeenCalledWith(recordId);
-      expect(mockDelete).toHaveBeenCalled();
+      expect(mockDoc).toHaveBeenCalledWith(mockFirestore, 'production_records', recordId);
+      expect(mockDeleteDoc).toHaveBeenCalled();
     });
 
     it('should mark operations as synced after successful upload', async () => {
@@ -212,7 +209,7 @@ describe('SyncService', () => {
     it('should handle empty queue', async () => {
       await syncService.uploadPendingChanges();
 
-      expect(mockFirestoreSet).not.toHaveBeenCalled();
+      expect(mockSetDoc).not.toHaveBeenCalled();
     });
 
     it('should handle upload errors without crashing', async () => {
@@ -232,7 +229,7 @@ describe('SyncService', () => {
         operation: 'CREATE',
       });
 
-      mockFirestoreSet.mockRejectedValue(new Error('Network error'));
+      mockSetDoc.mockRejectedValue(new Error('Network error'));
 
       await expect(syncService.uploadPendingChanges()).rejects.toThrow(
         'Network error'
@@ -256,7 +253,7 @@ describe('SyncService', () => {
         updatedAt: '2024-01-15T10:00:00.000Z',
       };
 
-      mockFirestoreGetDocs.mockResolvedValue({
+      mockGetDocs.mockResolvedValue({
         docs: [
           {
             id: remoteRecord.id,
@@ -309,7 +306,7 @@ describe('SyncService', () => {
         updatedAt: '2024-01-15T10:00:00.000Z', // Newer
       };
 
-      mockFirestoreGetDocs.mockResolvedValue({
+      mockGetDocs.mockResolvedValue({
         docs: [
           {
             id: remoteRecord.id,
@@ -332,7 +329,7 @@ describe('SyncService', () => {
     });
 
     it('should handle no updates available', async () => {
-      mockFirestoreGetDocs.mockResolvedValue({
+      mockGetDocs.mockResolvedValue({
         docs: [],
         empty: true,
       });
@@ -375,7 +372,7 @@ describe('SyncService', () => {
       });
 
       // Mock download
-      mockFirestoreGetDocs.mockResolvedValue({
+      mockGetDocs.mockResolvedValue({
         docs: [],
         empty: true,
       });

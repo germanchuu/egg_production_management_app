@@ -74,10 +74,10 @@ Per Constitution II (Feature-Based Organization):
 
 ### Shared UI Components (Constitution III: Simplicity-First)
 
-- [ ] T025 [P] Create FormInput component in src/shared/components/FormInput.tsx with numeric keyboard support and 48dp touch target
-- [ ] T026 [P] Create DatePicker component in src/shared/components/DatePicker.tsx with native date picker integration
-- [ ] T027 [P] Create Button component in src/shared/components/Button.tsx with large touch targets (min 48dp) and haptic feedback
-- [ ] T028 [P] Create SyncStatusIndicator component in src/shared/components/SyncStatusIndicator.tsx showing synced/pending/syncing/failed states with icons
+- [X] T025 [P] Create FormInput component in src/shared/components/FormInput.tsx with numeric keyboard support and 48dp touch target
+- [X] T026 [P] Create DatePicker component in src/shared/components/DatePicker.tsx with native date picker integration
+- [X] T027 [P] Create Button component in src/shared/components/Button.tsx with large touch targets (min 48dp) and haptic feedback
+- [X] T028 [P] Create SyncStatusIndicator component in src/shared/components/SyncStatusIndicator.tsx showing synced/pending/syncing/failed states with icons
 
 ### Shared Utilities
 
