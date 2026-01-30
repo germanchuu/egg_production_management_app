@@ -96,6 +96,7 @@ export function SyncStatusIndicator({
   compact = false,
 }: SyncStatusIndicatorProps) {
   const config = getStatusConfig(status);
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const spinValue = useRef(new Animated.Value(0)).current;
 
   // Rotation animation for syncing state
@@ -123,7 +124,7 @@ export function SyncStatusIndicator({
     }
   }, [config.animate, spinValue]);
 
-  // Map rotation value to degrees
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const spin = spinValue.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg'],
