@@ -68,7 +68,7 @@ Per Constitution II (Feature-Based Organization):
 
 - [X] T020 Create SyncQueue service in src/shared/sync/SyncQueue.ts to manage local sync queue (insert, query pending, mark synced)
 - [X] T021 Create ConflictResolver in src/shared/sync/ConflictResolver.ts implementing Last-Write-Wins (LWW) based on timestamp comparison
-- [ ] T022 Create SyncService in src/shared/sync/SyncService.ts with batch sync logic (upload pending changes, download updates, apply conflict resolution)
+- [X] T022 Create SyncService in src/shared/sync/SyncService.ts with batch sync logic (upload pending changes, download updates, apply conflict resolution)
 - [ ] T023 [P] Create network detection hook in src/shared/hooks/useNetInfo.ts using @react-native-community/netinfo
 - [ ] T024 [P] Create sync status hook in src/shared/hooks/useSync.ts to trigger sync on connectivity and provide sync status (synced/pending/syncing/failed)
 
