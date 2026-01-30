@@ -55,15 +55,15 @@ describe('SyncService', () => {
 
     // Create users
     await db.runAsync(
-      `INSERT INTO users (id, display_name, role, created_at, updated_at, is_active)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      ['user-1', 'Test User 1', 'admin', now, now, 1]
+      `INSERT INTO users (id, display_name, role, auth_status, created_at, updated_at, is_active)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      ['user-1', 'Test User 1', 'admin', 'authenticated', now, now, 1]
     );
 
     await db.runAsync(
-      `INSERT INTO users (id, display_name, role, created_at, updated_at, is_active)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      ['user-2', 'Test User 2', 'user', now, now, 1]
+      `INSERT INTO users (id, display_name, role, auth_status, created_at, updated_at, is_active)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      ['user-2', 'Test User 2', 'user', 'authenticated', now, now, 1]
     );
 
     // Create chicken house

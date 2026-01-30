@@ -60,6 +60,7 @@ This document defines the data entities, relationships, validation rules, and st
 | `displayName` | String | Yes | User's full name | 2-100 characters |
 | `role` | Enum | Yes | User role: `admin` or `user` | One of: ['admin', 'user'] |
 | `authStatus` | Enum | Yes | Authentication status | One of: ['pending', 'authenticated'] |
+| `authorizedDevices` | Array | No | List of authorized devices (max 3) | Array of {deviceId: UUID, deviceName: String, authorizedAt: Timestamp} |
 | `createdAt` | Timestamp | Yes | Account creation timestamp | ISO-8601 |
 | `lastAccessAt` | Timestamp | No | Last app access timestamp | ISO-8601 |
 | `isActive` | Boolean | Yes | Account active status | Default: true |
@@ -76,6 +77,7 @@ CREATE TABLE users (
   display_name TEXT NOT NULL,
   role TEXT NOT NULL CHECK(role IN ('admin', 'user')),
   auth_status TEXT NOT NULL CHECK(auth_status IN ('pending', 'authenticated')),
+  authorized_devices TEXT, -- JSON array: [{deviceId, deviceName, authorizedAt}]
   created_at TEXT NOT NULL,
   last_access_at TEXT,
   is_active INTEGER NOT NULL DEFAULT 1,
@@ -91,11 +93,58 @@ CREATE TABLE users (
 - displayName must be 2-100 characters
 - Role cannot be changed after account creation (immutable)
 - authStatus transitions: pending → authenticated (one-way, no reversal)
+- authorizedDevices: Maximum 3 devices per user (enforced server-side)
+- authorizedDevices: Each device must have unique deviceId
 - Only admins can create new users and generate invitations (enforced by Firebase rules)
 
 **Access Control**:
 - Admins: Can read all users, create users, generate invitations, update user status
 - Users: Can read own user document, update own `displayName` and `lastAccessAt`
+
+**Session Management**:
+
+Local session data is stored in expo-secure-store (encrypted storage) to enable offline authentication and session persistence. The session is validated in background when online and before any sync operations.
+
+**Session Storage Structure** (stored in expo-secure-store):
+```typescript
+{
+  userId: string;        // User ID (FK to User)
+  deviceId: string;      // Unique device identifier (UUID)
+  authenticatedAt: string; // ISO-8601 timestamp when device was authenticated
+  lastValidatedAt: string; // ISO-8601 timestamp of last online session validation
+}
+```
+
+**Session Lifecycle**:
+1. **Invitation Acceptance**: When user accepts invitation via deep link:
+   - Generate deviceId (UUID v4) if not exists
+   - Store session in expo-secure-store
+   - Add device to User.authorizedDevices array in Firestore (max 3 devices)
+   - Mark user as 'authenticated' in Firestore
+
+2. **App Start**: On every app launch:
+   - Read session from expo-secure-store
+   - If session exists: Allow offline access
+   - If online: Validate session in background (check if device still in User.authorizedDevices)
+   - If validation fails (device revoked): Clear local session and redirect to pending state
+
+3. **Before Sync**: Every sync operation MUST validate session first:
+   - Check if online
+   - If online: Validate session with Firestore
+   - If validation fails: Block sync, clear session, redirect to pending state
+   - If validation succeeds: Update lastValidatedAt and proceed with sync
+
+4. **Session Revocation** (Admin action):
+   - Admin removes device from User.authorizedDevices array
+   - Next time device goes online: Session validation fails
+   - Local session cleared, user cannot sync until new invitation accepted
+
+**Security Considerations**:
+- Session data encrypted at rest via expo-secure-store
+- No passwords or tokens stored locally (only userId + deviceId)
+- Device authorization validated server-side on every online interaction
+- Multi-device support limited to 3 devices per user
+- Admins can revoke device access remotely via Firestore
 
 ---
 

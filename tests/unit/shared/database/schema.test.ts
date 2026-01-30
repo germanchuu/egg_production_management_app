@@ -85,8 +85,8 @@ describe('Database Schema', () => {
       const schemaString = schema.join('\n');
 
       // User indexes
-      expect(schemaString).toContain('CREATE INDEX IF NOT EXISTS idx_users_phone_number');
       expect(schemaString).toContain('CREATE INDEX IF NOT EXISTS idx_users_role');
+      expect(schemaString).toContain('CREATE INDEX IF NOT EXISTS idx_users_auth_status');
 
       // Invitation indexes
       expect(schemaString).toContain('CREATE INDEX IF NOT EXISTS idx_invitations_token');

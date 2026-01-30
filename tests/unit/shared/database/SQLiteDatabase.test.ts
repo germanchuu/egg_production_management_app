@@ -62,9 +62,9 @@ describe('SQLiteDatabase', () => {
       const now = new Date().toISOString();
 
       await db.runAsync(
-        `INSERT INTO users (id, display_name, role, created_at, updated_at, is_active)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [userId, 'Test User', 'user', now, now, 1]
+        `INSERT INTO users (id, display_name, role, auth_status, created_at, updated_at, is_active)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [userId, 'Test User', 'user', 'authenticated', now, now, 1]
       );
 
       const user = await db.getFirstAsync<{ id: string; display_name: string }>(
@@ -83,9 +83,9 @@ describe('SQLiteDatabase', () => {
       const now = new Date().toISOString();
 
       await db.runAsync(
-        `INSERT INTO users (id, display_name, role, created_at, updated_at, is_active)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [userId, 'Query Test User', 'admin', now, now, 1]
+        `INSERT INTO users (id, display_name, role, auth_status, created_at, updated_at, is_active)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [userId, 'Query Test User', 'admin', 'authenticated', now, now, 1]
       );
 
       // Query data
@@ -104,9 +104,9 @@ describe('SQLiteDatabase', () => {
 
       // Insert
       await db.runAsync(
-        `INSERT INTO users (id, display_name, role, created_at, updated_at, is_active)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [userId, 'Original Name', 'user', now, now, 1]
+        `INSERT INTO users (id, display_name, role, auth_status, created_at, updated_at, is_active)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [userId, 'Original Name', 'user', 'authenticated', now, now, 1]
       );
 
       // Update
@@ -130,9 +130,9 @@ describe('SQLiteDatabase', () => {
 
       // Insert
       await db.runAsync(
-        `INSERT INTO users (id, display_name, role, created_at, updated_at, is_active)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [userId, 'Delete Me', 'user', now, now, 1]
+        `INSERT INTO users (id, display_name, role, auth_status, created_at, updated_at, is_active)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [userId, 'Delete Me', 'user', 'authenticated', now, now, 1]
       );
 
       // Delete
@@ -154,9 +154,9 @@ describe('SQLiteDatabase', () => {
 
       await expect(
         db.runAsync(
-          `INSERT INTO users (id, display_name, role, created_at, updated_at, is_active)
-           VALUES (?, ?, ?, ?, ?, ?)`,
-          [userId, 'Bad Role User', 'invalid_role', now, now, 1]
+          `INSERT INTO users (id, display_name, role, auth_status, created_at, updated_at, is_active)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [userId, 'Bad Role User', 'invalid_role', 'authenticated', now, now, 1]
         )
       ).rejects.toThrow();
     });
@@ -169,9 +169,9 @@ describe('SQLiteDatabase', () => {
 
       // Create user and house first
       await db.runAsync(
-        `INSERT INTO users (id, display_name, role, created_at, updated_at, is_active)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [userId, 'Test User', 'admin', now, now, 1]
+        `INSERT INTO users (id, display_name, role, auth_status, created_at, updated_at, is_active)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [userId, 'Test User', 'admin', 'authenticated', now, now, 1]
       );
 
       await db.runAsync(
@@ -196,9 +196,9 @@ describe('SQLiteDatabase', () => {
       const now = new Date().toISOString();
 
       await db.runAsync(
-        `INSERT INTO users (id, display_name, role, created_at, updated_at, is_active)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [userId, 'Test User', 'admin', now, now, 1]
+        `INSERT INTO users (id, display_name, role, auth_status, created_at, updated_at, is_active)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [userId, 'Test User', 'admin', 'authenticated', now, now, 1]
       );
 
       // Insert first house
@@ -244,16 +244,16 @@ describe('SQLiteDatabase', () => {
         await db.withTransactionAsync(async () => {
           // Insert user
           await db.runAsync(
-            `INSERT INTO users (id, display_name, role, created_at, updated_at, is_active)
-             VALUES (?, ?, ?, ?, ?, ?)`,
-            [userId, 'Transaction User', 'user', now, now, 1]
+            `INSERT INTO users (id, display_name, role, auth_status, created_at, updated_at, is_active)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [userId, 'Transaction User', 'user', 'authenticated', now, now, 1]
           );
 
           // Force an error with invalid role
           await db.runAsync(
-            `INSERT INTO users (id, display_name, role, created_at, updated_at, is_active)
-             VALUES (?, ?, ?, ?, ?, ?)`,
-            ['user-2', 'Bad User', 'bad_role', now, now, 1]
+            `INSERT INTO users (id, display_name, role, auth_status, created_at, updated_at, is_active)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            ['user-2', 'Bad User', 'bad_role', 'authenticated', now, now, 1]
           );
         });
       } catch (error) {
@@ -275,15 +275,15 @@ describe('SQLiteDatabase', () => {
 
       await db.withTransactionAsync(async () => {
         await db.runAsync(
-          `INSERT INTO users (id, display_name, role, created_at, updated_at, is_active)
-           VALUES (?, ?, ?, ?, ?, ?)`,
-          [userId1, 'User 1', 'user', now, now, 1]
+          `INSERT INTO users (id, display_name, role, auth_status, created_at, updated_at, is_active)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [userId1, 'User 1', 'user', 'authenticated', now, now, 1]
         );
 
         await db.runAsync(
-          `INSERT INTO users (id, display_name, role, created_at, updated_at, is_active)
-           VALUES (?, ?, ?, ?, ?, ?)`,
-          [userId2, 'User 2', 'admin', now, now, 1]
+          `INSERT INTO users (id, display_name, role, auth_status, created_at, updated_at, is_active)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [userId2, 'User 2', 'admin', 'authenticated', now, now, 1]
         );
       });
 

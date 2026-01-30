@@ -16,6 +16,14 @@ export enum UserRole {
 }
 
 /**
+ * User authentication status
+ */
+export enum AuthStatus {
+  Pending = 'pending',
+  Authenticated = 'authenticated',
+}
+
+/**
  * Invitation status
  */
 export enum InvitationStatus {
@@ -44,19 +52,39 @@ export enum SyncOperation {
 // ==================== CORE ENTITIES ====================
 
 /**
+ * Authorized device information for multi-device support
+ */
+export interface AuthorizedDevice {
+  deviceId: string; // UUID
+  deviceName: string; // Device name (e.g., "iPhone 12", "Samsung Galaxy S21")
+  authorizedAt: string; // ISO-8601 timestamp when device was authorized
+}
+
+/**
+ * Local session data stored in expo-secure-store
+ */
+export interface SessionData {
+  userId: string; // User ID
+  deviceId: string; // Unique device identifier (UUID)
+  authenticatedAt: string; // ISO-8601 timestamp when device was authenticated
+  lastValidatedAt: string; // ISO-8601 timestamp of last online validation
+}
+
+/**
  * User entity
  *
  * Represents system users (administrators and standard users).
- * Authentication uses invitation-based system with native device sharing.
+ * Authentication uses invitation-based system with deep links.
+ * Supports multi-device access (max 3 devices per user).
  */
 export interface User {
   id: string; // UUID
   displayName: string;
-  phoneNumber?: string; // Optional phone number
-  idNumber?: string; // Optional ID/carnet number
   role: UserRole;
+  authStatus: AuthStatus;
+  authorizedDevices?: AuthorizedDevice[]; // Max 3 devices per user
   createdAt: string; // ISO-8601 timestamp
-  lastLoginAt?: string; // ISO-8601 timestamp
+  lastAccessAt?: string; // ISO-8601 timestamp
   isActive: boolean;
   invitationId?: string; // Reference to invitation used
   updatedAt: string; // ISO-8601 timestamp
@@ -65,19 +93,19 @@ export interface User {
 /**
  * Invitation entity
  *
- * Token-based invitations shared via native device sharing (no email).
- * Deep linking opens app when invitation link is clicked.
+ * Token-based invitations shared via native share sheet (no email).
+ * Deep links use Custom URL Scheme (myapp://invite/[token]).
+ * One-time use only, expires after 7 days.
  */
 export interface Invitation {
   id: string; // UUID
-  role: UserRole;
-  token: string; // Unique invitation token for deep linking
-  createdBy: string; // User ID
+  userId: string; // User ID for whom invitation is generated
+  token: string; // Unique invitation token for deep link (one-time use)
+  createdBy: string; // Admin user ID who generated invitation
   createdAt: string; // ISO-8601 timestamp
   expiresAt: string; // ISO-8601 timestamp (7 days from creation)
   status: InvitationStatus;
   acceptedAt?: string; // ISO-8601 timestamp
-  acceptedBy?: string; // User ID
   updatedAt: string; // ISO-8601 timestamp
 }
 

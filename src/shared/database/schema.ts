@@ -24,11 +24,11 @@ export const CREATE_TABLES_SQL = [
   `CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
     display_name TEXT NOT NULL,
-    phone_number TEXT,
-    id_number TEXT,
     role TEXT NOT NULL CHECK(role IN ('admin', 'user')),
+    auth_status TEXT NOT NULL CHECK(auth_status IN ('pending', 'authenticated')),
+    authorized_devices TEXT, -- JSON array: [{deviceId, deviceName, authorizedAt}]
     created_at TEXT NOT NULL,
-    last_login_at TEXT,
+    last_access_at TEXT,
     is_active INTEGER NOT NULL DEFAULT 1,
     invitation_id TEXT,
     updated_at TEXT NOT NULL,
@@ -38,17 +38,16 @@ export const CREATE_TABLES_SQL = [
   // ==================== INVITATIONS ====================
   `CREATE TABLE IF NOT EXISTS invitations (
     id TEXT PRIMARY KEY,
-    role TEXT NOT NULL CHECK(role IN ('admin', 'user')),
+    user_id TEXT NOT NULL,
     token TEXT UNIQUE NOT NULL,
     created_by TEXT NOT NULL,
     created_at TEXT NOT NULL,
     expires_at TEXT NOT NULL,
     status TEXT NOT NULL CHECK(status IN ('pending', 'accepted', 'expired')),
     accepted_at TEXT,
-    accepted_by TEXT,
     updated_at TEXT NOT NULL,
-    FOREIGN KEY (created_by) REFERENCES users(id),
-    FOREIGN KEY (accepted_by) REFERENCES users(id)
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (created_by) REFERENCES users(id)
   );`,
 
   // ==================== CHICKEN HOUSES ====================
@@ -184,9 +183,8 @@ export const CREATE_TABLES_SQL = [
  */
 export const CREATE_INDEXES_SQL = [
   // ==================== USERS ====================
-  'CREATE INDEX IF NOT EXISTS idx_users_phone_number ON users(phone_number);',
-  'CREATE INDEX IF NOT EXISTS idx_users_id_number ON users(id_number);',
   'CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);',
+  'CREATE INDEX IF NOT EXISTS idx_users_auth_status ON users(auth_status);',
   'CREATE INDEX IF NOT EXISTS idx_users_is_active ON users(is_active);',
 
   // ==================== INVITATIONS ====================

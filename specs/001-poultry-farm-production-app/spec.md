@@ -117,15 +117,21 @@ Users need to record health events (vaccinations) and biosecurity events (disinf
 **Authentication & Access Control:**
 
 - **FR-001**: System MUST allow administrators to create users directly in the database with display name and role, marking them as "pending authentication"
-- **FR-002**: System MUST allow administrators to generate invitation deep links (Custom URL Scheme) for pending users and share them via native share sheet
+- **FR-002**: System MUST allow administrators to generate invitation deep links (Custom URL Scheme: myapp://invite/[token]) for pending users and share them via native share sheet
 - **FR-003**: System MUST display user confirmation screen when opening invitation deep link showing "Esta es una invitación para: [user_name]" to prevent errors
 - **FR-004**: System MUST mark user as "authenticated" when they accept the invitation, allowing immediate app access
-- **FR-005**: System MUST cache session data locally after first authentication to enable offline access
-- **FR-006**: System MUST perform background session validation when internet connectivity is detected BEFORE any synchronization operations
-- **FR-007**: System MUST support administrator role with permissions to create users and generate invitations
-- **FR-008**: System MUST support standard user role with permissions to record operational data
-- **FR-009**: Invitation deep links MUST expire 7 days after creation for security purposes
-- **FR-010**: Administrators MUST be able to regenerate expired invitations for pending users
+- **FR-005**: System MUST cache session data locally in expo-secure-store (encrypted storage) after first authentication with structure: {userId, deviceId, authenticatedAt, lastValidatedAt}
+- **FR-006**: System MUST perform background session validation when internet connectivity is detected BEFORE any synchronization operations, validating device exists in user's authorizedDevices array
+- **FR-007**: System MUST perform background session validation at app start when online, redirecting to pending state if device was revoked by administrator
+- **FR-008**: System MUST support multi-device authentication with maximum 3 authorized devices per user
+- **FR-009**: System MUST store authorizedDevices array in user document containing {deviceId, deviceName, authorizedAt} for each authorized device
+- **FR-010**: Administrators MUST be able to revoke device access by removing device from user's authorizedDevices array, causing next online session validation to fail
+- **FR-011**: System MUST use Firestore ONLY for data validation and sync (NO Firebase Authentication service)
+- **FR-012**: System MUST support administrator role with permissions to create users, generate invitations, and manage device authorization
+- **FR-013**: System MUST support standard user role with permissions to record operational data
+- **FR-014**: Invitation deep links MUST expire 7 days after creation for security purposes
+- **FR-015**: Invitation tokens MUST be one-time use only, becoming invalid after acceptance
+- **FR-016**: Administrators MUST be able to regenerate expired invitations for pending users
 
 **Facility & Lot Management:**
 
@@ -189,7 +195,7 @@ Users need to record health events (vaccinations) and biosecurity events (disinf
 
 ### Key Entities
 
-- **User**: Represents system users with roles (administrator or standard user), authentication credentials, invitation status, and device session data
+- **User**: Represents system users with roles (administrator or standard user), authentication status (pending/authenticated), authorized devices array (max 3 devices), and local session data stored in expo-secure-store
 - **Chicken House (Galpón)**: Physical facility where chicken lots are housed, identified by unique name/identifier
 - **Chicken Lot**: Group of chickens purchased together, tracked with purchase date, initial hen count, current age, current live hen count, assigned house, and relationships to all operational records
 - **Production Record**: Daily egg collection data including lot reference, date, total eggs collected, calculated eggs per hen
@@ -230,7 +236,7 @@ Users need to record health events (vaccinations) and biosecurity events (disinf
 4. **User Device Ownership**: Each user will have access to their own mobile device or a shared farm device
 5. **Language**: Application will be developed in Spanish as primary language based on user description language
 6. **Date Handling**: All dates use the device's local timezone and date format preferences
-7. **Invitation Delivery**: Invitation links can be shared via any communication method (email, SMS, messaging apps) - system generates link but doesn't mandate delivery method
+7. **Invitation Delivery**: Invitation deep links (Custom URL Scheme) are shared via native share sheet to communication apps (WhatsApp, SMS, messaging apps) - system generates link and opens share sheet but doesn't mandate specific delivery method
 8. **Data Retention**: All historical production, mortality, feeding, and event data is retained indefinitely for reporting and analysis
 9. **Chicken Age Tracking**: Lot age is tracked in weeks from purchase date and updates automatically
 10. **Feed Batch Tracking**: System tracks feed at batch level but doesn't track individual ingredient inventory
