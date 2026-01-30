@@ -1,6 +1,7 @@
 import {
   User,
   UserRole,
+  AuthStatus,
   Invitation,
   InvitationStatus,
   ChickenHouse,
@@ -81,6 +82,7 @@ describe('Entity Type Definitions', () => {
         id: 'user-123',
         displayName: 'John Doe',
         role: UserRole.Admin,
+        authStatus: AuthStatus.Authenticated,
         isActive: true,
         createdAt: '2024-01-01T00:00:00.000Z',
         updatedAt: '2024-01-01T00:00:00.000Z',
@@ -89,26 +91,33 @@ describe('Entity Type Definitions', () => {
       expect(user).toBeDefined();
       expect(user.id).toBe('user-123');
       expect(user.role).toBe(UserRole.Admin);
+      expect(user.authStatus).toBe(AuthStatus.Authenticated);
     });
 
     it('should accept user with optional fields', () => {
       const user: User = {
         id: 'user-123',
         displayName: 'John Doe',
-        phoneNumber: '+1234567890',
-        idNumber: 'ID12345',
         role: UserRole.User,
-        lastLoginAt: '2024-01-15T10:00:00.000Z',
+        authStatus: AuthStatus.Pending,
+        lastAccessAt: '2024-01-15T10:00:00.000Z',
         invitationId: 'inv-123',
+        authorizedDevices: [
+          {
+            deviceId: 'device-1',
+            deviceName: 'iPhone 12',
+            authorizedAt: '2024-01-01T00:00:00.000Z',
+          },
+        ],
         isActive: true,
         createdAt: '2024-01-01T00:00:00.000Z',
         updatedAt: '2024-01-01T00:00:00.000Z',
       };
 
-      expect(user.phoneNumber).toBe('+1234567890');
-      expect(user.idNumber).toBe('ID12345');
-      expect(user.lastLoginAt).toBeDefined();
+      expect(user.lastAccessAt).toBeDefined();
       expect(user.invitationId).toBeDefined();
+      expect(user.authorizedDevices).toHaveLength(1);
+      expect(user.authorizedDevices?.[0].deviceName).toBe('iPhone 12');
     });
   });
 
@@ -116,7 +125,7 @@ describe('Entity Type Definitions', () => {
     it('should accept valid invitation object', () => {
       const invitation: Invitation = {
         id: 'inv-123',
-        role: UserRole.User,
+        userId: 'user-123',
         token: 'abc123token',
         createdBy: 'user-admin',
         createdAt: '2024-01-01T00:00:00.000Z',
@@ -126,6 +135,7 @@ describe('Entity Type Definitions', () => {
       };
 
       expect(invitation).toBeDefined();
+      expect(invitation.userId).toBe('user-123');
       expect(invitation.token).toBe('abc123token');
       expect(invitation.status).toBe(InvitationStatus.Pending);
     });
@@ -133,19 +143,18 @@ describe('Entity Type Definitions', () => {
     it('should accept invitation with accepted fields', () => {
       const invitation: Invitation = {
         id: 'inv-123',
-        role: UserRole.User,
+        userId: 'user-123',
         token: 'abc123token',
         createdBy: 'user-admin',
         createdAt: '2024-01-01T00:00:00.000Z',
         expiresAt: '2024-01-08T00:00:00.000Z',
         status: InvitationStatus.Accepted,
         acceptedAt: '2024-01-02T00:00:00.000Z',
-        acceptedBy: 'user-new',
         updatedAt: '2024-01-02T00:00:00.000Z',
       };
 
       expect(invitation.status).toBe(InvitationStatus.Accepted);
-      expect(invitation.acceptedBy).toBe('user-new');
+      expect(invitation.userId).toBe('user-123');
       expect(invitation.acceptedAt).toBeDefined();
     });
   });
