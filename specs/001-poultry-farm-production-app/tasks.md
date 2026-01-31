@@ -113,11 +113,11 @@ Per Constitution II (Feature-Based Organization):
 
 ### Firebase Functions
 
-- [ ] T041 [P] [US3] Create generateInvitation Firebase Function in functions/src/auth/generateInvitation.ts (admin only, generates token for user, saves to Firestore, returns deep link, prevents invitations for revoked users)
-- [ ] T042 [P] [US3] Create validateInvitation Firebase Function in functions/src/auth/validateInvitation.ts (public, checks token validity, expiry, user not revoked, and returns user info)
-- [ ] T043 [P] [US3] Create acceptInvitation Firebase Function in functions/src/auth/acceptInvitation.ts (marks user as authenticated, updates user document, invalidates invitation token, prevents acceptance if user is revoked)
-- [ ] T044 [P] [US3] Create regenerateInvitation Firebase Function in functions/src/auth/regenerateInvitation.ts (admin only, creates new invitation token for pending users, prevents regeneration for revoked users)
-- [ ] T044a [P] [US3] Create revokeUser Firebase Function in functions/src/auth/revokeUser.ts (admin only, sets authStatus='revoked', clears authorizedDevices, creates audit log, prevents revocation of other admins)
+- [x] T041 [P] [US3] Create generateInvitation Firebase Function in functions/src/auth/generateInvitation.ts (admin only, generates token for user, saves to Firestore, returns deep link, prevents invitations for revoked users)
+- [x] T042 [P] [US3] Create validateInvitation Firebase Function in functions/src/auth/validateInvitation.ts (public, checks token validity, expiry, user not revoked, and returns user info)
+- [x] T043 [P] [US3] Create acceptInvitation Firebase Function in functions/src/auth/acceptInvitation.ts (marks user as authenticated, updates user document, invalidates invitation token, prevents acceptance if user is revoked)
+- [x] T044 [P] [US3] Create regenerateInvitation Firebase Function in functions/src/auth/regenerateInvitation.ts (admin only, creates new invitation token for pending users, prevents regeneration for revoked users)
+- [x] T044a [P] [US3] Create revokeUser Firebase Function in functions/src/auth/revokeUser.ts (admin only, sets authStatus='revoked', clears authorizedDevices, creates audit log, prevents revocation of other admins)
 
 ### UI Components & Screens
 
