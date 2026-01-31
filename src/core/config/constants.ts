@@ -15,7 +15,7 @@ export const APP_CONFIG = appConfig.expo;
 /**
  * Deep link scheme
  */
-export const DEEP_LINK_SCHEME = APP_CONFIG.scheme;
+export const APP_SCHEME = APP_CONFIG.scheme;
 
 /**
  * App name

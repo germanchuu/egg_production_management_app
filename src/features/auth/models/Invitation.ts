@@ -14,7 +14,7 @@ import {
   Invitation as InvitationEntity,
   InvitationStatus,
 } from '@/shared/types/entities';
-import { DEEP_LINK_SCHEME } from '@/core/config/constants';
+import { APP_SCHEME } from '@/core/config/constants';
 
 /**
  * Re-export shared types for convenience
@@ -113,13 +113,19 @@ export class InvitationStatusHelper {
   /**
    * Check if status transition is valid
    */
-  static isValidTransition(from: InvitationStatus, to: InvitationStatus): boolean {
+  static isValidTransition(
+    from: InvitationStatus,
+    to: InvitationStatus
+  ): boolean {
     // Valid transitions:
     // pending -> accepted (user accepts)
     // pending -> expired (time expires)
     // accepted/expired are terminal states
     const validTransitions: Record<InvitationStatus, InvitationStatus[]> = {
-      [InvitationStatus.Pending]: [InvitationStatus.Accepted, InvitationStatus.Expired],
+      [InvitationStatus.Pending]: [
+        InvitationStatus.Accepted,
+        InvitationStatus.Expired,
+      ],
       [InvitationStatus.Accepted]: [],
       [InvitationStatus.Expired]: [],
     };
@@ -187,7 +193,7 @@ export class InvitationFactory {
    * Format: {scheme}://invite/[token]
    */
   static generateDeepLink(token: string): string {
-    return `${DEEP_LINK_SCHEME}://invite/${token}`;
+    return `${APP_SCHEME}://invite/${token}`;
   }
 
   /**
@@ -195,7 +201,7 @@ export class InvitationFactory {
    * Returns null if invalid format
    */
   static extractTokenFromDeepLink(url: string): string | null {
-    const regex = new RegExp(`^${DEEP_LINK_SCHEME}://invite/(.+)$`);
+    const regex = new RegExp(`^${APP_SCHEME}://invite/(.+)$`);
     const match = url.match(regex);
     return match ? match[1] : null;
   }
@@ -203,7 +209,10 @@ export class InvitationFactory {
   /**
    * Generate shareable message for invitation
    */
-  static generateShareMessage(invitation: Invitation, userName: string): string {
+  static generateShareMessage(
+    invitation: Invitation,
+    userName: string
+  ): string {
     const deepLink = InvitationFactory.generateDeepLink(invitation.token);
     const expirationDays = InvitationStatusHelper.getRemainingDays(invitation);
 
