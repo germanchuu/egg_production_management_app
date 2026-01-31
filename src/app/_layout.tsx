@@ -14,6 +14,7 @@
  * on app launch to enable offline functionality from the start.
  */
 
+import '@/global.css';
 import { useEffect, useState } from 'react';
 import { View, Text } from 'react-native';
 import { Slot, SplashScreen as ExpoSplashScreen } from 'expo-router';
@@ -42,7 +43,7 @@ export default function RootLayout() {
         await initDatabase();
 
         // Add a small delay to ensure splash screen shows briefly
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 5000));
 
         setInitState('ready');
       } catch (err) {
