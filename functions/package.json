@@ -27,5 +27,8 @@
     "eslint-plugin-import": "^2.31.0",
     "typescript": "^5.7.2"
   },
+  "overrides": {
+    "fast-xml-parser": "^5.3.4"
+  },
   "private": true
 }

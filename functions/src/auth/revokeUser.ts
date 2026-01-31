@@ -106,7 +106,7 @@ export const revokeUser = functions.https.onCall<
           userId,
           revokedBy: auth!.uid,
           reason: reason || "No reason provided",
-          previousStatus: targetUser.authStatus,
+          previousStatus: targetUser!.authStatus,
         },
       });
     });
