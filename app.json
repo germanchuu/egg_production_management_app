@@ -2,6 +2,7 @@
   "expo": {
     "name": "gestion_produccion_huevos_app",
     "slug": "gestion_produccion_huevos_app",
+    "scheme": "gestionproduccionhuevos",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
