@@ -120,7 +120,7 @@ export async function acceptInvitation(
         authorizedDevices.push({
           deviceId,
           deviceName,
-          authorizedAt: admin.firestore.FieldValue.serverTimestamp(),
+          authorizedAt: admin.firestore.Timestamp.now(),
         });
       }
 
