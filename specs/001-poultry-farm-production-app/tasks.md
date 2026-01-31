@@ -121,7 +121,7 @@ Per Constitution II (Feature-Based Organization):
 
 ### UI Components & Screens
 
-- [ ] T045 [P] [US3] Create InvitationConfirmation component in src/features/auth/components/InvitationConfirmation.tsx showing "Esta es una invitación para: [user_name]" with accept button
+- [x] T045 [P] [US3] Create InvitationConfirmation component in src/features/auth/components/InvitationConfirmation.tsx showing "Esta es una invitación para: [user_name]" with accept button
 - [ ] T046 [US3] Create invitation acceptance screen in src/app/(auth)/invite/[token].tsx that validates deep link token and shows confirmation component
 - [ ] T047 [P] [US3] Create user management screen in src/app/(tabs)/admin/users.tsx (admin only) showing user list with authentication status (pending, authenticated, revoked), generate invitation button, and revoke user button (disabled for already revoked users)
 - [ ] T048 [US3] Implement deep link generation in InvitationService for Custom URL Scheme (myapp://invite/[token])
