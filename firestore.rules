@@ -56,14 +56,15 @@ service cloud.firestore {
     // ==================== INVITATIONS COLLECTION ====================
 
     match /invitations/{invitationId} {
-      // Only admins can access invitations
-      // Regular users have no access
-      allow read, write: if isAdmin();
+      // Anyone can read invitations (needed for token validation)
+      // Only admins can create/update/delete
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     // ==================== CHICKEN HOUSES COLLECTION ====================
 
-    match /chickenHouses/{houseId} {
+    match /chicken_houses/{houseId} {
       // Admins: Full CRUD access
       // Users: Read-only access
       allow read: if isActiveUser();
@@ -72,7 +73,7 @@ service cloud.firestore {
 
     // ==================== CHICKEN LOTS COLLECTION ====================
 
-    match /chickenLots/{lotId} {
+    match /chicken_lots/{lotId} {
       // Admins: Full CRUD access
       // Users: Read-only access
       allow read: if isActiveUser();
@@ -81,7 +82,7 @@ service cloud.firestore {
 
     // ==================== PRODUCTION RECORDS COLLECTION ====================
 
-    match /productionRecords/{recordId} {
+    match /production_records/{recordId} {
       // Admins: Full CRUD access
       // Users: Create, read all, update own records
       allow read: if isActiveUser();
@@ -101,7 +102,7 @@ service cloud.firestore {
 
     // ==================== MORTALITY RECORDS COLLECTION ====================
 
-    match /mortalityRecords/{recordId} {
+    match /mortality_records/{recordId} {
       // Admins: Full CRUD access
       // Users: Create, read all, update own records
       allow read: if isActiveUser();
@@ -121,7 +122,7 @@ service cloud.firestore {
 
     // ==================== FEED BATCHES COLLECTION ====================
 
-    match /feedBatches/{batchId} {
+    match /feed_batches/{batchId} {
       // Admins: Full CRUD access
       // Users: Create, read all, update own batches
       allow read: if isActiveUser();
@@ -141,7 +142,7 @@ service cloud.firestore {
 
     // ==================== FEEDING RECORDS COLLECTION ====================
 
-    match /feedingRecords/{recordId} {
+    match /feeding_records/{recordId} {
       // Admins: Full CRUD access
       // Users: Create, read all, update own records
       allow read: if isActiveUser();
@@ -161,7 +162,7 @@ service cloud.firestore {
 
     // ==================== HEALTH EVENTS COLLECTION ====================
 
-    match /healthEvents/{eventId} {
+    match /health_events/{eventId} {
       // Admins: Full CRUD access
       // Users: Create, read all, update own events
       allow read: if isActiveUser();
@@ -183,7 +184,7 @@ service cloud.firestore {
 
     // ==================== BIOSECURITY EVENTS COLLECTION ====================
 
-    match /biosecurityEvents/{eventId} {
+    match /biosecurity_events/{eventId} {
       // Admins: Full CRUD access
       // Users: Create, read all, update own events
       allow read: if isActiveUser();
@@ -203,9 +204,9 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // ==================== AUDIT LOGS COLLECTION ====================
+    // ==================== AUDIT LOG COLLECTION ====================
 
-    match /auditLogs/{auditId} {
+    match /audit_log/{auditId} {
       // Audit logs are write-only from backend/server
       // Admins can read for audit trail inspection
       // No client writes allowed (server-side only)
