@@ -103,7 +103,7 @@ Per Constitution II (Feature-Based Organization):
 
 ### Models & Services
 
-- [ ] T035 [P] [US3] Create User model in src/features/auth/models/User.ts with TypeScript interface matching data-model.md
+- [x] T035 [P] [US3] Create User model in src/features/auth/models/User.ts with TypeScript interface matching data-model.md
 - [ ] T036 [P] [US3] Create Invitation model in src/features/auth/models/Invitation.ts with status transitions (pending → accepted/expired)
 - [ ] T037 [US3] Create AuthService in src/features/auth/services/AuthService.ts with methods: acceptInvitation(), logout(), validateSession(), getStoredSession(), storeSession(), revokeUser() using expo-secure-store
 - [ ] T038 [US3] Create InvitationService in src/features/auth/services/InvitationService.ts with methods: generateDeepLink(), validateInvitationToken(), acceptInvitation(), regenerateInvitation()
