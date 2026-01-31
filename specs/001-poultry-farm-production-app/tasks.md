@@ -107,9 +107,9 @@ Per Constitution II (Feature-Based Organization):
 - [x] T036 [P] [US3] Create Invitation model in src/features/auth/models/Invitation.ts with status transitions (pending → accepted/expired)
 - [x] T037 [US3] Create AuthService in src/features/auth/services/AuthService.ts with methods: acceptInvitation(), logout(), validateSession(), getStoredSession(), storeSession(), revokeUser() using expo-secure-store
 - [x] T038 [US3] Create InvitationService in src/features/auth/services/InvitationService.ts with methods: generateDeepLink(), validateInvitationToken(), acceptInvitation(), regenerateInvitation()
-- [ ] T039 [US3] Implement session caching in AuthService using expo-secure-store for session persistence
-- [ ] T040 [US3] Implement background session validation in AuthService when online BEFORE any sync (validate authStatus != 'revoked' AND device in authorizedDevices, show "Access Denied" if revoked)
-- [ ] T040a [US3] Implement user revocation in AuthService.revokeUser() (set authStatus='revoked', clear authorizedDevices array, audit log)
+- [x] T039 [US3] Implement session caching in AuthService using expo-secure-store for session persistence
+- [x] T040 [US3] Implement background session validation in AuthService when online BEFORE any sync (validate authStatus != 'revoked' AND device in authorizedDevices, show "Access Denied" if revoked)
+- [x] T040a [US3] Implement user revocation in AuthService.revokeUser() (set authStatus='revoked', clear authorizedDevices array, audit log)
 
 ### Firebase Functions
 
