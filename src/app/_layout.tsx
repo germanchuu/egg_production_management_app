@@ -14,13 +14,16 @@
  * on app launch to enable offline functionality from the start.
  */
 
-import '@/global.css';
+import '../../global.css';
+import 'react-native-reanimated';
+
 import { useEffect, useState } from 'react';
 import { View, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Slot, SplashScreen as ExpoSplashScreen } from 'expo-router';
 import { initDatabase } from '@/shared/database';
 import { SplashScreen } from '@/shared/components';
-
+import { AuthProvider } from '@/features/auth/contexts';
 // Prevent the splash screen from auto-hiding
 ExpoSplashScreen.preventAutoHideAsync();
 
@@ -66,23 +69,30 @@ export default function RootLayout() {
   // Show error state if initialization failed
   if (initState === 'error') {
     return (
-      <View className="flex-1 items-center justify-center bg-background px-xl py-2xl">
-        <Text className="text-xl font-bold text-error mb-md">
-          Error de Inicialización
-        </Text>
-        <Text className="text-text-primary text-center mb-lg">
-          No se pudo inicializar la base de datos. Por favor, reinicia la
-          aplicación.
-        </Text>
-        {error && (
-          <Text className="text-sm text-text-tertiary text-center">
-            {error.message}
+      <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-background">
+        <View className="flex-1 items-center justify-center px-xl py-2xl">
+          <Text className="text-xl font-bold text-error mb-md">
+            Error de Inicialización
           </Text>
-        )}
-      </View>
+          <Text className="text-primary text-center mb-lg">
+            No se pudo inicializar la base de datos. Por favor, reinicia la
+            aplicación.
+          </Text>
+          {error && (
+            <Text className="text-sm text-tertiary text-center">
+              {error.message}
+            </Text>
+          )}
+        </View>
+      </SafeAreaView>
     );
   }
 
   // Render the app once initialization is complete
-  return <Slot />;
+  // Wrap with AuthProvider to provide auth context to all screens
+  return (
+    <AuthProvider>
+      <Slot />
+    </AuthProvider>
+  );
 }

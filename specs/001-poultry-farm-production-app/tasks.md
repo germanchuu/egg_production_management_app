@@ -126,7 +126,7 @@ Per Constitution II (Feature-Based Organization):
 - [x] T047 [P] [US3] Create user management screen in src/app/(tabs)/admin/users.tsx (admin only) showing user list with authentication status (pending, authenticated, revoked), generate invitation button, and revoke user button (disabled for already revoked users)
 - [x] T048 [US3] Implement deep link generation in InvitationService for Custom URL Scheme (myapp://invite/[token])
 - [x] T049 [US3] Implement native share sheet integration for sharing invitation deep links (WhatsApp, SMS, etc.)
-- [ ] T050 [US3] Add auth state management using React Context in src/features/auth/contexts/AuthContext.tsx to track current user and auth status
+- [x] T050 [US3] Add auth state management using React Context in src/features/auth/contexts/AuthContext.tsx to track current user and auth status
 
 ### Integration & Validation
 
