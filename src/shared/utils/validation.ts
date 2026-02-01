@@ -75,3 +75,15 @@ export const positiveDecimalSchema = z
 export const uuidSchema = z
   .string()
   .uuid('Invalid UUID format');
+
+/**
+ * Display name schema - validates user display names
+ *
+ * Used for user creation and editing
+ */
+export const displayNameSchema = z
+  .string()
+  .min(1, 'El nombre es obligatorio')
+  .min(3, 'El nombre debe tener al menos 3 caracteres')
+  .max(100, 'El nombre no puede exceder 100 caracteres')
+  .trim();
