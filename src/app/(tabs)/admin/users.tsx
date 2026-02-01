@@ -24,7 +24,6 @@ import {
   ScrollView,
   ActivityIndicator,
   RefreshControl,
-  Share,
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -43,6 +42,11 @@ import {
 } from '@/features/auth/components';
 import { Button } from '@/shared/components';
 import { getDatabase } from '@/shared/database';
+import {
+  shareInvitationByToken,
+  showShareSuccessAlert,
+  showShareErrorAlert,
+} from '@/shared/utils/shareInvitation';
 
 const FIREBASE_FUNCTION_BASE_URL =
   process.env.EXPO_PUBLIC_FIREBASE_FUNCTION_URL || '';
@@ -155,20 +159,30 @@ export default function UsersScreen() {
 
       const data = await response.json();
 
-      if (!data.success || !data.invitationLink) {
+      if (!data.success || !data.token) {
         Alert.alert('Error', data.error || 'No se pudo generar la invitación');
         return;
       }
 
-      // Share invitation link
-      try {
-        await Share.share({
-          message: `¡Hola ${user.displayName}! Has sido invitado a unirte a Gestión de Huevos.\n\nAbre este enlace en tu dispositivo para aceptar la invitación:\n\n${data.invitationLink}`,
-          title: 'Invitación a Gestión de Huevos',
-        });
-      } catch (shareError) {
-        console.error('Error sharing:', shareError);
+      // Calculate expiration days (from expiresAt)
+      const expiresAt = new Date(data.expiresAt);
+      const now = new Date();
+      const diffTime = expiresAt.getTime() - now.getTime();
+      const expirationDays = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+
+      // Share invitation using native share sheet
+      const shareResult = await shareInvitationByToken(
+        data.token,
+        user.displayName,
+        expirationDays
+      );
+
+      if (shareResult.success && shareResult.action === 'sharedAction') {
+        showShareSuccessAlert(user.displayName);
+      } else if (shareResult.error) {
+        showShareErrorAlert(shareResult.error);
       }
+      // If user dismissed, we don't show any alert (silent)
 
       // Reload users to update status
       loadUsers();
