@@ -11,7 +11,7 @@ import { Mail, UserX, Shield, Edit } from 'lucide-react-native';
 import { theme } from '@/core/theme';
 import type { User } from '@/shared/types/entities';
 import { AuthStatus, UserRole } from '@/shared/types/entities';
-import { UserService } from '../services/UserService';
+import { UserDisplayMapper } from '../mappers/UserDisplayMapper';
 import { Button } from '@/shared/components';
 
 interface UserCardProps {
@@ -29,9 +29,8 @@ export const UserCard: React.FC<UserCardProps> = ({
   onRevokeUser,
   onEdit,
 }) => {
-  const statusColor = UserService.getStatusColor(user.authStatus);
-  const statusLabel = UserService.getStatusLabel(user.authStatus);
-  const roleLabel = UserService.getRoleLabel(user.role);
+  const { statusColor, statusLabel, roleLabel, roleColor } =
+    UserDisplayMapper.getUserDisplayInfo(user);
 
   const handleRevoke = () => {
     Alert.alert(

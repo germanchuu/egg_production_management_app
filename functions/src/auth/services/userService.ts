@@ -196,3 +196,89 @@ export async function validateInvitation(
     return fail(error.message || "Error al validar la invitación", 400);
   }
 }
+
+/**
+ * Create a new user
+ */
+export async function createUser(
+  displayName: string,
+  role: string,
+  adminUserId: string
+): Promise<Result<{userId: string}>> {
+  try {
+    // Validate display name is unique
+    const existingUserQuery = await admin
+      .firestore()
+      .collection("users")
+      .where("displayName", "==", displayName)
+      .get();
+
+    if (!existingUserQuery.empty) {
+      return fail("Ya existe un usuario con ese nombre", 400);
+    }
+
+    const userId = admin.firestore().collection("users").doc().id;
+    const now = admin.firestore.Timestamp.now();
+
+    await admin.firestore().collection("users").doc(userId).set({
+      id: userId,
+      displayName,
+      role,
+      authStatus: "pending",
+      authorizedDevices: [],
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    return ok({userId});
+  } catch (error: any) {
+    console.error("Error in createUser service:", error);
+    return fail("Error al crear el usuario", 500);
+  }
+}
+
+/**
+ * Update a user
+ */
+export async function updateUser(
+  userId: string,
+  updates: {displayName?: string; role?: string},
+  adminUserId: string
+): Promise<Result<{success: true}>> {
+  try {
+    const userDoc = await admin
+      .firestore()
+      .collection("users")
+      .doc(userId)
+      .get();
+
+    if (!userDoc.exists) {
+      return fail("Usuario no encontrado", 404);
+    }
+
+    // If updating display name, check uniqueness
+    if (updates.displayName) {
+      const existingUserQuery = await admin
+        .firestore()
+        .collection("users")
+        .where("displayName", "==", updates.displayName)
+        .where(admin.firestore.FieldPath.documentId(), "!=", userId)
+        .get();
+
+      if (!existingUserQuery.empty) {
+        return fail("Ya existe un usuario con ese nombre", 400);
+      }
+    }
+
+    await userDoc.ref.update({
+      ...updates,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    return ok({success: true});
+  } catch (error: any) {
+    console.error("Error in updateUser service:", error);
+    return fail("Error al actualizar el usuario", 500);
+  }
+}

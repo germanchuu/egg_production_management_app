@@ -81,8 +81,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
    */
   const loadUser = useCallback(async (session: SessionData): Promise<User | null> => {
     try {
-      const db = await getDatabase();
-      const loadedUser = await UserService.getUser(db, session.userId);
+      const { UserServiceProvider } = await import('../services/UserServiceProvider');
+      const service = await UserServiceProvider.getUserService();
+      const loadedUser = await service.getUser(session.userId);
       return loadedUser;
     } catch (error) {
       console.error('Error loading user from database:', error);
@@ -207,8 +208,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         // Fetch user from Firestore
         // TODO: Implement Firestore fetch when online
         // For now, return local user
-        const db = await getDatabase();
-        return await UserService.getUser(db, userId);
+        const { UserServiceProvider } = await import('../services/UserServiceProvider');
+        const service = await UserServiceProvider.getUserService();
+        return await service.getUser(userId);
       });
 
       setLastValidation(new Date());

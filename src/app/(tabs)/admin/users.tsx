@@ -17,14 +17,13 @@
  * - Compact text sizes
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
   ActivityIndicator,
   RefreshControl,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MotiView } from 'moti';
@@ -32,266 +31,82 @@ import { Users, UserPlus, AlertCircle } from 'lucide-react-native';
 import { theme } from '@/core/theme';
 import type { User } from '@/shared/types/entities';
 import { AuthStatus, UserRole } from '@/shared/types/entities';
-import { UserService } from '@/features/auth/services/UserService';
 import {
   UserSearchBar,
   UserFilters,
   UserCard,
   UserForm,
-  type UserFormData,
 } from '@/features/auth/components';
 import { Button } from '@/shared/components';
-import { getDatabase } from '@/shared/database';
 import {
-  shareInvitationByToken,
-  showShareSuccessAlert,
-  showShareErrorAlert,
-} from '@/shared/utils/shareInvitation';
-
-const FIREBASE_FUNCTION_BASE_URL =
-  process.env.EXPO_PUBLIC_FIREBASE_FUNCTION_URL || '';
+  useUserManagement,
+  useFilteredUsers,
+  useUserFormActions,
+  useInvitationActions,
+} from '@/features/auth/hooks';
 
 export default function UsersScreen() {
-  // State
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  // Data loading (replaces lines 56-95)
+  const { users, loading, refreshing, loadUsers, handleRefresh } =
+    useUserManagement();
+
+  // Filters (maintain state local)
   const [searchQuery, setSearchQuery] = useState('');
-  const [authStatusFilter, setAuthStatusFilter] = useState<AuthStatus | 'all'>('all');
+  const [authStatusFilter, setAuthStatusFilter] = useState<AuthStatus | 'all'>(
+    'all'
+  );
   const [roleFilter, setRoleFilter] = useState<UserRole | 'all'>('all');
-  const [sortBy, setSortBy] = useState<'name' | 'createdAt' | 'lastAccessAt'>('createdAt');
+  const [sortBy, setSortBy] = useState<'name' | 'createdAt' | 'lastAccessAt'>(
+    'createdAt'
+  );
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [showFilters, setShowFilters] = useState(false);
+
+  // Filtering (replaces lines 98-146)
+  const filteredUsers = useFilteredUsers(
+    users,
+    searchQuery,
+    authStatusFilter,
+    roleFilter,
+    sortBy,
+    sortOrder
+  );
+
+  // Form state (maintain local)
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [formLoading, setFormLoading] = useState(false);
 
-  // Load users
-  const loadUsers = async () => {
-    try {
-      const db = await getDatabase();
-      const allUsers = await UserService.listAllUsers(db);
-      setUsers(allUsers);
-    } catch (error) {
-      console.error('Error loading users:', error);
-      Alert.alert(
-        'Error',
-        'No se pudieron cargar los usuarios. Por favor intenta de nuevo.'
-      );
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  useEffect(() => {
-    loadUsers();
-  }, []);
-
-  // Refresh handler
-  const handleRefresh = () => {
-    setRefreshing(true);
-    loadUsers();
-  };
-
-  // Filter and sort users
-  const filteredUsers = useMemo(() => {
-    let filtered = [...users];
-
-    // Search filter
-    if (searchQuery.trim() !== '') {
-      const query = searchQuery.toLowerCase().trim();
-      filtered = filtered.filter((user) =>
-        user.displayName.toLowerCase().includes(query)
-      );
-    }
-
-    // Auth status filter
-    if (authStatusFilter !== 'all') {
-      filtered = filtered.filter((user) => user.authStatus === authStatusFilter);
-    }
-
-    // Role filter
-    if (roleFilter !== 'all') {
-      filtered = filtered.filter((user) => user.role === roleFilter);
-    }
-
-    // Sorting
-    filtered.sort((a, b) => {
-      let comparison = 0;
-
-      switch (sortBy) {
-        case 'name':
-          comparison = a.displayName.localeCompare(b.displayName);
-          break;
-        case 'createdAt':
-          comparison =
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-          break;
-        case 'lastAccessAt':
-          const aTime = a.lastAccessAt
-            ? new Date(a.lastAccessAt).getTime()
-            : 0;
-          const bTime = b.lastAccessAt
-            ? new Date(b.lastAccessAt).getTime()
-            : 0;
-          comparison = aTime - bTime;
-          break;
-      }
-
-      return sortOrder === 'desc' ? -comparison : comparison;
-    });
-
-    return filtered;
-  }, [users, searchQuery, authStatusFilter, roleFilter, sortBy, sortOrder]);
-
-  // Generate invitation
-  const handleGenerateInvitation = async (user: User) => {
-    try {
-      const response = await fetch(
-        `${FIREBASE_FUNCTION_BASE_URL}/generateInvitation`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: user.id }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!data.success || !data.token) {
-        Alert.alert('Error', data.error || 'No se pudo generar la invitación');
-        return;
-      }
-
-      // Calculate expiration days (from expiresAt)
-      const expiresAt = new Date(data.expiresAt);
-      const now = new Date();
-      const diffTime = expiresAt.getTime() - now.getTime();
-      const expirationDays = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
-
-      // Share invitation using native share sheet
-      const shareResult = await shareInvitationByToken(
-        data.token,
-        user.displayName,
-        expirationDays
-      );
-
-      if (shareResult.success && shareResult.action === 'sharedAction') {
-        showShareSuccessAlert(user.displayName);
-      } else if (shareResult.error) {
-        showShareErrorAlert(shareResult.error);
-      }
-      // If user dismissed, we don't show any alert (silent)
-
-      // Reload users to update status
+  // Form actions (replaces lines 231-289)
+  const { formLoading, handleCreateUser, handleEditUser } = useUserFormActions(
+    () => {
+      setShowCreateForm(false);
+      setEditingUser(null);
       loadUsers();
-    } catch (error) {
-      console.error('Error generating invitation:', error);
-      Alert.alert(
-        'Error',
-        'No se pudo generar la invitación. Verifica tu conexión.'
-      );
     }
-  };
+  );
 
-  // Revoke user
-  const handleRevokeUser = async (user: User) => {
-    try {
-      const response = await fetch(`${FIREBASE_FUNCTION_BASE_URL}/revokeUser`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id }),
-      });
-
-      const data = await response.json();
-
-      if (!data.success) {
-        Alert.alert('Error', data.error || 'No se pudo revocar el acceso');
-        return;
-      }
-
-      Alert.alert('Éxito', `Acceso de ${user.displayName} revocado correctamente`);
-      loadUsers();
-    } catch (error) {
-      console.error('Error revoking user:', error);
-      Alert.alert(
-        'Error',
-        'No se pudo revocar el acceso. Verifica tu conexión.'
-      );
-    }
-  };
+  // Invitation actions (replaces lines 149-223)
+  const { handleGenerateInvitation, handleRevokeUser } =
+    useInvitationActions();
 
   // Toggle sort order
   const toggleSortOrder = () => {
     setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
   };
 
-  // Create user
-  const handleCreateUser = async (data: UserFormData) => {
-    setFormLoading(true);
-    try {
-      const db = await getDatabase();
-
-      // TODO: Get current admin user ID from auth context
-      const currentAdminId = 'temp-admin-id'; // Placeholder
-
-      const result = await UserService.createUser(db, {
-        displayName: data.displayName,
-        role: data.role,
-        createdBy: currentAdminId,
-      });
-
-      if (!result.success) {
-        Alert.alert('Error', result.error || 'No se pudo crear el usuario');
-        return;
-      }
-
-      Alert.alert('Éxito', `Usuario ${data.displayName} creado correctamente`);
-      setShowCreateForm(false);
-      loadUsers();
-    } catch (error) {
-      console.error('Error creating user:', error);
-      Alert.alert('Error', 'Ocurrió un error al crear el usuario');
-    } finally {
-      setFormLoading(false);
-    }
-  };
-
-  // Edit user
-  const handleEditUser = async (data: UserFormData) => {
-    if (!editingUser) return;
-
-    setFormLoading(true);
-    try {
-      const db = await getDatabase();
-
-      const result = await UserService.updateUser(db, {
-        id: editingUser.id,
-        displayName: data.displayName,
-        role: data.role,
-      });
-
-      if (!result.success) {
-        Alert.alert('Error', result.error || 'No se pudo actualizar el usuario');
-        return;
-      }
-
-      Alert.alert('Éxito', `Usuario ${data.displayName} actualizado correctamente`);
-      setEditingUser(null);
-      loadUsers();
-    } catch (error) {
-      console.error('Error updating user:', error);
-      Alert.alert('Error', 'Ocurrió un error al actualizar el usuario');
-    } finally {
-      setFormLoading(false);
-    }
-  };
-
   // Cancel form
   const handleCancelForm = () => {
     setShowCreateForm(false);
     setEditingUser(null);
+  };
+
+  // Handle form submission
+  const handleFormSubmit = async (data: any) => {
+    if (editingUser) {
+      await handleEditUser(editingUser.id, data);
+    } else {
+      await handleCreateUser(data);
+    }
   };
 
   return (
@@ -317,7 +132,8 @@ export default function UsersScreen() {
             </View>
           </View>
           <Text className="text-sm text-secondary mt-xs">
-            {filteredUsers.length} usuario{filteredUsers.length !== 1 ? 's' : ''}
+            {filteredUsers.length} usuario
+            {filteredUsers.length !== 1 ? 's' : ''}
             {searchQuery || authStatusFilter !== 'all' || roleFilter !== 'all'
               ? ` (filtrado${filteredUsers.length !== users.length ? ` de ${users.length}` : ''})`
               : ''}
@@ -344,7 +160,7 @@ export default function UsersScreen() {
             <View className="mb-md">
               <UserForm
                 user={editingUser || undefined}
-                onSubmit={editingUser ? handleEditUser : handleCreateUser}
+                onSubmit={handleFormSubmit}
                 onCancel={handleCancelForm}
                 loading={formLoading}
               />
@@ -400,7 +216,10 @@ export default function UsersScreen() {
               transition={{ type: 'timing', duration: 200 }}
               className="items-center py-xl"
             >
-              <ActivityIndicator size="large" color={theme.colors.primary['500']} />
+              <ActivityIndicator
+                size="large"
+                color={theme.colors.primary['500']}
+              />
               <Text className="text-primary text-lg mt-lg font-semibold text-center">
                 Cargando usuarios…
               </Text>
@@ -420,7 +239,9 @@ export default function UsersScreen() {
                 No hay usuarios
               </Text>
               <Text className="text-sm text-secondary mt-sm text-center px-xl">
-                {searchQuery || authStatusFilter !== 'all' || roleFilter !== 'all'
+                {searchQuery ||
+                authStatusFilter !== 'all' ||
+                roleFilter !== 'all'
                   ? 'No se encontraron usuarios con los filtros aplicados.'
                   : 'Los usuarios aparecerán aquí cuando sean creados.'}
               </Text>

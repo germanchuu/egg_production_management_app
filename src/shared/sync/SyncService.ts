@@ -173,6 +173,21 @@ export class SyncService {
       };
     }
 
+    if (entityType === 'users') {
+      return {
+        id: dbRecord.id,
+        displayName: dbRecord.display_name,
+        role: dbRecord.role,
+        authStatus: dbRecord.auth_status,
+        authorizedDevices: JSON.parse(dbRecord.authorized_devices || '[]'),
+        isActive: Boolean(dbRecord.is_active),
+        invitationId: dbRecord.invitation_id ?? undefined,
+        lastAccessAt: dbRecord.last_access_at ?? undefined,
+        createdAt: dbRecord.created_at,
+        updatedAt: dbRecord.updated_at,
+      };
+    }
+
     // Add more entity type conversions as needed
     // For now, return as-is for other types
     return dbRecord;
@@ -196,7 +211,7 @@ export class SyncService {
 
     // For now, download production_records only
     // In full implementation, iterate over all collection types
-    const collections = ['production_records'];
+    const collections = ['production_records', 'users'];
 
     for (const collectionName of collections) {
       const collectionRef = collection(this.firestore, collectionName);
@@ -273,9 +288,32 @@ export class SyncService {
           remoteData.updatedAt,
         ]
       );
+      return;
     }
 
-    // Add more entity types as needed
+    if (entityType === 'users') {
+      await this.db.runAsync(
+        `INSERT OR REPLACE INTO users
+         (id, display_name, role, auth_status, authorized_devices,
+          is_active, invitation_id, last_access_at, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          remoteData.id,
+          remoteData.displayName,
+          remoteData.role,
+          remoteData.authStatus,
+          JSON.stringify(remoteData.authorizedDevices || []),
+          remoteData.isActive ? 1 : 0,
+          remoteData.invitationId ?? null,
+          remoteData.lastAccessAt ?? null,
+          remoteData.createdAt,
+          remoteData.updatedAt,
+        ]
+      );
+      return;
+    }
+
+    throw new Error(`Unknown entity type: ${entityType}`);
   }
 
   /**
