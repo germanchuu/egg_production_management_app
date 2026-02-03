@@ -66,6 +66,22 @@ export class AuthService {
       // Generate or retrieve device ID
       const deviceId = await AuthService.getOrCreateDeviceId();
 
+      // Add device to user's authorized devices using UserService
+      const { UserServiceProvider } = await import('./UserServiceProvider');
+      const userService = await UserServiceProvider.getUserService();
+      const result = await userService.addAuthorizedDevice(
+        user.id,
+        deviceId,
+        deviceName
+      );
+
+      if (!result.success || !result.data) {
+        return {
+          success: false,
+          error: result.error || 'Error al autorizar el dispositivo',
+        };
+      }
+
       // Create session data
       const sessionData: SessionData = {
         userId: user.id,
@@ -79,7 +95,7 @@ export class AuthService {
 
       return {
         success: true,
-        user,
+        user: result.data, // Return updated user with device
       };
     } catch (error) {
       console.error('Error accepting invitation:', error);

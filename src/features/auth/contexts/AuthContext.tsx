@@ -28,7 +28,10 @@ import React, {
 import { AppState, AppStateStatus } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import type { User, SessionData } from '@/shared/types/entities';
-import { AuthService, type SessionValidationResult } from '../services/AuthService';
+import {
+  AuthService,
+  type SessionValidationResult,
+} from '../services/AuthService';
 import { UserService } from '../services/UserService';
 import { getDatabase } from '@/shared/database';
 
@@ -79,17 +82,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
   /**
    * Load user from local database using stored session
    */
-  const loadUser = useCallback(async (session: SessionData): Promise<User | null> => {
-    try {
-      const { UserServiceProvider } = await import('../services/UserServiceProvider');
-      const service = await UserServiceProvider.getUserService();
-      const loadedUser = await service.getUser(session.userId);
-      return loadedUser;
-    } catch (error) {
-      console.error('Error loading user from database:', error);
-      return null;
-    }
-  }, []);
+  const loadUser = useCallback(
+    async (session: SessionData): Promise<User | null> => {
+      try {
+        const { UserServiceProvider } =
+          await import('../services/UserServiceProvider');
+        const service = await UserServiceProvider.getUserService();
+        const loadedUser = await service.getUser(session.userId);
+        return loadedUser;
+      } catch (error) {
+        console.error('Error loading user from database:', error);
+        return null;
+      }
+    },
+    []
+  );
 
   /**
    * Initialize auth state on app start
@@ -197,42 +204,46 @@ export function AuthProvider({ children }: AuthProviderProps) {
    * Validate session with Firestore (when online)
    * Checks if user is still authorized and not revoked
    */
-  const validateSession = useCallback(async (): Promise<SessionValidationResult> => {
-    // Don't validate too frequently (max once per minute)
-    if (lastValidation && Date.now() - lastValidation.getTime() < 60000) {
-      return { valid: true };
-    }
-
-    try {
-      const result = await AuthService.validateSession(async (userId: string) => {
-        // Fetch user from Firestore
-        // TODO: Implement Firestore fetch when online
-        // For now, return local user
-        const { UserServiceProvider } = await import('../services/UserServiceProvider');
-        const service = await UserServiceProvider.getUserService();
-        return await service.getUser(userId);
-      });
-
-      setLastValidation(new Date());
-
-      if (!result.valid) {
-        // Handle validation failure
-        if (result.error === 'revoked' || result.error === 'device_removed') {
-          await logout();
-          setError(result.message || 'Tu acceso ha sido revocado');
-        }
+  const validateSession =
+    useCallback(async (): Promise<SessionValidationResult> => {
+      // Don't validate too frequently (max once per minute)
+      if (lastValidation && Date.now() - lastValidation.getTime() < 60000) {
+        return { valid: true };
       }
 
-      return result;
-    } catch (error) {
-      console.error('Error validating session:', error);
-      return {
-        valid: false,
-        error: 'network_error',
-        message: 'Error de red al validar sesión',
-      };
-    }
-  }, [lastValidation, logout]);
+      try {
+        const result = await AuthService.validateSession(
+          async (userId: string) => {
+            // Fetch user from Firestore
+            // TODO: Implement Firestore fetch when online
+            // For now, return local user
+            const { UserServiceProvider } =
+              await import('../services/UserServiceProvider');
+            const service = await UserServiceProvider.getUserService();
+            return await service.getUser(userId);
+          }
+        );
+
+        setLastValidation(new Date());
+
+        if (!result.valid) {
+          // Handle validation failure
+          if (result.error === 'revoked' || result.error === 'device_removed') {
+            await logout();
+            setError(result.message || 'Tu acceso ha sido revocado');
+          }
+        }
+
+        return result;
+      } catch (error) {
+        console.error('Error validating session:', error);
+        return {
+          valid: false,
+          error: 'network_error',
+          message: 'Error de red al validar sesión',
+        };
+      }
+    }, [lastValidation, logout]);
 
   /**
    * Initialize auth on mount
@@ -256,7 +267,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
     };
 
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    const subscription = AppState.addEventListener(
+      'change',
+      handleAppStateChange
+    );
 
     return () => {
       subscription.remove();
@@ -269,12 +283,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    const interval = setInterval(async () => {
-      const netInfo = await NetInfo.fetch();
-      if (netInfo.isConnected) {
-        validateSession();
-      }
-    }, 5 * 60 * 1000); // Every 5 minutes
+    const interval = setInterval(
+      async () => {
+        const netInfo = await NetInfo.fetch();
+        if (netInfo.isConnected) {
+          await validateSession();
+        }
+      },
+      5 * 60 * 1000
+    ); // Every 5 minutes
 
     return () => clearInterval(interval);
   }, [isAuthenticated, validateSession]);

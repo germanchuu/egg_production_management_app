@@ -44,32 +44,16 @@ export function UserHeader() {
 
       {/* Background pattern */}
       <View className="absolute inset-0 opacity-10">
-        <View
-          className="absolute -right-8 -top-8 h-32 w-32 rounded-full"
-          style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
-        />
-        <View
-          className="absolute -left-4 bottom-0 h-24 w-24 rounded-full"
-          style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
-        />
-        <View
-          className="absolute right-1/4 top-1/2 h-16 w-16 rounded-full"
-          style={{ backgroundColor: 'rgba(255, 255, 255, 0.15)' }}
-        />
+        <View className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/20" />
+        <View className="absolute -left-4 bottom-0 h-24 w-24 rounded-full bg-white/10" />
+        <View className="absolute right-1/4 top-1/2 h-16 w-16 rounded-full bg-white/15" />
       </View>
 
       <View className="p-6">
         {/* Main content */}
         <View className="relative flex-row items-start gap-4">
           {/* Avatar */}
-          <View
-            className="h-16 w-16 rounded-2xl items-center justify-center shadow-lg"
-            style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
-              borderWidth: 2,
-              borderColor: 'rgba(255, 255, 255, 0.3)',
-            }}
-          >
+          <View className="h-16 w-16 rounded-2xl items-center justify-center shadow-lg bg-white/20 border-2 border-white/30">
             <User size={32} color={theme.colors.background.DEFAULT} />
           </View>
 
@@ -77,37 +61,25 @@ export function UserHeader() {
           <View className="flex-1 min-w-0">
             <View className="flex-row items-center gap-2 mb-1">
               <TimeIcon size={16} color={theme.colors.background.DEFAULT} />
-              <Text
-                className="text-sm"
-                style={{ color: 'rgba(255, 255, 255, 0.8)' }}
-              >
+              <Text className="text-sm text-white/80">
                 {getGreeting()}
               </Text>
             </View>
 
-            <Text
-              className="text-2xl font-bold truncate"
-              style={{ color: theme.colors.background.DEFAULT }}
-            >
+            <Text className="text-2xl font-bold truncate text-white">
               {user.displayName.split(' ')[0]}
             </Text>
 
             <View className="flex-row items-center gap-2 mt-2">
               <View
-                className="flex-row items-center gap-1.5 px-3 py-1 rounded-full"
-                style={{
-                  backgroundColor: isAdmin
-                    ? 'rgba(255, 255, 255, 0.25)'
-                    : 'rgba(255, 255, 255, 0.15)',
-                }}
+                className={`flex-row items-center gap-1.5 px-3 py-1 rounded-full ${
+                  isAdmin ? 'bg-white/25' : 'bg-white/15'
+                }`}
               >
                 {isAdmin && (
                   <Shield size={12} color={theme.colors.background.DEFAULT} />
                 )}
-                <Text
-                  className="text-xs font-medium"
-                  style={{ color: theme.colors.background.DEFAULT }}
-                >
+                <Text className="text-xs font-medium text-white">
                   {isAdmin ? 'Administrador' : 'Usuario'}
                 </Text>
               </View>
@@ -116,61 +88,30 @@ export function UserHeader() {
         </View>
 
         {/* Stats row */}
-        <View
-          className="relative mt-6 pt-4 flex-row justify-between"
-          style={{
-            borderTopWidth: 1,
-            borderTopColor: 'rgba(255, 255, 255, 0.2)',
-          }}
-        >
+        <View className="relative mt-6 pt-4 flex-row justify-between border-t border-white/20">
           <View className="flex-1 items-center">
-            <Text
-              className="text-2xl font-bold"
-              style={{ color: theme.colors.background.DEFAULT }}
-            >
+            <Text className="text-2xl font-bold text-white">
               8
             </Text>
-            <Text
-              className="text-xs"
-              style={{ color: 'rgba(255, 255, 255, 0.7)' }}
-            >
+            <Text className="text-xs text-white/70">
               Lotes activos
             </Text>
           </View>
 
-          <View
-            className="flex-1 items-center"
-            style={{
-              borderLeftWidth: 1,
-              borderRightWidth: 1,
-              borderColor: 'rgba(255, 255, 255, 0.2)',
-            }}
-          >
-            <Text
-              className="text-2xl font-bold"
-              style={{ color: theme.colors.background.DEFAULT }}
-            >
+          <View className="flex-1 items-center border-l border-r border-white/20">
+            <Text className="text-2xl font-bold text-white">
               1,234
             </Text>
-            <Text
-              className="text-xs"
-              style={{ color: 'rgba(255, 255, 255, 0.7)' }}
-            >
+            <Text className="text-xs text-white/70">
               Huevos hoy
             </Text>
           </View>
 
           <View className="flex-1 items-center">
-            <Text
-              className="text-2xl font-bold"
-              style={{ color: theme.colors.background.DEFAULT }}
-            >
+            <Text className="text-2xl font-bold text-white">
               98%
             </Text>
-            <Text
-              className="text-xs"
-              style={{ color: 'rgba(255, 255, 255, 0.7)' }}
-            >
+            <Text className="text-xs text-white/70">
               Productividad
             </Text>
           </View>

@@ -190,4 +190,86 @@ export class UserService {
   async userExistsByName(displayName: string): Promise<boolean> {
     return this.userRepository.existsByDisplayName(displayName);
   }
+
+  /**
+   * Add authorized device to user
+   *
+   * Adds a device to the user's authorized devices list and updates
+   * auth status to Authenticated if user is in Pending state.
+   *
+   * @param userId - User ID
+   * @param deviceId - Device ID (UUID)
+   * @param deviceName - Device name (e.g., "iPhone 12")
+   * @returns Updated user or error
+   */
+  async addAuthorizedDevice(
+    userId: string,
+    deviceId: string,
+    deviceName: string
+  ): Promise<UserServiceResult<User>> {
+    try {
+      // 1. Get current user
+      const user = await this.userRepository.findById(userId);
+      if (!user) {
+        return {
+          success: false,
+          error: 'Usuario no encontrado',
+        };
+      }
+
+      // 2. Check if device already exists
+      const deviceExists = user.authorizedDevices?.some(
+        d => d.deviceId === deviceId
+      );
+      if (deviceExists) {
+        // Device already authorized, return success
+        return {
+          success: true,
+          data: user,
+        };
+      }
+
+      // 3. Create authorized device entry
+      const authorizedDevice = {
+        deviceId,
+        deviceName,
+        authorizedAt: new Date().toISOString(),
+      };
+
+      // 4. Add device to list
+      const updatedDevices = [
+        ...(user.authorizedDevices || []),
+        authorizedDevice,
+      ];
+
+      // 5. Update user with new device and auth status
+      const now = new Date().toISOString();
+      const updatedUser = await this.userRepository.update(userId, {
+        authorizedDevices: updatedDevices,
+        authStatus:
+          user.authStatus === AuthStatus.Pending
+            ? AuthStatus.Authenticated
+            : user.authStatus,
+        updatedAt: now,
+      });
+
+      // 6. Enqueue for sync
+      await this.syncQueue.enqueue({
+        entityType: 'users',
+        entityId: userId,
+        operation: 'UPDATE',
+      });
+
+      return {
+        success: true,
+        data: updatedUser,
+      };
+    } catch (error) {
+      console.error('Error adding authorized device:', error);
+      return {
+        success: false,
+        error: 'Error al autorizar el dispositivo. Por favor intenta de nuevo.',
+      };
+    }
+  }
 }
