@@ -74,12 +74,12 @@ export default function RootLayout() {
           <Text className="text-xl font-bold text-error mb-md">
             Error de Inicialización
           </Text>
-          <Text className="text-primary text-center mb-lg">
+          <Text className="text-textPrimary text-center mb-lg">
             No se pudo inicializar la base de datos. Por favor, reinicia la
             aplicación.
           </Text>
           {error && (
-            <Text className="text-sm text-tertiary text-center">
+            <Text className="text-sm text-textTertiary text-center">
               {error.message}
             </Text>
           )}
@@ -88,8 +88,6 @@ export default function RootLayout() {
     );
   }
 
-  // Render the app once initialization is complete
-  // Wrap with AuthProvider to provide auth context to all screens
   return (
     <AuthProvider>
       <Slot />

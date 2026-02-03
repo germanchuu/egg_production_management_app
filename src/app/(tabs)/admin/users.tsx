@@ -22,12 +22,12 @@ import {
   View,
   Text,
   ScrollView,
-  ActivityIndicator,
   RefreshControl,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MotiView } from 'moti';
-import { Users, UserPlus, AlertCircle } from 'lucide-react-native';
+import { Users, UserPlus, AlertCircle, Filter } from 'lucide-react-native';
 import { theme } from '@/core/theme';
 import type { User } from '@/shared/types/entities';
 import { AuthStatus, UserRole } from '@/shared/types/entities';
@@ -44,6 +44,7 @@ import {
   useUserFormActions,
   useInvitationActions,
 } from '@/features/auth/hooks';
+import { UserCardSkeleton } from '@/features/auth/components/UserCardSkeleton';
 
 export default function UsersScreen() {
   // Data loading (replaces lines 56-95)
@@ -86,8 +87,7 @@ export default function UsersScreen() {
   );
 
   // Invitation actions (replaces lines 149-223)
-  const { handleGenerateInvitation, handleRevokeUser } =
-    useInvitationActions();
+  const { handleGenerateInvitation, handleRevokeUser } = useInvitationActions();
 
   // Toggle sort order
   const toggleSortOrder = () => {
@@ -126,12 +126,12 @@ export default function UsersScreen() {
           <View className="flex-row items-center justify-between">
             <View className="flex-row items-center flex-1">
               <Users size={32} color={theme.colors.primary['500']} />
-              <Text className="text-2xl font-bold text-primary ml-md">
+              <Text className="text-2xl font-bold text-textPrimary ml-md">
                 Gestión de Usuarios
               </Text>
             </View>
           </View>
-          <Text className="text-sm text-secondary mt-xs">
+          <Text className="text-sm text-textSecondary mt-xs">
             {filteredUsers.length} usuario
             {filteredUsers.length !== 1 ? 's' : ''}
             {searchQuery || authStatusFilter !== 'all' || roleFilter !== 'all'
@@ -167,24 +167,39 @@ export default function UsersScreen() {
             </View>
           )}
 
-          {/* Search Bar */}
-          <View className="mb-md">
-            <UserSearchBar
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              placeholder="Buscar por nombre..."
-            />
-          </View>
+          {/* Search + Filters */}
+          <View className="flex-row items-center gap-sm">
+            <View className="flex-1">
+              <UserSearchBar
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                placeholder="Buscar por nombre..."
+              />
+            </View>
 
-          {/* Filters Toggle */}
-          <View className="mb-md">
-            <Button
-              variant="secondary"
-              icon={AlertCircle}
+            <Pressable
               onPress={() => setShowFilters(!showFilters)}
+              hitSlop={8}
+              className={`
+                        min-h-[48px] min-w-[48px]
+                        rounded-md
+                        items-center justify-center
+                        ${showFilters ? 'bg-primary-500 text-white' : 'bg-white border border-gray-300'}
+                      `}
+              style={({ pressed }) => ({
+                opacity: pressed ? 0.7 : 1,
+                transform: [{ scale: pressed ? 0.96 : 1 }],
+              })}
             >
-              {showFilters ? 'Ocultar Filtros' : 'Mostrar Filtros'}
-            </Button>
+              <Filter
+                size={20}
+                color={
+                  showFilters
+                    ? theme.colors.textInverse.DEFAULT
+                    : theme.colors.textSecondary.DEFAULT
+                }
+              />
+            </Pressable>
           </View>
 
           {/* Filters */}
@@ -193,7 +208,7 @@ export default function UsersScreen() {
               from={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               transition={{ type: 'timing', duration: 250 }}
-              className="mb-md"
+              className="mt-md"
             >
               <UserFilters
                 authStatus={authStatusFilter}
@@ -208,6 +223,8 @@ export default function UsersScreen() {
             </MotiView>
           )}
 
+          <View className="my-md border-b border-b-gray-200" />
+
           {/* Loading State */}
           {loading && (
             <MotiView
@@ -216,13 +233,9 @@ export default function UsersScreen() {
               transition={{ type: 'timing', duration: 200 }}
               className="items-center py-xl"
             >
-              <ActivityIndicator
-                size="large"
-                color={theme.colors.primary['500']}
-              />
-              <Text className="text-primary text-lg mt-lg font-semibold text-center">
-                Cargando usuarios…
-              </Text>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <UserCardSkeleton key={i} />
+              ))}
             </MotiView>
           )}
 
@@ -235,10 +248,10 @@ export default function UsersScreen() {
               className="items-center py-xl"
             >
               <Users size={64} color={theme.colors.gray['400']} />
-              <Text className="text-lg font-semibold text-primary mt-lg text-center">
+              <Text className="text-lg font-semibold text-textPrimary mt-lg text-center">
                 No hay usuarios
               </Text>
-              <Text className="text-sm text-secondary mt-sm text-center px-xl">
+              <Text className="text-sm text-textSecondary mt-sm text-center px-xl">
                 {searchQuery ||
                 authStatusFilter !== 'all' ||
                 roleFilter !== 'all'

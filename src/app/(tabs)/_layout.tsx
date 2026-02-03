@@ -1,94 +1,68 @@
 /**
- * Tabs Layout Component
+ * App Drawer Layout
  *
- * Main navigation layout with bottom tabs for primary app sections.
- *
- * Navigation Structure:
- * - Home: Dashboard with overview and quick actions
- * - Production: Daily egg production entry and history
- * - Lots: Chicken lots list and details
- * - Profile: User settings and account management
- *
- * Constitution III (Simplicity-First UX):
- * - Direct access to main features (≤3 levels navigation)
- * - Large touch targets for field use (48dp minimum)
- * - Clear iconography and labels in Spanish
+ * Main navigation using Drawer (no tabs).
  */
 
-import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Drawer } from 'expo-router/drawer';
+import { Home, Package, User } from 'lucide-react-native';
 import { theme } from '@/core/theme';
 
-/**
- * Tabs layout with bottom navigation using Tailwind theme
- */
-export default function TabsLayout() {
+export default function AppLayout() {
   return (
-    <Tabs
+    <Drawer
       screenOptions={{
-        tabBarActiveTintColor: theme.colors.primary['500'],
-        tabBarInactiveTintColor: theme.colors.gray['400'],
-        tabBarStyle: {
-          height: parseInt(theme.spacing['5xl']),
-          paddingBottom: parseInt(theme.spacing.sm),
-          paddingTop: parseInt(theme.spacing.sm),
+        headerShown: false,
+        drawerActiveTintColor: theme.colors.primary['500'],
+        drawerInactiveTintColor: theme.colors.textSecondary.DEFAULT,
+        drawerLabelStyle: {
+          fontWeight: theme.fontWeight.medium,
         },
-        tabBarLabelStyle: {
-          fontSize: parseInt(theme.fontSize.xs[0]),
-          fontWeight: theme.fontWeight.semibold,
-        },
-        headerStyle: {
-          backgroundColor: theme.colors.primary['500'],
-        },
-        headerTintColor: theme.colors['text-inverse'],
-        headerTitleStyle: {
-          fontWeight: theme.fontWeight.semibold,
+        drawerStyle: {
+          backgroundColor: theme.colors.background.DEFAULT,
+          width: 280,
         },
       }}
     >
-      {/* Home Tab */}
-      <Tabs.Screen
+      <Drawer.Screen
         name="index"
         options={{
           title: 'Inicio',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" size={size} color={color} />
+          drawerIcon: ({ color, size }: { color: string; size: number }) => (
+            <Home size={size} color={color} />
           ),
         }}
       />
 
-      {/* Production Tab */}
-      <Tabs.Screen
+      <Drawer.Screen
         name="production"
         options={{
           title: 'Producción',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="egg" size={size} color={color} />
+          drawerIcon: ({ color, size }: { color: string; size: number }) => (
+            <Package size={size} color={color} />
           ),
         }}
       />
 
-      {/* Lots Tab */}
-      <Tabs.Screen
+      <Drawer.Screen
         name="lots"
         options={{
           title: 'Lotes',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="grid" size={size} color={color} />
+          drawerIcon: ({ color, size }: { color: string; size: number }) => (
+            <Package size={size} color={color} />
           ),
         }}
       />
 
-      {/* Profile Tab */}
-      <Tabs.Screen
+      <Drawer.Screen
         name="profile"
         options={{
           title: 'Perfil',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" size={size} color={color} />
+          drawerIcon: ({ color, size }: { color: string; size: number }) => (
+            <User size={size} color={color} />
           ),
         }}
       />
-    </Tabs>
+    </Drawer>
   );
 }

@@ -7,7 +7,6 @@ module.exports = function (api) {
       "nativewind/babel",
     ],
     plugins: [
-      ['react-native-worklets/plugin'],
       [
         'module-resolver',
         {
@@ -18,6 +17,7 @@ module.exports = function (api) {
           extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
         },
       ],
+      'react-native-worklets/plugin',
     ],
   };
 };

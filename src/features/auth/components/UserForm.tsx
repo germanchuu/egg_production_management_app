@@ -74,7 +74,7 @@ export const UserForm: React.FC<UserFormProps> = ({
       <View className="flex-row items-center justify-between mb-lg">
         <View className="flex-row items-center">
           <UserIcon size={24} color={theme.colors.primary['500']} />
-          <Text className="text-lg font-bold text-primary ml-sm">
+          <Text className="text-lg font-bold text-textPrimary ml-sm">
             {isEditing ? 'Editar Usuario' : 'Nuevo Usuario'}
           </Text>
         </View>
@@ -91,7 +91,7 @@ export const UserForm: React.FC<UserFormProps> = ({
 
       {/* Display Name Input */}
       <View className="mb-md">
-        <Text className="text-sm font-medium text-secondary mb-xs">
+        <Text className="text-sm font-medium text-textSecondary mb-xs">
           Nombre del Usuario
         </Text>
         <Controller
@@ -102,7 +102,7 @@ export const UserForm: React.FC<UserFormProps> = ({
               <View className="flex-row items-center border border-gray-300 rounded-md px-md py-sm">
                 <UserIcon size={20} color={theme.colors.gray['400']} />
                 <TextInput
-                  className="flex-1 ml-sm text-base text-primary"
+                  className="flex-1 ml-sm text-base text-textPrimary"
                   placeholder="Ej: Juan Pérez"
                   placeholderTextColor={theme.colors.gray['400']}
                   value={value}
@@ -125,7 +125,7 @@ export const UserForm: React.FC<UserFormProps> = ({
 
       {/* Role Selection */}
       <View className="mb-lg">
-        <Text className="text-sm font-medium text-secondary mb-xs">
+        <Text className="text-sm font-medium text-textSecondary mb-xs">
           Rol del Usuario
         </Text>
         <Controller
@@ -157,7 +157,9 @@ export const UserForm: React.FC<UserFormProps> = ({
                   />
                   <Text
                     className={`text-sm font-medium ${
-                      value === UserRole.User ? 'text-white' : 'text-secondary'
+                      value === UserRole.User
+                        ? 'text-white'
+                        : 'text-textSecondary'
                     }`}
                   >
                     Usuario
@@ -187,14 +189,16 @@ export const UserForm: React.FC<UserFormProps> = ({
                   />
                   <Text
                     className={`text-sm font-medium ${
-                      value === UserRole.Admin ? 'text-white' : 'text-secondary'
+                      value === UserRole.Admin
+                        ? 'text-white'
+                        : 'text-textSecondary'
                     }`}
                   >
                     Administrador
                   </Text>
                 </Pressable>
               </View>
-              <Text className="text-xs text-tertiary mt-xs">
+              <Text className="text-xs text-textTertiary mt-xs">
                 {value === UserRole.Admin
                   ? 'Los administradores pueden gestionar usuarios y configuración del sistema.'
                   : 'Los usuarios pueden registrar producción, mortalidad y otros eventos.'}
@@ -212,11 +216,7 @@ export const UserForm: React.FC<UserFormProps> = ({
       {/* Action Buttons */}
       <View className="flex-row gap-md">
         <View className="flex-1">
-          <Button
-            variant="secondary"
-            onPress={onCancel}
-            disabled={loading}
-          >
+          <Button variant="secondary" onPress={onCancel} disabled={loading}>
             Cancelar
           </Button>
         </View>
@@ -235,7 +235,7 @@ export const UserForm: React.FC<UserFormProps> = ({
       {/* Info Note */}
       {!isEditing && (
         <View className="mt-md bg-primary-50 p-sm rounded-md border border-primary-200">
-          <Text className="text-xs text-primary-700">
+          <Text className="text-xs text-textPrimary-700">
             El usuario será creado en estado "Pendiente". Deberás generar una
             invitación para que pueda acceder a la aplicación.
           </Text>

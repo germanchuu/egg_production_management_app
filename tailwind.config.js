@@ -5,6 +5,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Paleta principal
         primary: {
           DEFAULT: '#0097A7',
           50: '#E0F7FA',
@@ -12,7 +13,7 @@ module.exports = {
           200: '#80DEEA',
           300: '#4DD0E1',
           400: '#26C6DA',
-          500: '#0097A7', // Base
+          500: '#0097A7',
           600: '#00838F',
           700: '#006064',
           800: '#004D56',
@@ -25,7 +26,7 @@ module.exports = {
           200: '#CE93D8',
           300: '#BA68C8',
           400: '#AB47BC',
-          500: '#8E24AA', // Base
+          500: '#8E24AA',
           600: '#7B1FA2',
           700: '#6A1B9A',
           800: '#4A148C',
@@ -38,7 +39,7 @@ module.exports = {
           200: '#FFE082',
           300: '#FFD54F',
           400: '#FFCA28',
-          500: '#FFB300', // Base
+          500: '#FFB300',
           600: '#FFA000',
           700: '#FF8F00',
           800: '#FF6F00',
@@ -84,11 +85,19 @@ module.exports = {
           secondary: '#F5F5F5',
           tertiary: '#E0F7FA',
         },
-        // Text colors (use as text-textPrimary, text-textSecondary, etc.)
-        'text-textPrimary': '#212121',
-        'text-textSecondary': '#616161',
-        'text-textTertiary': '#9E9E9E',
-        'text-textInverse': '#FFFFFF',
+        // Text colors
+        textPrimary: {
+          DEFAULT: '#212121',
+        },
+        textSecondary: {
+          DEFAULT: '#616161',
+        },
+        textTertiary: {
+          DEFAULT: '#9E9E9E',
+        },
+        textInverse: {
+          DEFAULT: '#FFFFFF',
+        },
       },
       spacing: {
         xs: '4px',

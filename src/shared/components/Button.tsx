@@ -3,26 +3,6 @@
  *
  * Reusable button with haptic feedback, large touch targets (48dp minimum),
  * loading states, and variant support.
- *
- * Usage:
- * ```tsx
- * <Button
- *   variant="primary"
- *   onPress={handleSubmit}
- *   loading={isLoading}
- * >
- *   Guardar
- * </Button>
- *
- * <Button
- *   variant="secondary"
- *   icon="trash"
- *   iconPosition="left"
- *   onPress={handleDelete}
- * >
- *   Eliminar
- * </Button>
- * ```
  */
 
 import React from 'react';
@@ -34,37 +14,21 @@ import {
   type PressableProps,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { Ionicons } from '@expo/vector-icons';
+import type { LucideIcon } from 'lucide-react-native';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'danger';
 export type IconPosition = 'left' | 'right';
 
 export interface ButtonProps extends Omit<PressableProps, 'children'> {
-  /** Button variant for styling */
   variant?: ButtonVariant;
-
-  /** Button label text */
   children: string;
-
-  /** Loading state - shows spinner and disables button */
   loading?: boolean;
-
-  /** Disabled state */
   disabled?: boolean;
-
-  /** Icon name from Ionicons */
-  icon?: keyof typeof Ionicons.glyphMap;
-
-  /** Icon position relative to text */
+  icon?: LucideIcon;
   iconPosition?: IconPosition;
-
-  /** Press handler */
   onPress?: () => void;
 }
 
-/**
- * Get background color class based on variant
- */
 function getVariantBackgroundClass(variant: ButtonVariant): string {
   switch (variant) {
     case 'primary':
@@ -78,23 +42,16 @@ function getVariantBackgroundClass(variant: ButtonVariant): string {
   }
 }
 
-/**
- * Get text color class based on variant
- */
 function getVariantTextClass(): string {
-  // All variants use white text
   return 'text-white';
 }
 
-/**
- * Button component with 48dp minimum touch target and haptic feedback
- */
 export function Button({
   variant = 'primary',
   children,
   loading = false,
   disabled = false,
-  icon,
+  icon: Icon,
   iconPosition = 'left',
   onPress,
   ...rest
@@ -103,7 +60,6 @@ export function Button({
 
   const handlePress = () => {
     if (!isDisabled && onPress) {
-      // Trigger haptic feedback
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       onPress();
     }
@@ -132,23 +88,23 @@ export function Button({
       {loading ? (
         <ActivityIndicator color="#FFFFFF" size="small" />
       ) : (
-        <View className="flex-row items-center justify-center">
-          {/* Icon Left */}
-          {icon && iconPosition === 'left' && (
+        <View className="flex-row items-center justify-center min-w-0">
+          {Icon && iconPosition === 'left' && (
             <View className="mr-2">
-              <Ionicons name={icon} size={20} color="#FFFFFF" />
+              <Icon size={20} color="#FFFFFF" />
             </View>
           )}
 
-          {/* Button Text */}
-          <Text className={`text-base font-semibold ${textClass}`}>
+          <Text
+            numberOfLines={1}
+            className={`text-base font-semibold ${textClass}`}
+          >
             {children}
           </Text>
 
-          {/* Icon Right */}
-          {icon && iconPosition === 'right' && (
+          {Icon && iconPosition === 'right' && (
             <View className="ml-2">
-              <Ionicons name={icon} size={20} color="#FFFFFF" />
+              <Icon size={20} color="#FFFFFF" />
             </View>
           )}
         </View>

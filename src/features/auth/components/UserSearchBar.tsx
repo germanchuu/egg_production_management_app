@@ -1,9 +1,3 @@
-/**
- * User Search Bar Component
- *
- * Search input for filtering users by name
- */
-
 import React from 'react';
 import { View, TextInput } from 'react-native';
 import { Search } from 'lucide-react-native';
@@ -21,12 +15,21 @@ export const UserSearchBar: React.FC<UserSearchBarProps> = ({
   placeholder = 'Buscar usuarios...',
 }) => {
   return (
-    <View className="flex-row items-center bg-white border border-gray-300 rounded-md px-md py-sm">
-      <Search size={20} color={theme.colors.gray['400']} />
+    <View
+      className="
+        flex-row items-center
+        bg-white
+        border border-gray-300
+        rounded-md
+        px-md
+        min-h-[48px]
+      "
+    >
+      <Search size={18} color={theme.colors.textTertiary.DEFAULT} />
       <TextInput
-        className="flex-1 ml-sm text-base text-primary"
+        className="flex-1 ml-sm text-sm text-textPrimary"
         placeholder={placeholder}
-        placeholderTextColor={theme.colors.gray['400']}
+        placeholderTextColor={theme.colors.textTertiary.DEFAULT}
         value={value}
         onChangeText={onChangeText}
         autoCapitalize="none"

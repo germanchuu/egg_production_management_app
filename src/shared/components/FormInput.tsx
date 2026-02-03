@@ -76,12 +76,10 @@ export function FormInput({
     <View className="mb-lg">
       {/* Label */}
       <View className="flex-row items-center mb-sm">
-        <Text className="text-base font-medium text-text-primary">
+        <Text className="text-base font-medium text-text-textPrimary">
           {label}
         </Text>
-        {required && (
-          <Text className="text-error ml-1">*</Text>
-        )}
+        {required && <Text className="text-error ml-1">*</Text>}
       </View>
 
       {/* Input Field - min 48dp height */}
@@ -97,7 +95,7 @@ export function FormInput({
           min-h-[48px]
           bg-white
           border rounded-md
-          text-base text-text-primary
+          text-base text-text-textPrimary
           ${hasError ? 'border-error' : 'border-gray-300'}
           ${disabled ? 'bg-gray-100 opacity-disabled' : ''}
         `}
@@ -105,15 +103,11 @@ export function FormInput({
       />
 
       {/* Error Message */}
-      {hasError && (
-        <Text className="text-sm text-error mt-xs">
-          {error}
-        </Text>
-      )}
+      {hasError && <Text className="text-sm text-error mt-xs">{error}</Text>}
 
       {/* Help Text */}
       {!hasError && helpText && (
-        <Text className="text-sm text-text-secondary mt-xs">
+        <Text className="text-sm text-text-textSecondary mt-xs">
           {helpText}
         </Text>
       )}

@@ -98,7 +98,9 @@ export function DatePicker({
     <View className="mb-lg">
       {/* Label */}
       <View className="flex-row items-center mb-sm">
-        <Text className="text-base font-medium text-text-primary">{label}</Text>
+        <Text className="text-base font-medium text-text-textPrimary">
+          {label}
+        </Text>
         {required && <Text className="text-error ml-1">*</Text>}
       </View>
 
@@ -120,12 +122,12 @@ export function DatePicker({
         <Text
           className={`
             text-base
-            ${disabled ? 'text-text-tertiary' : 'text-text-primary'}
+            ${disabled ? 'text-text-textTertiary' : 'text-text-textPrimary'}
           `}
         >
           {displayDate}
         </Text>
-        <Text className="text-lg text-text-secondary">📅</Text>
+        <Text className="text-lg text-text-textSecondary">📅</Text>
       </TouchableOpacity>
 
       {/* Native Date Picker */}
@@ -146,7 +148,9 @@ export function DatePicker({
 
       {/* Help Text */}
       {!hasError && helpText && (
-        <Text className="text-sm text-text-secondary mt-xs">{helpText}</Text>
+        <Text className="text-sm text-text-textSecondary mt-xs">
+          {helpText}
+        </Text>
       )}
     </View>
   );

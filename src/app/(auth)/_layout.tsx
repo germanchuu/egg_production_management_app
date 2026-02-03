@@ -30,24 +30,11 @@ export default function AuthLayout() {
   return (
     <Stack
       screenOptions={{
-        headerStyle: {
-          backgroundColor: theme.colors.primary['500'],
-        },
-        headerTintColor: theme.colors['text-inverse'],
-        headerTitleStyle: {
-          fontWeight: theme.fontWeight.semibold,
-        },
-        headerBackTitle: 'Atrás',
+        headerShown: false,
       }}
     >
       {/* Invitation Acceptance Route */}
-      <Stack.Screen
-        name="invite/[token]"
-        options={{
-          title: 'Aceptar Invitación',
-          headerBackVisible: false,
-        }}
-      />
+      <Stack.Screen name="invite/[token]" />
     </Stack>
   );
 }

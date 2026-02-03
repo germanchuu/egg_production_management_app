@@ -9,6 +9,7 @@ import { View, Text, Pressable } from 'react-native';
 import { Filter, ArrowUpDown } from 'lucide-react-native';
 import { theme } from '@/core/theme';
 import { AuthStatus, UserRole } from '@/shared/types/entities';
+import { MotiView } from 'moti';
 
 interface UserFiltersProps {
   authStatus: AuthStatus | 'all';
@@ -36,14 +37,14 @@ export const UserFilters: React.FC<UserFiltersProps> = ({
       {/* Header */}
       <View className="flex-row items-center mb-md">
         <Filter size={20} color={theme.colors.primary['500']} />
-        <Text className="text-base font-semibold text-primary ml-sm">
+        <Text className="text-base font-semibold text-textPrimary ml-sm">
           Filtros y Ordenación
         </Text>
       </View>
 
       {/* Auth Status Filter */}
       <View className="mb-md">
-        <Text className="text-xs font-medium text-secondary mb-xs">
+        <Text className="text-xs font-medium text-textSecondary mb-xs">
           Estado de Autenticación
         </Text>
         <View className="flex-row flex-wrap gap-xs">
@@ -72,7 +73,7 @@ export const UserFilters: React.FC<UserFiltersProps> = ({
 
       {/* Role Filter */}
       <View className="mb-md">
-        <Text className="text-xs font-medium text-secondary mb-xs">
+        <Text className="text-xs font-medium text-textSecondary mb-xs">
           Rol
         </Text>
         <View className="flex-row flex-wrap gap-xs">
@@ -96,7 +97,7 @@ export const UserFilters: React.FC<UserFiltersProps> = ({
 
       {/* Sort Controls */}
       <View>
-        <Text className="text-xs font-medium text-secondary mb-xs">
+        <Text className="text-xs font-medium text-textSecondary mb-xs">
           Ordenar por
         </Text>
         <View className="flex-row items-center gap-xs">
@@ -120,17 +121,18 @@ export const UserFilters: React.FC<UserFiltersProps> = ({
           <Pressable
             onPress={onSortOrderToggle}
             className="w-10 h-10 items-center justify-center bg-primary-100 rounded-md"
-            style={({ pressed }) => ({
-              opacity: pressed ? 0.7 : 1,
-            })}
           >
-            <ArrowUpDown
-              size={20}
-              color={theme.colors.primary['700']}
-              style={{
-                transform: [{ rotate: sortOrder === 'desc' ? '180deg' : '0deg' }],
+            <MotiView
+              animate={{
+                rotate: sortOrder === 'desc' ? '180deg' : '0deg',
               }}
-            />
+              transition={{
+                type: 'timing',
+                duration: 200,
+              }}
+            >
+              <ArrowUpDown size={20} color={theme.colors.primary['700']} />
+            </MotiView>
           </Pressable>
         </View>
       </View>
@@ -148,7 +150,11 @@ interface FilterChipProps {
   onPress: () => void;
 }
 
-const FilterChip: React.FC<FilterChipProps> = ({ label, selected, onPress }) => {
+const FilterChip: React.FC<FilterChipProps> = ({
+  label,
+  selected,
+  onPress,
+}) => {
   return (
     <Pressable
       onPress={onPress}
@@ -163,7 +169,7 @@ const FilterChip: React.FC<FilterChipProps> = ({ label, selected, onPress }) => 
     >
       <Text
         className={`text-xs font-medium ${
-          selected ? 'text-white' : 'text-secondary'
+          selected ? 'text-white' : 'text-textSecondary'
         }`}
       >
         {label}

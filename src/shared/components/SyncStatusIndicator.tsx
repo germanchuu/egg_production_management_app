@@ -1,108 +1,73 @@
-/**
- * SyncStatusIndicator Component
- *
- * Compact component that displays synchronization status with visual feedback.
- * Designed for headers and status bars with minimal intrusion.
- *
- * Status states:
- * - synced: All data synchronized (green checkmark)
- * - pending: Changes waiting to sync (yellow cloud)
- * - syncing: Actively synchronizing (blue rotating sync icon)
- * - failed: Sync failed (red alert)
- *
- * Usage:
- * ```tsx
- * const { status, pendingCount } = useSync();
- * <SyncStatusIndicator
- *   status={status}
- *   pendingCount={pendingCount}
- *   showLabel
- *   onPress={() => console.log('Show sync details')}
- * />
- * ```
- */
-
 import React, { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, Animated, Easing } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { SyncStatus } from '@/shared/hooks/useSync';
 
 export interface SyncStatusIndicatorProps {
-  /** Current sync status */
   status: SyncStatus;
-
-  /** Number of pending items (optional, shows badge if > 0) */
   pendingCount?: number;
-
-  /** Whether to show text label alongside icon (default: false) */
   showLabel?: boolean;
-
-  /** Optional press handler for showing sync details */
   onPress?: () => void;
-
-  /** Compact mode - smaller size for tight spaces (default: false) */
+  onRetry?: () => void;
   compact?: boolean;
 }
 
 /**
- * Get icon name and color for each sync status
+ * Visual config adapted from web SyncStatusIndicator
  */
-function getStatusConfig(status: SyncStatus): {
-  icon: keyof typeof Ionicons.glyphMap;
-  colorClass: string;
-  label: string;
-  animate: boolean;
-} {
+function getStatusConfig(status: SyncStatus) {
   switch (status) {
     case 'synced':
       return {
         icon: 'checkmark-circle',
-        colorClass: 'text-success',
         label: 'Sincronizado',
+        containerClass: 'bg-success/10 border border-success/20',
+        textClass: 'text-success',
         animate: false,
       };
     case 'pending':
       return {
-        icon: 'cloud-outline',
-        colorClass: 'text-warning',
-        label: 'Pendiente',
+        icon: 'time-outline',
+        label: 'Cambios pendientes',
+        containerClass: 'bg-warning/10 border border-warning/20',
+        textClass: 'text-warning',
         animate: false,
       };
     case 'syncing':
       return {
         icon: 'sync',
-        colorClass: 'text-info',
-        label: 'Sincronizando',
+        label: 'Sincronizando...',
+        containerClass: 'bg-info/10 border border-info/20',
+        textClass: 'text-info',
         animate: true,
       };
     case 'failed':
       return {
         icon: 'alert-circle',
-        colorClass: 'text-error',
-        label: 'Error',
+        label: 'Error de sincronización',
+        containerClass: 'bg-error/10 border border-error/20',
+        textClass: 'text-error',
         animate: false,
       };
   }
 }
 
 /**
- * SyncStatusIndicator component with animation support
+ * SyncStatusIndicator – Native version styled like web component
  */
 export function SyncStatusIndicator({
   status,
   pendingCount = 0,
-  showLabel = false,
+  showLabel = true,
   onPress,
+  onRetry,
   compact = false,
 }: SyncStatusIndicatorProps) {
   const config = getStatusConfig(status);
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const spinValue = useRef(new Animated.Value(0)).current;
 
-  // Rotation animation for syncing state
   useEffect(() => {
     if (config.animate) {
-      // Create continuous rotation animation
       const animation = Animated.loop(
         Animated.timing(spinValue, {
           toValue: 1,
@@ -113,84 +78,71 @@ export function SyncStatusIndicator({
       );
 
       animation.start();
-
       return () => {
         animation.stop();
         spinValue.setValue(0);
       };
-    } else {
-      // Reset rotation when not animating
-      spinValue.setValue(0);
     }
+
+    spinValue.setValue(0);
   }, [config.animate, spinValue]);
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const spin = spinValue.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg'],
   });
 
-  const iconSize = compact ? 18 : 20;
-  const badgeSize = compact ? 16 : 18;
+  const iconSize = compact ? 16 : 18;
 
-  const content = (
-    <View className="flex-row items-center gap-sm">
-      {/* Icon with optional animation */}
-      <Animated.View
-        style={config.animate ? { transform: [{ rotate: spin }] } : undefined}
-      >
-        <Ionicons
-          name={config.icon}
-          size={iconSize}
-          className={config.colorClass}
-        />
-      </Animated.View>
+  const Container = onPress ? TouchableOpacity : View;
 
-      {/* Optional label text */}
-      {showLabel && (
-        <Text className={`text-sm font-medium ${config.colorClass}`}>
-          {config.label}
-        </Text>
-      )}
-
-      {/* Badge showing pending count */}
-      {pendingCount > 0 && (
-        <View
-          className="bg-warning rounded-full items-center justify-center min-w-[18px] px-xs"
-          style={{ minHeight: badgeSize }}
-        >
-          <Text className="text-xs font-semibold text-white">
-            {pendingCount > 99 ? '99+' : pendingCount}
-          </Text>
-        </View>
-      )}
-    </View>
-  );
-
-  // Wrap in TouchableOpacity if onPress is provided
-  if (onPress) {
-    return (
-      <TouchableOpacity
-        onPress={onPress}
-        activeOpacity={0.7}
-        className="py-sm px-md"
-        accessibilityLabel={`Sync status: ${config.label}`}
-        accessibilityHint={
-          pendingCount > 0 ? `${pendingCount} items pending sync` : undefined
-        }
-      >
-        {content}
-      </TouchableOpacity>
-    );
-  }
-
-  // Non-interactive version
   return (
-    <View
-      className="py-sm px-md"
-      accessibilityLabel={`Sync status: ${config.label}`}
+    <Container
+      onPress={onPress}
+      activeOpacity={0.8}
+      className={`
+        flex-row
+        items-center
+        justify-between
+        gap-md
+        px-md
+        py-sm
+        rounded-xl
+        ${config.containerClass}
+      `}
+      accessibilityLabel={`Estado de sincronización: ${config.label}`}
     >
-      {content}
-    </View>
+      {/* Left: icon + text */}
+      <View className="flex-row items-center gap-sm flex-1">
+        <Animated.View
+          style={config.animate ? { transform: [{ rotate: spin }] } : undefined}
+        >
+          <Ionicons size={iconSize} className={config.textClass} />
+        </Animated.View>
+
+        {showLabel && (
+          <Text
+            className={`text-sm font-medium ${config.textClass}`}
+            numberOfLines={1}
+          >
+            {status === 'pending' && pendingCount > 0
+              ? `${pendingCount} cambios pendientes`
+              : config.label}
+          </Text>
+        )}
+      </View>
+
+      {/* Right: retry button */}
+      {status === 'failed' && onRetry && (
+        <TouchableOpacity
+          onPress={onRetry}
+          className="flex-row items-center gap-xs px-sm py-xs rounded-md"
+          accessibilityLabel="Reintentar sincronización"
+        >
+          <Ionicons name="refresh" size={14} className="text-error" />
+          <Text className="text-xs font-medium text-error">Reintentar</Text>
+        </TouchableOpacity>
+      )}
+    </Container>
   );
 }

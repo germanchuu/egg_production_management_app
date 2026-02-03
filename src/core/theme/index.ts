@@ -17,7 +17,10 @@
  */
 
 import resolveConfig from 'tailwindcss/resolveConfig';
-import tailwindConfig from '@/../tailwind.config';
+
+// Import Tailwind config using require (CommonJS)
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const tailwindConfig = require('@/../tailwind.config.js');
 
 // Resolve Tailwind config to get theme values
 const config = resolveConfig(tailwindConfig);
