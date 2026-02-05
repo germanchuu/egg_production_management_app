@@ -1,33 +1,39 @@
 <!--
   SYNC IMPACT REPORT
   ==================
-  Version Change: 1.0.0 → 1.1.0
+  Version Change: 1.1.0 → 1.2.0
 
-  Modified Principles: N/A
+  Modified Principles:
+  - III. Simplicity-First UX - Added "User Feedback for CRUD Operations (MANDATORY)" subsection
 
   Added Sections:
-  - VI. Data Sync Architecture Pattern (MANDATORY) - Standardized architecture for all data operations with sync
+  - User Feedback for CRUD Operations - Mandatory toast notifications for all CRUD operations
 
   Removed Sections: N/A
 
   Rationale:
-  After completing the User entity refactoring (REFACTOR_PLAN.md), we established a proven
-  architecture pattern that eliminates "código chorizo" and ensures consistent bidirectional
-  sync. This pattern is now MANDATORY for all entities requiring synchronization to ensure:
-  - Consistent code quality across features
-  - Maintainable and testable codebase
-  - Reliable bidirectional sync (local ↔ Firebase)
-  - Clear separation of concerns (Repository → Mapper → Service → SyncQueue → SyncService)
+  After implementing custom Toast and ConfirmDialog components for the User entity, we established
+  a consistent pattern for user feedback that significantly improves UX. This pattern is now MANDATORY
+  for all CRUD operations to ensure:
+  - Users receive immediate, non-blocking feedback on their actions
+  - Consistent user experience across all features
+  - Reduced uncertainty and increased confidence in the system
+  - Clear distinction between success, error, and warning states
+
+  Implementation Details:
+  - Custom Toast component with 4 types: success, error, warning, info
+  - Custom ConfirmDialog for destructive actions (delete/revoke)
+  - useToast hook for easy integration
+  - Already implemented in User entity as reference
 
   Templates Requiring Updates:
-  - ⚠️ .specify/templates/plan-template.md - Should include architecture pattern compliance check
-  - ⚠️ .specify/templates/spec-template.md - Should reference sync architecture requirements
-  - ⚠️ Code Review Checklist - Add verification of Data Sync Architecture Pattern compliance
+  - ⚠️ Code Review Checklist - Add verification of toast notifications for CRUD operations
+  - ⚠️ .specify/templates/plan-template.md - Should include user feedback requirements
 
   Follow-up TODOs:
-  - Update code review checklist to include architecture pattern verification
-  - Document migration guide for existing entities that don't follow the pattern
-  - Create architecture decision record (ADR) detailing the pattern selection rationale
+  - Apply toast pattern to all existing CRUD operations in other entities
+  - Document toast usage guidelines in developer documentation
+  - Create examples for common CRUD operation toast messages
 -->
 
 # Gestión de Producción de Huevos - Constitution
@@ -81,7 +87,16 @@
 - Dark patterns and unnecessary confirmations MUST be avoided
 - The UI MUST be responsive and feel fast (perceived performance <100ms)
 
-**Rationale**: Agricultural workers need to record data quickly, often in challenging conditions (sunlight, gloves, time pressure). A simple, fast interface reduces friction, increases adoption, and ensures accurate data entry. Complexity leads to errors and abandonment.
+**User Feedback for CRUD Operations (MANDATORY)**:
+- ALL create, update, and delete operations MUST show a toast notification indicating the result
+- Success toasts MUST use the `success` type with a descriptive message (e.g., "Usuario creado correctamente")
+- Error toasts MUST use the `error` type with a clear error message
+- Toast messages MUST be concise and action-oriented (what happened + status)
+- Destructive actions (delete/revoke) MUST use ConfirmDialog before execution, then toast after completion
+- Toasts MUST NOT block user interaction (non-modal)
+- Loading states MUST be shown during async operations (buttons disabled, loading indicators)
+
+**Rationale**: Agricultural workers need to record data quickly, often in challenging conditions (sunlight, gloves, time pressure). A simple, fast interface reduces friction, increases adoption, and ensures accurate data entry. Complexity leads to errors and abandonment. Immediate feedback through toasts confirms actions without blocking workflow, reducing uncertainty and increasing confidence in the system.
 
 ### IV. Data Integrity & Synchronization
 
@@ -379,6 +394,12 @@ export class EntityDisplayMapper {
   - ✅ SyncQueue enqueue after local changes (correct entity_type)
   - ✅ SyncService integration complete (convertToFirestoreFormat + applyRemoteUpdate)
   - ✅ UI uses custom hooks (business logic separated from components)
+- ✅ **User Feedback for CRUD Operations (MANDATORY)**:
+  - ✅ Create operations show success/error toast
+  - ✅ Update operations show success/error toast
+  - ✅ Delete/revoke operations show ConfirmDialog + success/error toast
+  - ✅ Toast messages are concise and descriptive
+  - ✅ Loading states shown during async operations
 - ✅ UI follows simplicity-first principles (minimal steps, clear feedback)
 - ✅ Code is organized in feature-based structure
 - ✅ Tests cover critical paths and offline scenarios
@@ -420,4 +441,4 @@ export class EntityDisplayMapper {
 - Use `.specify/templates/spec-template.md` for feature specifications
 - Use `.specify/templates/tasks-template.md` for task breakdown
 
-**Version**: 1.1.0 | **Ratified**: 2026-01-25 | **Last Amended**: 2026-02-02
+**Version**: 1.2.0 | **Ratified**: 2026-01-25 | **Last Amended**: 2026-02-05
