@@ -17,7 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { MotiView } from 'moti';
-import { Users, UserPlus, Filter } from 'lucide-react-native';
+import { Users, UserPlus, Filter, RefreshCw } from 'lucide-react-native';
 import { theme } from '@/core/theme';
 import type { User } from '@/shared/types/entities';
 import { AuthStatus, UserRole } from '@/shared/types/entities';
@@ -38,7 +38,14 @@ import { useToastContext, useSyncContext } from '@/shared/contexts';
 export default function UsersListScreen() {
   const router = useRouter();
   const { success, error } = useToastContext();
-  const { refreshPendingCount, getPendingEntityIds } = useSyncContext();
+  const {
+    refreshPendingCount,
+    getPendingEntityIds,
+    sync,
+    status: syncStatus,
+    pendingCount,
+    isOnline,
+  } = useSyncContext();
 
   // Track pending user IDs (single query for all users)
   const [pendingUserIds, setPendingUserIds] = useState<Set<string>>(new Set());
@@ -94,6 +101,33 @@ export default function UsersListScreen() {
     router.push(`/admin/users/${user.id}`);
   };
 
+  // Handle manual sync
+  const handleSync = async () => {
+    if (!isOnline) {
+      error('No hay conexión a internet');
+      return;
+    }
+
+    await sync();
+    await loadUsers();
+
+    // Reload pending IDs after sync
+    const pendingIds = await getPendingEntityIds('users');
+    setPendingUserIds(pendingIds);
+  };
+
+  // Handle pull-to-refresh (includes sync if online)
+  const handleRefreshWithSync = async () => {
+    if (isOnline) {
+      await sync();
+    }
+    handleRefresh();
+
+    // Reload pending IDs
+    const pendingIds = await getPendingEntityIds('users');
+    setPendingUserIds(pendingIds);
+  };
+
   // Refresh pending count and user badges when screen is focused (after create/edit)
   useFocusEffect(
     React.useCallback(() => {
@@ -110,14 +144,21 @@ export default function UsersListScreen() {
     }, [refreshPendingCount, getPendingEntityIds])
   );
 
+  const isDisabled = !isOnline || syncStatus === 'syncing';
+  const bgClass = isDisabled
+    ? 'bg-gray-300'
+    : pendingCount > 0
+      ? 'bg-warning/80'
+      : 'bg-primary';
+
   return (
     <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-background">
       <ScrollView
         className="flex-1"
         refreshControl={
           <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
+            refreshing={refreshing || syncStatus === 'syncing'}
+            onRefresh={handleRefreshWithSync}
             tintColor={theme.colors.primary['500']}
           />
         }
@@ -142,16 +183,45 @@ export default function UsersListScreen() {
         </View>
 
         {/* Content */}
-        <View className="px-lg py-md">
-          {/* Create User Button */}
-          <View className="mb-md">
-            <Button
-              variant="primary"
-              icon={UserPlus}
-              onPress={handleCreateUser}
+        <View className="px-lg py-md overflow-visible">
+          {/* Action Buttons: Create User + Sync */}
+          <View className="flex-row gap-sm mb-md">
+            <View className="flex-1">
+              <Button
+                variant="primary"
+                icon={UserPlus}
+                onPress={handleCreateUser}
+              >
+                Crear Usuario
+              </Button>
+            </View>
+
+            {/* Sync Button with Badge */}
+            <Pressable
+              onPress={handleSync}
+              disabled={isDisabled}
+              hitSlop={8}
+              className={`min-h-[48px] min-w-[48px] rounded-md items-center justify-center relative ${bgClass}`}
+              style={({ pressed }) => ({
+                opacity: pressed ? 0.7 : 1,
+                transform: [{ scale: pressed ? 0.96 : 1 }],
+              })}
             >
-              Crear Usuario
-            </Button>
+              {/* Pending count badge */}
+              {pendingCount > 0 && (
+                <View className="absolute -top-1 -right-1 bg-error rounded-full min-w-[20px] h-5 items-center justify-center px-1 z-10">
+                  <Text className="text-white text-xs font-bold">
+                    {pendingCount}
+                  </Text>
+                </View>
+              )}
+
+              <RefreshCw
+                size={20}
+                color="#fff"
+                className={syncStatus === 'syncing' ? 'animate-spin' : ''}
+              />
+            </Pressable>
           </View>
 
           {/* Search + Filters */}
