@@ -5,7 +5,7 @@
  * Formularios moved to separate screens for better UX.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { MotiView } from 'moti';
 import { Users, UserPlus, Filter } from 'lucide-react-native';
 import { theme } from '@/core/theme';
@@ -32,11 +33,12 @@ import {
   useInvitationActions,
 } from '@/features/auth/hooks';
 import { UserCardSkeleton } from '@/features/auth/components/UserCardSkeleton';
-import { useToastContext } from '@/shared/contexts';
+import { useToastContext, useSyncContext } from '@/shared/contexts';
 
 export default function UsersListScreen() {
   const router = useRouter();
   const { success, error } = useToastContext();
+  const { refreshPendingCount } = useSyncContext();
 
   // Data loading
   const { users, loading, refreshing, loadUsers, handleRefresh } =
@@ -88,6 +90,13 @@ export default function UsersListScreen() {
   const handleEditUser = (user: User) => {
     router.push(`/admin/users/${user.id}`);
   };
+
+  // Refresh pending count when screen is focused (after create/edit)
+  useFocusEffect(
+    React.useCallback(() => {
+      refreshPendingCount();
+    }, [refreshPendingCount])
+  );
 
   return (
     <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-background">
