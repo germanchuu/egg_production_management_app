@@ -12,12 +12,11 @@ import { UserPlus, ArrowLeft } from 'lucide-react-native';
 import { theme } from '@/core/theme';
 import { UserForm } from '@/features/auth/components';
 import { useUserFormActions } from '@/features/auth/hooks';
-import { useToast } from '@/shared/hooks/useToast';
-import { Toast } from '@/shared/components';
+import { useToastContext } from '@/shared/contexts';
 
 export default function CreateUserScreen() {
   const router = useRouter();
-  const { toast, success, error, hide } = useToast();
+  const { success, error } = useToastContext();
 
   // Form actions
   const { formLoading, handleCreateUser } = useUserFormActions({
@@ -42,8 +41,6 @@ export default function CreateUserScreen() {
 
   return (
     <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-background">
-      <Toast {...toast} onHide={hide} />
-
       <ScrollView className="flex-1">
         {/* Header */}
         <View className="px-lg pt-xl pb-md border-b border-gray-200">

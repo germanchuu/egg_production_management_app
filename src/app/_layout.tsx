@@ -24,6 +24,7 @@ import { Slot, SplashScreen as ExpoSplashScreen } from 'expo-router';
 import { initDatabase } from '@/shared/database';
 import { SplashScreen } from '@/shared/components';
 import { AuthProvider } from '@/features/auth/contexts';
+import { ToastProvider } from '@/shared/contexts';
 // Prevent the splash screen from auto-hiding
 ExpoSplashScreen.preventAutoHideAsync();
 
@@ -90,7 +91,9 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
-      <Slot />
+      <ToastProvider>
+        <Slot />
+      </ToastProvider>
     </AuthProvider>
   );
 }

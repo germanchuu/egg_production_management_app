@@ -110,7 +110,7 @@ export function Toast({
           opacity,
         },
       ]}
-      className={`absolute top-14 left-4 right-4 z-50 flex-row items-center gap-3 p-4 rounded-xl shadow-lg border-l-4 ${config.bgClass} ${config.borderClass}`}
+      className={`absolute top-14 left-4 right-4 z-50 flex-row items-center gap-3 p-4 rounded-xl shadow-lg border ${config.bgClass} ${config.borderClass}`}
     >
       <Icon size={20} color={config.iconColor} />
       <Text className="flex-1 text-sm font-medium text-textPrimary">

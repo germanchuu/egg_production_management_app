@@ -12,14 +12,13 @@ import { UserCog, ArrowLeft, AlertCircle } from 'lucide-react-native';
 import { theme } from '@/core/theme';
 import { UserForm, UserFormSkeleton } from '@/features/auth/components';
 import { useUserFormActions } from '@/features/auth/hooks';
-import { useToast } from '@/shared/hooks/useToast';
-import { Toast } from '@/shared/components';
+import { useToastContext } from '@/shared/contexts';
 import type { User } from '@/shared/types/entities';
 
 export default function EditUserScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { toast, success, error: showError, hide } = useToast();
+  const { success, error: showError } = useToastContext();
 
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -152,8 +151,6 @@ export default function EditUserScreen() {
 
   return (
     <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-background">
-      <Toast {...toast} onHide={hide} />
-
       <ScrollView className="flex-1">
         {/* Header */}
         <View className="px-lg pt-xl pb-md border-b border-gray-200">
