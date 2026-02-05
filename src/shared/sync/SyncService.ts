@@ -174,18 +174,26 @@ export class SyncService {
     }
 
     if (entityType === 'users') {
-      return {
+      const data: any = {
         id: dbRecord.id,
         displayName: dbRecord.display_name,
         role: dbRecord.role,
         authStatus: dbRecord.auth_status,
         authorizedDevices: JSON.parse(dbRecord.authorized_devices || '[]'),
         isActive: Boolean(dbRecord.is_active),
-        invitationId: dbRecord.invitation_id ?? undefined,
-        lastAccessAt: dbRecord.last_access_at ?? undefined,
         createdAt: dbRecord.created_at,
         updatedAt: dbRecord.updated_at,
       };
+
+      // Only include optional fields if they have values
+      if (dbRecord.invitation_id) {
+        data.invitationId = dbRecord.invitation_id;
+      }
+      if (dbRecord.last_access_at) {
+        data.lastAccessAt = dbRecord.last_access_at;
+      }
+
+      return data;
     }
 
     // Add more entity type conversions as needed

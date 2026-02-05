@@ -40,6 +40,8 @@ interface UserFormProps {
   onSubmit: (data: UserFormData) => Promise<void>;
   onCancel: () => void;
   loading?: boolean;
+  showCloseButton?: boolean; // Show X button in header
+  showBorder?: boolean; // Show card border and shadow
 }
 
 export const UserForm: React.FC<UserFormProps> = ({
@@ -47,6 +49,8 @@ export const UserForm: React.FC<UserFormProps> = ({
   onSubmit,
   onCancel,
   loading = false,
+  showCloseButton = true,
+  showBorder = true,
 }) => {
   const isEditing = !!user;
 
@@ -68,26 +72,28 @@ export const UserForm: React.FC<UserFormProps> = ({
       from={{ opacity: 0, translateY: 20 }}
       animate={{ opacity: 1, translateY: 0 }}
       transition={{ type: 'timing', duration: 250 }}
-      className="bg-white rounded-md shadow-sm border border-gray-100 p-lg"
+      className={showBorder ? 'bg-white rounded-md shadow-sm border border-gray-100 p-lg' : ''}
     >
-      {/* Header */}
-      <View className="flex-row items-center justify-between mb-lg">
-        <View className="flex-row items-center">
-          <UserIcon size={24} color={theme.colors.primary['500']} />
-          <Text className="text-lg font-bold text-textPrimary ml-sm">
-            {isEditing ? 'Editar Usuario' : 'Nuevo Usuario'}
-          </Text>
+      {/* Header - only show if close button is visible */}
+      {showCloseButton && (
+        <View className="flex-row items-center justify-between mb-lg">
+          <View className="flex-row items-center">
+            <UserIcon size={24} color={theme.colors.primary['500']} />
+            <Text className="text-lg font-bold text-textPrimary ml-sm">
+              {isEditing ? 'Editar Usuario' : 'Nuevo Usuario'}
+            </Text>
+          </View>
+          <Pressable
+            onPress={onCancel}
+            className="w-8 h-8 items-center justify-center"
+            style={({ pressed }) => ({
+              opacity: pressed ? 0.6 : 1,
+            })}
+          >
+            <X size={20} color={theme.colors.gray['600']} />
+          </Pressable>
         </View>
-        <Pressable
-          onPress={onCancel}
-          className="w-8 h-8 items-center justify-center"
-          style={({ pressed }) => ({
-            opacity: pressed ? 0.6 : 1,
-          })}
-        >
-          <X size={20} color={theme.colors.gray['600']} />
-        </Pressable>
-      </View>
+      )}
 
       {/* Display Name Input */}
       <View className="mb-md">

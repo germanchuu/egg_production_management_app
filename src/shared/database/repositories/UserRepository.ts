@@ -1,5 +1,5 @@
 import { SQLiteDatabase } from 'expo-sqlite';
-import { User, UserRole, AuthStatus } from '@/shared/types/entities';
+import { User, UserRole, AuthStatus, AuthorizedDevice } from '@/shared/types/entities';
 import { IRepository } from './IRepository';
 import { UserMapper } from '@/features/auth/mappers/UserMapper';
 
@@ -11,7 +11,7 @@ export interface CreateUserData {
   displayName: string;
   role: UserRole;
   authStatus: AuthStatus;
-  authorizedDevices: string[];
+  authorizedDevices: AuthorizedDevice[];
   isActive: boolean;
   invitationId?: string;
   createdAt: string;
@@ -25,7 +25,7 @@ export interface UpdateUserData {
   displayName?: string;
   role?: UserRole;
   authStatus?: AuthStatus;
-  authorizedDevices?: string[];
+  authorizedDevices?: AuthorizedDevice[];
   isActive?: boolean;
   invitationId?: string;
   lastAccessAt?: string;

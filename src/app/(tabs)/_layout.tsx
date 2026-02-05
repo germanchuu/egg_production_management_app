@@ -5,7 +5,7 @@
  */
 
 import { Drawer } from 'expo-router/drawer';
-import { Home, Package, User } from 'lucide-react-native';
+import { Home, Package, User, Bug } from 'lucide-react-native';
 import { theme } from '@/core/theme';
 
 export default function AppLayout() {
@@ -60,6 +60,16 @@ export default function AppLayout() {
           title: 'Perfil',
           drawerIcon: ({ color, size }: { color: string; size: number }) => (
             <User size={size} color={color} />
+          ),
+        }}
+      />
+
+      <Drawer.Screen
+        name="admin/debug"
+        options={{
+          title: '🛠️ Debug / Testing',
+          drawerIcon: ({ color, size }: { color: string; size: number }) => (
+            <Bug size={size} color={color} />
           ),
         }}
       />

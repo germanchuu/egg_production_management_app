@@ -67,7 +67,7 @@ export const UserCard: React.FC<UserCardProps> = ({
       animate={{ opacity: 1, translateY: 0 }}
       transition={{ type: 'timing', duration: 300, delay: animationDelay }}
     >
-      <View className="bg-white rounded-2xl shadow-lg border border-gray-100 p-lg mb-md relative">
+      <View className="bg-white rounded-2xl shadow-card border border-gray-200 p-lg mb-md relative">
         {/* Edit */}
         {user.authStatus !== AuthStatus.Revoked && (
           <Pressable

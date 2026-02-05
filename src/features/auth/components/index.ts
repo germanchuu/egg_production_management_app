@@ -11,3 +11,4 @@ export { UserFilters } from './UserFilters';
 export { UserCard } from './UserCard';
 export { UserForm } from './UserForm';
 export type { UserFormData } from './UserForm';
+export { UserFormSkeleton } from './UserFormSkeleton';
