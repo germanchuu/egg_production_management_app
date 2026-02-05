@@ -60,23 +60,29 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
   const syncQueueRef = useRef<SyncQueue | null>(null);
   const isSyncingRef = useRef(false);
 
-  // Initialize services once
-  useEffect(() => {
-    const db = getDatabase();
-    const syncQueue = new SyncQueue(db);
-    const conflictResolver = new ConflictResolver();
-    const syncService = new SyncService(db, firestore, syncQueue, conflictResolver);
+  // Initialize services once (lazy initialization)
+  const initializeServices = useCallback(() => {
+    if (!syncServiceRef.current || !syncQueueRef.current) {
+      const db = getDatabase();
+      const syncQueue = new SyncQueue(db);
+      const conflictResolver = new ConflictResolver();
+      const syncService = new SyncService(db, firestore, syncQueue, conflictResolver);
 
-    syncServiceRef.current = syncService;
-    syncQueueRef.current = syncQueue;
-
-    // Load initial pending count
-    syncQueue.getPendingCount().then(setPendingCount);
+      syncServiceRef.current = syncService;
+      syncQueueRef.current = syncQueue;
+    }
   }, []);
 
   // Refresh pending count manually
   const refreshPendingCount = useCallback(async () => {
-    if (syncQueueRef.current && !isSyncingRef.current) {
+    // IMPORTANT: Don't query while syncing to prevent database locks
+    if (isSyncingRef.current) {
+      return;
+    }
+
+    initializeServices();
+
+    if (syncQueueRef.current) {
       try {
         const count = await syncQueueRef.current.getPendingCount();
         setPendingCount(count);
@@ -91,11 +97,21 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
         console.error('[SyncContext] Error refreshing pending count:', err);
       }
     }
-  }, [status, error]);
+  }, [status, error, initializeServices]);
 
   // Manual sync function
   const sync = useCallback(async () => {
-    if (!syncServiceRef.current || isSyncingRef.current) {
+    // Prevent concurrent syncs
+    if (isSyncingRef.current) {
+      console.log('[SyncContext] Sync already in progress, skipping');
+      return;
+    }
+
+    // Initialize services if needed
+    initializeServices();
+
+    if (!syncServiceRef.current) {
+      console.error('[SyncContext] Sync service not initialized');
       return;
     }
 
@@ -110,7 +126,9 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
       setStatus('syncing');
       setError(null);
 
+      console.log('[SyncContext] Starting sync...');
       const result = await syncServiceRef.current.sync();
+      console.log('[SyncContext] Sync completed:', result);
 
       // Update state based on result
       if (result.errors.length > 0) {
@@ -121,15 +139,22 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
         setLastSyncAt(new Date());
       }
 
-      // Update pending count
-      await refreshPendingCount();
+      // IMPORTANT: Wait a bit before querying pending count to avoid lock
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Update pending count AFTER sync completes
+      if (syncQueueRef.current) {
+        const count = await syncQueueRef.current.getPendingCount();
+        setPendingCount(count);
+      }
     } catch (err) {
+      console.error('[SyncContext] Sync error:', err);
       setStatus('failed');
       setError(err as Error);
     } finally {
       isSyncingRef.current = false;
     }
-  }, [isConnected, isInternetReachable, refreshPendingCount]);
+  }, [isConnected, isInternetReachable, initializeServices]);
 
   // NOTE: NO auto-sync on connectivity restoration
   // NOTE: NO automatic polling interval
