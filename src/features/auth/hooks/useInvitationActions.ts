@@ -1,5 +1,4 @@
 import { useCallback } from 'react';
-import { Alert } from 'react-native';
 import { User } from '@/shared/types/entities';
 import { InvitationApiService } from '@/features/auth/services/InvitationApiService';
 import {
@@ -8,7 +7,11 @@ import {
   showShareErrorAlert,
 } from '@/shared/utils/shareInvitation';
 
-export const useInvitationActions = () => {
+export interface UseInvitationActionsProps {
+  showToast: (message: string, type: 'success' | 'error') => void;
+}
+
+export const useInvitationActions = ({ showToast }: UseInvitationActionsProps) => {
   const invitationService = new InvitationApiService(
     process.env.EXPO_PUBLIC_FIREBASE_FUNCTION_URL || ''
   );
@@ -19,10 +22,7 @@ export const useInvitationActions = () => {
         const result = await invitationService.generateInvitation(user.id);
 
         if (!result.success || !result.token) {
-          Alert.alert(
-            'Error',
-            result.error || 'No se pudo generar la invitación'
-          );
+          showToast(result.error || 'No se pudo generar la invitación', 'error');
           return;
         }
 
@@ -46,13 +46,13 @@ export const useInvitationActions = () => {
         }
       } catch (error) {
         console.error('Error generating invitation:', error);
-        Alert.alert(
-          'Error',
-          'No se pudo generar la invitación. Verifica tu conexión.'
+        showToast(
+          'No se pudo generar la invitación. Verifica tu conexión.',
+          'error'
         );
       }
     },
-    [invitationService]
+    [invitationService, showToast]
   );
 
   const handleRevokeUser = useCallback(
@@ -61,23 +61,23 @@ export const useInvitationActions = () => {
         const result = await invitationService.revokeUser(user.id);
 
         if (!result.success) {
-          Alert.alert('Error', result.error || 'No se pudo revocar el acceso');
+          showToast(result.error || 'No se pudo revocar el acceso', 'error');
           return;
         }
 
-        Alert.alert(
-          'Éxito',
-          `Acceso de ${user.displayName} revocado correctamente`
+        showToast(
+          `Acceso de ${user.displayName} revocado correctamente`,
+          'success'
         );
       } catch (error) {
         console.error('Error revoking user:', error);
-        Alert.alert(
-          'Error',
-          'No se pudo revocar el acceso. Verifica tu conexión.'
+        showToast(
+          'No se pudo revocar el acceso. Verifica tu conexión.',
+          'error'
         );
       }
     },
-    [invitationService]
+    [invitationService, showToast]
   );
 
   return { handleGenerateInvitation, handleRevokeUser };

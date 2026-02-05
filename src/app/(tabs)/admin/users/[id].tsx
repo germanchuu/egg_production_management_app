@@ -5,28 +5,35 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { UserCog, ArrowLeft, AlertCircle } from 'lucide-react-native';
 import { theme } from '@/core/theme';
 import { UserForm, UserFormSkeleton } from '@/features/auth/components';
 import { useUserFormActions } from '@/features/auth/hooks';
-import { Pressable } from 'react-native';
+import { useToast } from '@/shared/hooks/useToast';
+import { Toast } from '@/shared/components';
 import type { User } from '@/shared/types/entities';
 
 export default function EditUserScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { toast, success, error: showError, hide } = useToast();
 
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Form actions
-  const { formLoading, handleEditUser } = useUserFormActions(() => {
-    // On success, return to list
-    router.replace('/admin/users');
+  const { formLoading, handleEditUser } = useUserFormActions({
+    onSuccess: () => {
+      router.replace('/admin/users');
+    },
+    showToast: (message, type) => {
+      if (type === 'success') success(message);
+      else showError(message);
+    },
   });
 
   // Load user data
@@ -145,6 +152,8 @@ export default function EditUserScreen() {
 
   return (
     <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-background">
+      <Toast {...toast} onHide={hide} />
+
       <ScrollView className="flex-1">
         {/* Header */}
         <View className="px-lg pt-xl pb-md border-b border-gray-200">

@@ -4,8 +4,8 @@
  * Displays user information with actions
  */
 
-import React from 'react';
-import { View, Text, Pressable, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Pressable } from 'react-native';
 import { MotiView } from 'moti';
 import {
   Mail,
@@ -16,7 +16,7 @@ import {
   Smartphone,
   Clock,
 } from 'lucide-react-native';
-import { Button } from '@/shared/components';
+import { Button, ConfirmDialog } from '@/shared/components';
 import { theme } from '@/core/theme';
 import type { User } from '@/shared/types/entities';
 import { AuthStatus, UserRole } from '@/shared/types/entities';
@@ -37,22 +37,18 @@ export const UserCard: React.FC<UserCardProps> = ({
   onRevokeUser,
   onEdit,
 }) => {
+  const [showRevokeDialog, setShowRevokeDialog] = useState(false);
+
   const { statusColor, statusLabel, roleLabel, roleColor } =
     UserDisplayMapper.getUserDisplayInfo(user);
 
   const handleRevoke = () => {
-    Alert.alert(
-      'Revocar Acceso',
-      `¿Estás seguro de que deseas revocar el acceso de ${user.displayName}? Esta acción es permanente y no se puede deshacer.`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Revocar',
-          style: 'destructive',
-          onPress: () => onRevokeUser(user),
-        },
-      ]
-    );
+    setShowRevokeDialog(true);
+  };
+
+  const confirmRevoke = () => {
+    setShowRevokeDialog(false);
+    onRevokeUser(user);
   };
 
   const canGenerateInvitation =
@@ -183,6 +179,18 @@ export const UserCard: React.FC<UserCardProps> = ({
           </View>
         )}
       </View>
+
+      {/* Confirm Revoke Dialog */}
+      <ConfirmDialog
+        visible={showRevokeDialog}
+        title="Revocar Acceso"
+        message={`¿Estás seguro de que deseas revocar el acceso de ${user.displayName}? Esta acción es permanente y no se puede deshacer.`}
+        confirmText="Revocar"
+        cancelText="Cancelar"
+        variant="danger"
+        onConfirm={confirmRevoke}
+        onCancel={() => setShowRevokeDialog(false)}
+      />
     </MotiView>
   );
 };

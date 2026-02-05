@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react';
-import { Alert } from 'react-native';
 import { UserRole } from '@/shared/types/entities';
 import { UserServiceProvider } from '@/features/auth/services/UserServiceProvider';
 
@@ -8,7 +7,15 @@ export interface UserFormData {
   role: UserRole;
 }
 
-export const useUserFormActions = (onSuccess: () => void) => {
+export interface UseUserFormActionsProps {
+  onSuccess: () => void;
+  showToast: (message: string, type: 'success' | 'error') => void;
+}
+
+export const useUserFormActions = ({
+  onSuccess,
+  showToast,
+}: UseUserFormActionsProps) => {
   const [formLoading, setFormLoading] = useState(false);
 
   const handleCreateUser = useCallback(
@@ -23,23 +30,20 @@ export const useUserFormActions = (onSuccess: () => void) => {
         });
 
         if (!result.success) {
-          Alert.alert('Error', result.error || 'No se pudo crear el usuario');
+          showToast(result.error || 'No se pudo crear el usuario', 'error');
           return;
         }
 
-        Alert.alert(
-          'Éxito',
-          `Usuario ${data.displayName} creado correctamente`
-        );
+        showToast(`Usuario ${data.displayName} creado correctamente`, 'success');
         onSuccess();
       } catch (error) {
         console.error('Error creating user:', error);
-        Alert.alert('Error', 'Ocurrió un error al crear el usuario');
+        showToast('Ocurrió un error al crear el usuario', 'error');
       } finally {
         setFormLoading(false);
       }
     },
-    [onSuccess]
+    [onSuccess, showToast]
   );
 
   const handleEditUser = useCallback(
@@ -54,26 +58,23 @@ export const useUserFormActions = (onSuccess: () => void) => {
         });
 
         if (!result.success) {
-          Alert.alert(
-            'Error',
-            result.error || 'No se pudo actualizar el usuario'
-          );
+          showToast(result.error || 'No se pudo actualizar el usuario', 'error');
           return;
         }
 
-        Alert.alert(
-          'Éxito',
-          `Usuario ${data.displayName} actualizado correctamente`
+        showToast(
+          `Usuario ${data.displayName} actualizado correctamente`,
+          'success'
         );
         onSuccess();
       } catch (error) {
         console.error('Error updating user:', error);
-        Alert.alert('Error', 'Ocurrió un error al actualizar el usuario');
+        showToast('Ocurrió un error al actualizar el usuario', 'error');
       } finally {
         setFormLoading(false);
       }
     },
-    [onSuccess]
+    [onSuccess, showToast]
   );
 
   return { formLoading, handleCreateUser, handleEditUser };

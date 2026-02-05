@@ -25,20 +25,24 @@ import {
   UserFilters,
   UserCard,
 } from '@/features/auth/components';
-import { Button } from '@/shared/components';
+import { Button, Toast } from '@/shared/components';
 import {
   useUserManagement,
   useFilteredUsers,
   useInvitationActions,
 } from '@/features/auth/hooks';
 import { UserCardSkeleton } from '@/features/auth/components/UserCardSkeleton';
+import { useToast } from '@/shared/hooks/useToast';
 
 export default function UsersListScreen() {
   const router = useRouter();
+  const { toast, success, error, hide } = useToast();
 
   // Data loading
   const { users, loading, refreshing, loadUsers, handleRefresh } =
-    useUserManagement();
+    useUserManagement({
+      showToast: (message) => error(message),
+    });
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -63,7 +67,12 @@ export default function UsersListScreen() {
   );
 
   // Invitation actions
-  const { handleGenerateInvitation, handleRevokeUser } = useInvitationActions();
+  const { handleGenerateInvitation, handleRevokeUser } = useInvitationActions({
+    showToast: (message, type) => {
+      if (type === 'success') success(message);
+      else error(message);
+    },
+  });
 
   // Toggle sort order
   const toggleSortOrder = () => {
@@ -82,6 +91,8 @@ export default function UsersListScreen() {
 
   return (
     <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-background">
+      <Toast {...toast} onHide={hide} />
+
       <ScrollView
         className="flex-1"
         refreshControl={

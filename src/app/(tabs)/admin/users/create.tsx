@@ -5,22 +5,29 @@
  */
 
 import React from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { UserPlus, ArrowLeft } from 'lucide-react-native';
 import { theme } from '@/core/theme';
 import { UserForm } from '@/features/auth/components';
 import { useUserFormActions } from '@/features/auth/hooks';
-import { Pressable } from 'react-native';
+import { useToast } from '@/shared/hooks/useToast';
+import { Toast } from '@/shared/components';
 
 export default function CreateUserScreen() {
   const router = useRouter();
+  const { toast, success, error, hide } = useToast();
 
   // Form actions
-  const { formLoading, handleCreateUser } = useUserFormActions(() => {
-    // On success, return to list
-    router.replace('/admin/users');
+  const { formLoading, handleCreateUser } = useUserFormActions({
+    onSuccess: () => {
+      router.replace('/admin/users');
+    },
+    showToast: (message, type) => {
+      if (type === 'success') success(message);
+      else error(message);
+    },
   });
 
   // Handle form submission
@@ -35,6 +42,8 @@ export default function CreateUserScreen() {
 
   return (
     <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-background">
+      <Toast {...toast} onHide={hide} />
+
       <ScrollView className="flex-1">
         {/* Header */}
         <View className="px-lg pt-xl pb-md border-b border-gray-200">
