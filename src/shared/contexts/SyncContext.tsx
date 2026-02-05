@@ -44,6 +44,7 @@ interface SyncContextValue {
   isOnline: boolean;
   sync: () => Promise<void>;
   refreshPendingCount: () => Promise<void>;
+  getPendingEntityIds: (entityType: string) => Promise<Set<string>>;
 }
 
 const SyncContext = createContext<SyncContextValue | undefined>(undefined);
@@ -72,6 +73,22 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
       syncQueueRef.current = syncQueue;
     }
   }, []);
+
+  // Get all pending entity IDs for a type (batch query - efficient)
+  const getPendingEntityIds = useCallback(async (entityType: string): Promise<Set<string>> => {
+    initializeServices();
+
+    if (!syncQueueRef.current) {
+      return new Set();
+    }
+
+    try {
+      return await syncQueueRef.current.getPendingEntityIds(entityType);
+    } catch (err) {
+      console.error('[SyncContext] Error getting pending entity IDs:', err);
+      return new Set();
+    }
+  }, [initializeServices]);
 
   // Refresh pending count manually
   const refreshPendingCount = useCallback(async () => {
@@ -170,6 +187,7 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
         isOnline: Boolean(isConnected && isInternetReachable),
         sync,
         refreshPendingCount,
+        getPendingEntityIds,
       }}
     >
       {children}

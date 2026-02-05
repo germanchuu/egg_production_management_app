@@ -15,6 +15,8 @@ import {
   Calendar,
   Smartphone,
   Clock,
+  Upload,
+  CloudOff,
 } from 'lucide-react-native';
 import { Button, ConfirmDialog } from '@/shared/components';
 import { theme } from '@/core/theme';
@@ -28,6 +30,7 @@ interface UserCardProps {
   onGenerateInvitation: (user: User) => void;
   onRevokeUser: (user: User) => void;
   onEdit: (user: User) => void;
+  hasPending?: boolean;
 }
 
 export const UserCard: React.FC<UserCardProps> = ({
@@ -36,6 +39,7 @@ export const UserCard: React.FC<UserCardProps> = ({
   onGenerateInvitation,
   onRevokeUser,
   onEdit,
+  hasPending = false,
 }) => {
   const [showRevokeDialog, setShowRevokeDialog] = useState(false);
 
@@ -63,7 +67,7 @@ export const UserCard: React.FC<UserCardProps> = ({
       animate={{ opacity: 1, translateY: 0 }}
       transition={{ type: 'timing', duration: 300, delay: animationDelay }}
     >
-      <View className="bg-white rounded-2xl shadow-card border border-gray-200 p-lg mb-md relative">
+      <View className="bg-white rounded-2xl shadow-card border border-gray-200 p-lg mb-md">
         {/* Edit */}
         {user.authStatus !== AuthStatus.Revoked && (
           <Pressable
@@ -121,8 +125,17 @@ export const UserCard: React.FC<UserCardProps> = ({
           </View>
         </View>
 
+        {hasPending && (
+          <View className="flex-row items-center gap-2 bg-warning/10 border border-warning rounded-xl px-md py-sm">
+            <CloudOff size={16} color={theme.colors.warning.DEFAULT} />
+            <Text className="text-xs font-medium text-warning flex-1">
+              Cambios pendientes por sincronizar
+            </Text>
+          </View>
+        )}
+
         {/* Metadata */}
-        <View className="flex-row flex-wrap gap-md mt-sm mb-md">
+        <View className="flex-row flex-wrap gap-md mt-sm">
           <View className="flex-row items-center gap-1">
             <View className="bg-background-secondary rounded p-xs">
               <Calendar size={14} color={theme.colors.textTertiary.DEFAULT} />

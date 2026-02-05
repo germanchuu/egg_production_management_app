@@ -5,12 +5,50 @@
  */
 
 import { Drawer } from 'expo-router/drawer';
-import { Home, Package, User, Bug } from 'lucide-react-native';
+import {
+  DrawerContentScrollView,
+  DrawerItemList,
+  DrawerItem,
+} from '@react-navigation/drawer';
+import { View, Text } from 'react-native';
+import { Home, Package, User, Bug, Users } from 'lucide-react-native';
 import { theme } from '@/core/theme';
+
+/**
+ * Drawer personalizado
+ */
+function CustomDrawerContent(props: any) {
+  return (
+    <DrawerContentScrollView {...props} contentContainerStyle={{ flex: 1 }}>
+      <View className="flex-1">
+        {/* Items principales */}
+        <DrawerItemList {...props} />
+
+        {/* Sección inferior */}
+        <View className="mt-auto px-4 pb-2">
+          <Text className="text-xs font-semibold opacity-60">
+            Administración
+          </Text>
+        </View>
+
+        <DrawerItem
+          label="Gestión de usuarios"
+          onPress={() => props.navigation.navigate('admin/users/index')}
+          icon={({ color, size }) => <Users size={size} color={color} />}
+          labelStyle={{
+            fontWeight: theme.fontWeight.medium,
+            color: theme.colors.textSecondary.DEFAULT,
+          }}
+        />
+      </View>
+    </DrawerContentScrollView>
+  );
+}
 
 export default function AppLayout() {
   return (
     <Drawer
+      drawerContent={(props) => <CustomDrawerContent {...props} />}
       screenOptions={{
         headerShown: false,
         drawerActiveTintColor: theme.colors.primary['500'],
@@ -24,13 +62,12 @@ export default function AppLayout() {
         },
       }}
     >
+      {/* PRINCIPALES */}
       <Drawer.Screen
         name="index"
         options={{
           title: 'Inicio',
-          drawerIcon: ({ color, size }: { color: string; size: number }) => (
-            <Home size={size} color={color} />
-          ),
+          drawerIcon: ({ color, size }) => <Home size={size} color={color} />,
         }}
       />
 
@@ -38,7 +75,7 @@ export default function AppLayout() {
         name="production"
         options={{
           title: 'Producción',
-          drawerIcon: ({ color, size }: { color: string; size: number }) => (
+          drawerIcon: ({ color, size }) => (
             <Package size={size} color={color} />
           ),
         }}
@@ -48,7 +85,7 @@ export default function AppLayout() {
         name="lots"
         options={{
           title: 'Lotes',
-          drawerIcon: ({ color, size }: { color: string; size: number }) => (
+          drawerIcon: ({ color, size }) => (
             <Package size={size} color={color} />
           ),
         }}
@@ -58,19 +95,40 @@ export default function AppLayout() {
         name="profile"
         options={{
           title: 'Perfil',
-          drawerIcon: ({ color, size }: { color: string; size: number }) => (
-            <User size={size} color={color} />
-          ),
+          drawerIcon: ({ color, size }) => <User size={size} color={color} />,
         }}
       />
 
+      {/* DEBUG */}
       <Drawer.Screen
         name="admin/debug"
         options={{
           title: '🛠️ Debug / Testing',
-          drawerIcon: ({ color, size }: { color: string; size: number }) => (
-            <Bug size={size} color={color} />
-          ),
+          drawerIcon: ({ color, size }) => <Bug size={size} color={color} />,
+        }}
+      />
+
+      {/* ADMIN VISIBLE SOLO COMO ENTRY POINT */}
+      <Drawer.Screen
+        name="admin/users/index"
+        options={{
+          title: 'Gestión de usuarios',
+          drawerItemStyle: { display: 'none' },
+        }}
+      />
+
+      {/* SUBRUTAS OCULTAS */}
+      <Drawer.Screen
+        name="admin/users/create"
+        options={{
+          drawerItemStyle: { display: 'none' },
+        }}
+      />
+
+      <Drawer.Screen
+        name="admin/users/[id]"
+        options={{
+          drawerItemStyle: { display: 'none' },
         }}
       />
     </Drawer>

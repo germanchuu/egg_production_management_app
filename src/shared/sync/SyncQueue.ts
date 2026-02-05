@@ -138,4 +138,23 @@ export class SyncQueue {
   async clearSynced(): Promise<void> {
     await this.db.runAsync('DELETE FROM sync_queue WHERE synced_at IS NOT NULL');
   }
+
+  /**
+   * Gets all pending entity IDs for a specific entity type
+   *
+   * Efficient batch query to check multiple entities at once.
+   * Use this instead of checking each entity individually.
+   *
+   * @param entityType Entity type to check (e.g., 'users', 'production_records')
+   * @returns Set of entity IDs that have pending changes
+   */
+  async getPendingEntityIds(entityType: string): Promise<Set<string>> {
+    const records = await this.db.getAllAsync<{ entity_id: string }>(
+      `SELECT DISTINCT entity_id FROM sync_queue
+       WHERE synced_at IS NULL AND entity_type = ?`,
+      [entityType]
+    );
+
+    return new Set(records.map(r => r.entity_id));
+  }
 }

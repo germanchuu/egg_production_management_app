@@ -38,7 +38,10 @@ import { useToastContext, useSyncContext } from '@/shared/contexts';
 export default function UsersListScreen() {
   const router = useRouter();
   const { success, error } = useToastContext();
-  const { refreshPendingCount } = useSyncContext();
+  const { refreshPendingCount, getPendingEntityIds } = useSyncContext();
+
+  // Track pending user IDs (single query for all users)
+  const [pendingUserIds, setPendingUserIds] = useState<Set<string>>(new Set());
 
   // Data loading
   const { users, loading, refreshing, loadUsers, handleRefresh } =
@@ -91,11 +94,20 @@ export default function UsersListScreen() {
     router.push(`/admin/users/${user.id}`);
   };
 
-  // Refresh pending count when screen is focused (after create/edit)
+  // Refresh pending count and user badges when screen is focused (after create/edit)
   useFocusEffect(
     React.useCallback(() => {
-      refreshPendingCount();
-    }, [refreshPendingCount])
+      const loadPendingData = async () => {
+        // Refresh global pending count
+        await refreshPendingCount();
+
+        // Load pending user IDs for badges (single batch query)
+        const pendingIds = await getPendingEntityIds('users');
+        setPendingUserIds(pendingIds);
+      };
+
+      loadPendingData();
+    }, [refreshPendingCount, getPendingEntityIds])
   );
 
   return (
@@ -247,6 +259,7 @@ export default function UsersListScreen() {
                   onGenerateInvitation={handleGenerateInvitation}
                   onRevokeUser={handleRevokeUser}
                   onEdit={handleEditUser}
+                  hasPending={pendingUserIds.has(user.id)}
                 />
               ))}
             </View>
