@@ -21,7 +21,7 @@ import { theme } from '@/core/theme';
 import { getDatabase } from '@/shared/database';
 import { UserRepository } from '@/shared/database/repositories';
 import { SyncQueue } from '@/shared/sync/SyncQueue';
-import { useSync } from '@/shared/hooks/useSync';
+import { useSyncContext } from '@/shared/contexts';
 
 interface SyncQueueItem {
   id: string;
@@ -35,7 +35,7 @@ interface SyncQueueItem {
 }
 
 export default function DebugScreen() {
-  const { sync, status, isOnline, error } = useSync();
+  const { sync, status, isOnline, error, pendingCount } = useSyncContext();
   const isSyncing = status === 'syncing';
 
   const [users, setUsers] = useState<any[]>([]);
@@ -151,9 +151,21 @@ export default function DebugScreen() {
         }}>
           🛠️ Debug / Testing
         </Text>
-        <Text style={{ fontSize: 14, color: '#fff', opacity: 0.9 }}>
-          Inspección de BD Local y Sync Queue
-        </Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Text style={{ fontSize: 14, color: '#fff', opacity: 0.9 }}>
+            Inspección de BD Local y Sync Queue
+          </Text>
+          <View style={{
+            backgroundColor: pendingCount > 0 ? '#f59e0b' : '#10b981',
+            paddingHorizontal: 12,
+            paddingVertical: 4,
+            borderRadius: 12,
+          }}>
+            <Text style={{ color: '#fff', fontWeight: '600', fontSize: 12 }}>
+              {pendingCount} Pendientes
+            </Text>
+          </View>
+        </View>
       </View>
 
       {/* Action Buttons */}

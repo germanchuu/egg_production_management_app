@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, Animated, Easing } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import type { SyncStatus } from '@/shared/hooks/useSync';
+import { useSyncContext, type SyncStatus } from '@/shared/contexts';
 
 export interface SyncStatusIndicatorProps {
   status: SyncStatus;
@@ -54,8 +54,9 @@ function getStatusConfig(status: SyncStatus) {
 
 /**
  * SyncStatusIndicator – Native version styled like web component
+ * Base component that accepts props directly
  */
-export function SyncStatusIndicator({
+export function SyncStatusIndicatorBase({
   status,
   pendingCount = 0,
   showLabel = true,
@@ -144,5 +145,36 @@ export function SyncStatusIndicator({
         </TouchableOpacity>
       )}
     </Container>
+  );
+}
+
+/**
+ * SyncStatusIndicator with automatic SyncContext integration
+ *
+ * This wrapper automatically uses the global SyncContext.
+ * Use this version when you want automatic sync state.
+ */
+export interface SyncStatusIndicatorAutoProps {
+  showLabel?: boolean;
+  onPress?: () => void;
+  compact?: boolean;
+}
+
+export function SyncStatusIndicator({
+  showLabel = true,
+  onPress,
+  compact = false,
+}: SyncStatusIndicatorAutoProps) {
+  const { status, pendingCount, sync } = useSyncContext();
+
+  return (
+    <SyncStatusIndicatorBase
+      status={status}
+      pendingCount={pendingCount}
+      showLabel={showLabel}
+      onPress={onPress}
+      onRetry={status === 'failed' ? sync : undefined}
+      compact={compact}
+    />
   );
 }
