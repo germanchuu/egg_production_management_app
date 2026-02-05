@@ -5,3 +5,5 @@
  */
 
 export { ToastProvider, useToastContext } from './ToastContext';
+export { SyncProvider, useSyncContext } from './SyncContext';
+export type { SyncStatus } from './SyncContext';
