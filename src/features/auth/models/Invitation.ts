@@ -14,7 +14,7 @@ import {
   Invitation as InvitationEntity,
   InvitationStatus,
 } from '@/shared/types/entities';
-import { APP_SCHEME } from '@/core/config/constants';
+import { getDeepLinkBase } from '@/core/config/constants';
 
 /**
  * Re-export shared types for convenience
@@ -190,18 +190,22 @@ export class InvitationFactory {
 
   /**
    * Generate deep link URL from invitation token
-   * Format: {scheme}://invite/[token]
+   * Format: {scheme}://invite/[token] (production) or exp://...--/invite/[token] (Expo Go)
    */
   static generateDeepLink(token: string): string {
-    return `${APP_SCHEME}://invite/${token}`;
+    return `${getDeepLinkBase()}/invite/${token}`;
   }
 
   /**
    * Extract token from deep link URL
    * Returns null if invalid format
+   * Supports both production (scheme://invite/token) and Expo Go (exp://...--/invite/token) formats
    */
   static extractTokenFromDeepLink(url: string): string | null {
-    const regex = new RegExp(`^${APP_SCHEME}://invite/(.+)$`);
+    // Match both formats:
+    // - Production: myapp://invite/TOKEN
+    // - Expo Go: exp://192.168.1.10:8081/--/invite/TOKEN
+    const regex = /\/invite\/(.+)$/;
     const match = url.match(regex);
     return match ? match[1] : null;
   }

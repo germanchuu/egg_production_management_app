@@ -32,7 +32,7 @@ import {
   useFilteredUsers,
   useInvitationActions,
 } from '@/features/auth/hooks';
-import { UserCardSkeleton } from '@/features/auth/components/UserCardSkeleton';
+import { UserCardSkeleton } from '@/features/auth/components/user/UserCardSkeleton';
 import { useToastContext, useSyncContext } from '@/shared/contexts';
 
 export default function UsersListScreen() {

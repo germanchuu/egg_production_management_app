@@ -22,7 +22,7 @@ import { Button, ConfirmDialog } from '@/shared/components';
 import { theme } from '@/core/theme';
 import type { User } from '@/shared/types/entities';
 import { AuthStatus, UserRole } from '@/shared/types/entities';
-import { UserDisplayMapper } from '../mappers/UserDisplayMapper';
+import { UserDisplayMapper } from '../../mappers/UserDisplayMapper';
 
 interface UserCardProps {
   user: User;

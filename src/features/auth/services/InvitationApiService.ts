@@ -1,7 +1,11 @@
 export class InvitationApiService {
   constructor(private baseUrl: string) {}
 
-  async generateInvitation(userId: string): Promise<{
+  async generateInvitation(
+    targetUserId: string,
+    adminUserId: string,
+    adminDeviceId: string
+  ): Promise<{
     success: boolean;
     token?: string;
     expiresAt?: string;
@@ -11,7 +15,11 @@ export class InvitationApiService {
       const response = await fetch(`${this.baseUrl}/generateInvitation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId }),
+        body: JSON.stringify({
+          targetUserId,
+          adminUserId,
+          adminDeviceId,
+        }),
       });
       return await response.json();
     } catch (error) {

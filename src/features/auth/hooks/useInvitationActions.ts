@@ -6,12 +6,15 @@ import {
   showShareSuccessAlert,
   showShareErrorAlert,
 } from '@/shared/utils/shareInvitation';
+import { useAuth } from '@/features/auth/contexts';
+import { AuthService } from '@/features/auth/services/AuthService';
 
 export interface UseInvitationActionsProps {
   showToast: (message: string, type: 'success' | 'error') => void;
 }
 
 export const useInvitationActions = ({ showToast }: UseInvitationActionsProps) => {
+  const { user: adminUser } = useAuth();
   const invitationService = new InvitationApiService(
     process.env.EXPO_PUBLIC_FIREBASE_FUNCTION_URL || ''
   );
@@ -19,7 +22,18 @@ export const useInvitationActions = ({ showToast }: UseInvitationActionsProps) =
   const handleGenerateInvitation = useCallback(
     async (user: User) => {
       try {
-        const result = await invitationService.generateInvitation(user.id);
+        // Get admin's device ID from session
+        const session = await AuthService.getStoredSession();
+        if (!session || !adminUser) {
+          showToast('No se pudo obtener la sesión del administrador', 'error');
+          return;
+        }
+
+        const result = await invitationService.generateInvitation(
+          user.id,
+          adminUser.id,
+          session.deviceId
+        );
 
         if (!result.success || !result.token) {
           showToast(result.error || 'No se pudo generar la invitación', 'error');
@@ -52,7 +66,7 @@ export const useInvitationActions = ({ showToast }: UseInvitationActionsProps) =
         );
       }
     },
-    [invitationService, showToast]
+    [invitationService, showToast, adminUser]
   );
 
   const handleRevokeUser = useCallback(
