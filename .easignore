@@ -1,4 +1,6 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+# EAS Build ignore file
+# Similar to .gitignore but for EAS builds
+# IMPORTANT: .env.production is NOT ignored here so it gets uploaded to EAS
 
 # dependencies
 node_modules/
@@ -31,10 +33,9 @@ firebase-debug.log
 .DS_Store
 *.pem
 
-# local env files
+# local env files (but NOT .env.production - we need that for builds!)
 .env
 .env*.local
-.env.production
 
 # typescript
 *.tsbuildinfo
@@ -45,3 +46,9 @@ firebase-debug.log
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# Vercel hosting (not needed in mobile builds)
+vercel-hosting/
+
+# Documentation
+FIXES_NEEDED.md
