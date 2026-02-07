@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ActivityIndicator,
-  Alert,
   ScrollView,
   Modal,
   Pressable,
@@ -20,6 +19,9 @@ import {
 } from '@/features/auth/components';
 import type { Invitation } from '@/shared/types/entities';
 import { Shield } from 'lucide-react-native';
+import { useAuth } from '@/features/auth/contexts';
+import { useToast } from '@/shared/hooks/useToast';
+import { Toast } from '@/shared/components/Toast';
 
 const FIREBASE_FUNCTION_BASE_URL =
   process.env.EXPO_PUBLIC_FIREBASE_FUNCTION_URL || '';
@@ -214,47 +216,22 @@ export default function InviteTokenScreen() {
 
           {/* Success state */}
           {!loading && invitation && (
-            <InvitationConfirmation
-              invitation={invitation}
-              userName={userName}
-              onAccept={handleAccept}
-              loading={accepting}
-              errorMessage={error}
-            />
+            <ScrollView
+              className="flex-1"
+              contentContainerStyle={{ flexGrow: 1, paddingBottom: 16 }}
+              showsVerticalScrollIndicator={false}
+            >
+              <InvitationConfirmation
+                invitation={invitation}
+                userName={userName}
+                onAccept={handleAccept}
+                loading={accepting}
+                errorMessage={error}
+              />
+            </ScrollView>
           )}
         </ScrollView>
       </SafeAreaView>
-
-      {/* DEV BUTTON – GUARANTEED */}
-      <Modal visible transparent animationType="none">
-        <View
-          pointerEvents="box-none"
-          style={{
-            flex: 1,
-            backgroundColor: 'transparent',
-          }}
-        >
-          <Pressable
-            onPress={() => router.push('/(auth)/dev-login')}
-            style={({ pressed }) => ({
-              position: 'absolute',
-              bottom: 32,
-              right: 24,
-              backgroundColor: '#FF6B00',
-              borderRadius: 999,
-              padding: 20,
-              elevation: 9999,
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 10 },
-              shadowOpacity: 0.5,
-              shadowRadius: 16,
-              opacity: pressed ? 0.7 : 1,
-            })}
-          >
-            <Shield size={36} stroke="#FFFFFF" strokeWidth={2.5} />
-          </Pressable>
-        </View>
-      </Modal>
     </View>
   );
 }

@@ -14,7 +14,6 @@ import { WaitingForInvitation } from '@/features/auth/components';
 
 export default function Index() {
   const { isAuthenticated, isLoading } = useAuth();
-
   // Show loading state while checking auth
   if (isLoading) {
     return null; // SplashScreen handles loading UI

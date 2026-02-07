@@ -100,10 +100,10 @@ export class UserValidator {
    * Validates if device exists in user's authorized devices
    */
   static hasDevice(user: User, deviceId: string): boolean {
-    return (
-      user.authorizedDevices?.some((device) => device.deviceId === deviceId) ??
-      false
-    );
+    if (!user.authorizedDevices || !Array.isArray(user.authorizedDevices)) {
+      return false;
+    }
+    return user.authorizedDevices.some((device) => device.deviceId === deviceId);
   }
 }
 

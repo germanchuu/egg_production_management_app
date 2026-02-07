@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión Producción Huevos</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #0097A7 0%, #00838F 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 24px;
+      padding: 60px 40px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+      text-align: center;
+    }
+
+    .icon {
+      width: 120px;
+      height: 120px;
+      background: #0097A7;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 32px;
+      font-size: 60px;
+    }
+
+    h1 {
+      color: #1a1a1a;
+      font-size: 32px;
+      margin-bottom: 16px;
+      font-weight: 700;
+    }
+
+    p {
+      color: #666;
+      font-size: 18px;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+
+    .button {
+      background: #0097A7;
+      color: white;
+      text-decoration: none;
+      padding: 18px 40px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 18px;
+      display: inline-block;
+      transition: all 0.3s ease;
+    }
+
+    .button:hover {
+      background: #00838F;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 151, 167, 0.3);
+    }
+
+    .features {
+      text-align: left;
+      margin-top: 40px;
+      padding-top: 40px;
+      border-top: 2px solid #f0f0f0;
+    }
+
+    .feature {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+
+    .feature-icon {
+      width: 40px;
+      height: 40px;
+      background: #e0f7fa;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 16px;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .feature-text h3 {
+      color: #1a1a1a;
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .feature-text p {
+      color: #666;
+      font-size: 14px;
+      margin: 0;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 40px 24px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      p {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">🥚</div>
+    <h1>Gestión Producción Huevos</h1>
+    <p>Administra tu producción avícola de manera eficiente con nuestra aplicación móvil.</p>
+
+    <a href="https://expo.dev/accounts/germanchuu/projects/gestion_produccion_huevos_app/builds" class="button">Descargar App</a>
+
+    <div class="features">
+      <div class="feature">
+        <div class="feature-icon">📊</div>
+        <div class="feature-text">
+          <h3>Control de Producción</h3>
+          <p>Registra y monitorea tu producción diaria de huevos</p>
+        </div>
+      </div>
+
+      <div class="feature">
+        <div class="feature-icon">🐔</div>
+        <div class="feature-text">
+          <h3>Gestión de Lotes</h3>
+          <p>Administra diferentes lotes de aves y su rendimiento</p>
+        </div>
+      </div>
+
+      <div class="feature">
+        <div class="feature-icon">📱</div>
+        <div class="feature-text">
+          <h3>Offline First</h3>
+          <p>Funciona sin conexión a internet, sincroniza cuando puedas</p>
+        </div>
+      </div>
+
+      <div class="feature">
+        <div class="feature-icon">👥</div>
+        <div class="feature-text">
+          <h3>Multi-Usuario</h3>
+          <p>Colabora con tu equipo mediante invitaciones</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

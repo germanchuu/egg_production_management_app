@@ -10,10 +10,12 @@
 
 import React from 'react';
 import { View, Text } from 'react-native';
-import { CheckCircle } from 'lucide-react-native';
+import { AlertTriangle, Clock, ShieldCheck } from 'lucide-react-native';
 import { Button } from '@/shared/components';
 import { InvitationStatusHelper } from '../models/Invitation';
 import type { Invitation } from '@/shared/types/entities';
+import { MotiText, MotiView } from 'moti';
+import { theme } from '@/core/theme';
 
 export interface InvitationConfirmationProps {
   /** The invitation data including status and expiration */
@@ -56,81 +58,101 @@ export const InvitationConfirmation: React.FC<InvitationConfirmationProps> = ({
   const expirationMessage =
     InvitationStatusHelper.getExpirationMessage(invitation);
   const isExpired = invitation.status === 'expired' || remainingDays < 0;
+  const showExpirationWarning = remainingDays <= 2 && !isExpired;
+
+  const statusStyles = isExpired
+    ? {
+        container: 'bg-error/10 border-error/20',
+        text: 'text-error',
+        label: 'Invitación expirada',
+      }
+    : showExpirationWarning
+      ? {
+          container: 'bg-warning/10 border-warning/20',
+          text: 'text-warning',
+          label: expirationMessage,
+        }
+      : {
+          container: 'bg-info/10 border-info/20',
+          text: 'text-info',
+          label: `Válida por ${remainingDays} días`,
+        };
 
   return (
-    <View className="px-xl">
-      {/* Main Card */}
-      <View className="bg-white/95 rounded-2xl p-xl shadow-lg">
-        {/* Icon or Logo Placeholder */}
-        <View className="items-center mb-lg">
-          <View className="w-20 h-20 rounded-full bg-primary-100 items-center justify-center mb-md">
-            <Text className="text-4xl">📨</Text>
-          </View>
-          <Text className="text-2xl font-bold text-gray-900 text-center">
-            Invitación Recibida
-          </Text>
+    <View className="justify-center px-md">
+      {/* Header: icon + user */}
+      <MotiView
+        from={{ opacity: 0, translateY: 20 }}
+        animate={{ opacity: 1, translateY: 0 }}
+        transition={{ type: 'timing', duration: 250 }}
+        className="flex-row items-center gap-md mb-md"
+      >
+        <View className="w-16 h-16 rounded-full bg-info/10 items-center justify-center">
+          <ShieldCheck size={32} color={theme.colors.info.DEFAULT} />
         </View>
 
-        {/* Invitation Message */}
-        <View className="mb-lg">
-          <Text className="text-base text-gray-600 text-center mb-sm">
-            Esta es una invitación para:
-          </Text>
-          <Text className="text-xl font-bold text-textPrimary-600 text-center">
-            {userName}
-          </Text>
+        <View className="flex-1">
+          <Text className="text-sm text-textSecondary">Invitación para</Text>
+          <Text className="text-xl font-bold text-textPrimary">{userName}</Text>
         </View>
+      </MotiView>
 
-        {/* Expiration Information */}
-        <View className="mb-lg">
-          <View
-            className={`px-md py-sm rounded-md ${isExpired ? 'bg-error-light/10' : 'bg-primary-50'}`}
-          >
-            <Text
-              className={`text-sm text-center ${isExpired ? 'text-error-dark' : 'text-gray-700'}`}
-            >
-              {expirationMessage}
-            </Text>
-          </View>
+      {/* Expiration / status box */}
+      <MotiView
+        from={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ type: 'timing', duration: 250, delay: 100 }}
+        className={`p-md border rounded-md mb-md ${statusStyles.container}`}
+      >
+        <Text className="text-xs text-textTertiary mb-xs">
+          Estado de la invitación
+        </Text>
 
-          {!isExpired && remainingDays <= 2 && (
-            <View className="mt-sm px-md py-xs bg-warning/10 rounded-md">
-              <Text className="text-xs text-warning-dark text-center">
-                ⚠️ La invitación expira pronto
-              </Text>
-            </View>
-          )}
-        </View>
+        <Text className={`text-sm font-medium ${statusStyles.text}`}>
+          {statusStyles.label}
+        </Text>
+      </MotiView>
 
-        {/* Error Message */}
-        {errorMessage && (
-          <View className="mb-md px-md py-sm bg-error-light/10 border border-error-light rounded-md">
-            <Text className="text-sm text-error-dark text-center">
-              {errorMessage}
-            </Text>
-          </View>
-        )}
-
-        {/* Accept Button */}
-        <Button
-          variant="primary"
-          onPress={onAccept}
-          loading={loading}
-          disabled={isExpired || loading}
-          icon={CheckCircle}
-          iconPosition="left"
+      {/* Error message */}
+      {errorMessage && (
+        <MotiView
+          from={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ type: 'timing', duration: 250, delay: 150 }}
+          className="bg-destructive/10 border border-destructive/20 rounded-xl px-md py-sm mb-md"
         >
-          {isExpired ? 'Invitación Expirada' : 'Aceptar Invitación'}
-        </Button>
-
-        {/* Helper Text */}
-        {!isExpired && (
-          <Text className="text-xs text-gray-500 text-center mt-md">
-            Al aceptar, podrás acceder a la aplicación con las credenciales que
-            configurarás a continuación.
+          <Text className="text-sm text-destructive text-center">
+            {errorMessage}
           </Text>
-        )}
-      </View>
+        </MotiView>
+      )}
+
+      {/* Acción principal */}
+      {!isExpired && (
+        <MotiView
+          from={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ type: 'timing', duration: 250, delay: 200 }}
+          className="mb-sm py-3 border-y border-primary/10"
+        >
+          <Button
+            variant="primary"
+            onPress={onAccept}
+            loading={loading}
+            disabled={loading}
+            icon={ShieldCheck}
+          >
+            {loading ? 'Procesando...' : 'Aceptar invitación'}
+          </Button>
+        </MotiView>
+      )}
+
+      {/* Nota inferior */}
+      <Text className="text-xs text-textTertiary text-center">
+        {isExpired
+          ? 'Esta invitación ha expirado. Solicita una nueva al administrador.'
+          : 'Al aceptar, tendrás acceso completo al sistema de gestión.'}
+      </Text>
     </View>
   );
 };

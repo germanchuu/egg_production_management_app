@@ -55,7 +55,7 @@ export const InvalidInvitation: React.FC<InvalidInvitationProps> = ({
         from={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ type: 'timing', duration: 250, delay: 150 }}
-        className="mb-sm py-3 border-y pt-3 border-primary/10"
+        className="mb-sm py-3 pt-3 border-y border-primary/10"
       >
         <View className="flex flex-row items-center gap-2">
           <Info size={18} color="#0097A7" />

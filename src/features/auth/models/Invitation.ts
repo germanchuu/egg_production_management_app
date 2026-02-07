@@ -14,7 +14,7 @@ import {
   Invitation as InvitationEntity,
   InvitationStatus,
 } from '@/shared/types/entities';
-import { getDeepLinkBase } from '@/core/config/constants';
+import { generateDeepLink } from '@/core/config/constants';
 
 /**
  * Re-export shared types for convenience
@@ -189,11 +189,14 @@ export class InvitationFactory {
   }
 
   /**
-   * Generate deep link URL from invitation token
-   * Format: {scheme}://invite/[token] (production) or exp://...--/invite/[token] (Expo Go)
+   * Generate deep link URL from invitation token using expo-linking
+   *
+   * Automatically generates the correct format:
+   * - Expo Go: exp://[host]:[port]/--/invite/[token]
+   * - Dev/Prod: gestionproduccionhuevos://invite/[token]
    */
   static generateDeepLink(token: string): string {
-    return `${getDeepLinkBase()}/invite/${token}`;
+    return generateDeepLink(`invite/${token}`);
   }
 
   /**

@@ -180,10 +180,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   /**
    * Refresh user data from local database
+   * Loads session and user regardless of current state
    */
   const refreshUser = useCallback(async () => {
-    if (!user) return;
-
     try {
       const session = await AuthService.getStoredSession();
       if (!session) {
@@ -194,11 +193,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const updatedUser = await loadUser(session);
       if (updatedUser) {
         setUser(updatedUser);
+      } else {
+        // Session exists but user not found, clear session
+        await AuthService.logout();
+        setUser(null);
       }
     } catch (error) {
       console.error('Error refreshing user:', error);
     }
-  }, [user, loadUser]);
+  }, [loadUser]);
 
   /**
    * Validate session with Firestore (when online)

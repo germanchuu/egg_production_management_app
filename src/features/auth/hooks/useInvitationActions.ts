@@ -29,10 +29,30 @@ export const useInvitationActions = ({ showToast }: UseInvitationActionsProps) =
           return;
         }
 
+        // TODO: Remove hardcoded values - DEV ONLY
+        const adminId = 'admin-test-001';
+        const deviceId = 'device-admin-123';
+
+        // DEV OVERRIDE with env vars (alternative approach - commented):
+        // const DEV_MODE = __DEV__;
+        // const adminId = DEV_MODE
+        //   ? process.env.EXPO_PUBLIC_DEV_ADMIN_ID || adminUser.id
+        //   : adminUser.id;
+        // const deviceId = DEV_MODE
+        //   ? process.env.EXPO_PUBLIC_DEV_ADMIN_DEVICE_ID || session.deviceId
+        //   : session.deviceId;
+
+        // ORIGINAL IMPLEMENTATION (restore this later):
+        // const result = await invitationService.generateInvitation(
+        //   user.id,
+        //   adminUser.id,
+        //   session.deviceId
+        // );
+
         const result = await invitationService.generateInvitation(
           user.id,
-          adminUser.id,
-          session.deviceId
+          adminId,
+          deviceId
         );
 
         if (!result.success || !result.token) {

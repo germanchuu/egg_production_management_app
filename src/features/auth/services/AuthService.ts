@@ -107,6 +107,69 @@ export class AuthService {
   }
 
   /**
+   * Create session for already authenticated user (direct login)
+   *
+   * Used for admin login where user is already authenticated in Firestore.
+   * Unlike acceptInvitation, this doesn't validate pending status.
+   *
+   * @param user - Authenticated user object
+   * @param deviceName - Name of current device
+   * @returns Authentication result with success status
+   */
+  static async createSession(user: User, deviceName: string): Promise<AuthResult> {
+    try {
+      // Generate or retrieve device ID
+      const deviceId = await AuthService.getOrCreateDeviceId();
+
+      // Check if device is already authorized
+      const hasDevice = UserValidator.hasDevice(user, deviceId);
+
+      // If device not authorized, add it
+      if (!hasDevice) {
+        const { UserServiceProvider } = await import('./UserServiceProvider');
+        const userService = await UserServiceProvider.getUserService();
+        const result = await userService.addAuthorizedDevice(
+          user.id,
+          deviceId,
+          deviceName
+        );
+
+        if (!result.success || !result.data) {
+          return {
+            success: false,
+            error: result.error || 'Error al autorizar el dispositivo',
+          };
+        }
+
+        // Update user with new device
+        user = result.data;
+      }
+
+      // Create session data
+      const sessionData: SessionData = {
+        userId: user.id,
+        deviceId,
+        authenticatedAt: new Date().toISOString(),
+        lastValidatedAt: new Date().toISOString(),
+      };
+
+      // Store session securely
+      await AuthService.storeSession(sessionData);
+
+      return {
+        success: true,
+        user,
+      };
+    } catch (error) {
+      console.error('Error creating session:', error);
+      return {
+        success: false,
+        error: 'Error al crear la sesión. Por favor intenta de nuevo.',
+      };
+    }
+  }
+
+  /**
    * Logout and clear local session
    */
   static async logout(): Promise<void> {
@@ -299,6 +362,119 @@ export class AuthService {
       const v = c === 'x' ? r : (r & 0x3) | 0x8;
       return v.toString(16);
     });
+  }
+
+  /**
+   * Login admin user from Firestore (first-time setup)
+   *
+   * Authenticates admin using only the access code (User ID).
+   * The access code is the Firestore document ID, which is a secure UUID.
+   *
+   * @param accessCode - Admin user's access code (Firestore document ID)
+   * @param deviceName - Current device name
+   * @param firestore - Firestore instance
+   * @returns Authentication result with user data
+   */
+  static async loginAdminFromFirestore(
+    accessCode: string,
+    deviceName: string,
+    firestore: any // Firestore type
+  ): Promise<AuthResult> {
+    try {
+      // Import Firestore dependencies
+      const { doc, getDoc } = await import('firebase/firestore');
+      const { getDatabase } = await import('@/shared/database');
+      const { UserRepository } = await import(
+        '@/shared/database/repositories'
+      );
+      const { UserRole, AuthStatus } = await import('@/shared/types/entities');
+
+      // Validate input
+      if (!accessCode.trim()) {
+        return {
+          success: false,
+          error: 'Debes ingresar el código de acceso.',
+        };
+      }
+
+      // Get database
+      const db = await getDatabase();
+      const userRepo = new UserRepository(db);
+
+      // Check if user exists locally first
+      const localUser = await userRepo.findById(accessCode.trim());
+      if (localUser) {
+        // User already synced, create session directly
+        const result = await AuthService.createSession(localUser, deviceName);
+        return result;
+      }
+
+      // Fetch user from Firestore by document ID (access code)
+      const userDocRef = doc(firestore, 'users', accessCode.trim());
+      const userDoc = await getDoc(userDocRef);
+
+      if (!userDoc.exists()) {
+        return {
+          success: false,
+          error:
+            'Código de acceso inválido. Verifica que hayas ingresado el código correcto.',
+        };
+      }
+
+      const firestoreData = userDoc.data();
+
+      // Security check: Verify user is admin
+      if (firestoreData.role !== 'admin') {
+        return {
+          success: false,
+          error: 'Este código no corresponde a una cuenta de administrador.',
+        };
+      }
+
+      // Security check: Verify user is authenticated
+      if (firestoreData.authStatus !== 'authenticated') {
+        return {
+          success: false,
+          error: 'Esta cuenta no está activa. Contacta al soporte.',
+        };
+      }
+
+      // Security check: Verify user is active
+      if (!firestoreData.isActive) {
+        return {
+          success: false,
+          error: 'Esta cuenta ha sido desactivada.',
+        };
+      }
+
+      // Map Firestore data to User entity
+      const adminUser: User = {
+        id: userDoc.id,
+        displayName: firestoreData.displayName,
+        role: firestoreData.role === 'admin' ? UserRole.Admin : UserRole.User,
+        authStatus: AuthStatus.Authenticated,
+        authorizedDevices: Array.isArray(firestoreData.authorizedDevices)
+          ? firestoreData.authorizedDevices
+          : [],
+        isActive: firestoreData.isActive ?? true,
+        createdAt: firestoreData.createdAt,
+        updatedAt: firestoreData.updatedAt,
+      };
+
+      // Save to local DB
+      await userRepo.create(adminUser);
+
+      // Create session and authorize device (direct login)
+      const result = await AuthService.createSession(adminUser, deviceName);
+      return result;
+    } catch (error) {
+      console.error('Error logging in admin from Firestore:', error);
+      return {
+        success: false,
+        error:
+          'No se pudo iniciar sesión. Verifica tu conexión a internet e intenta de nuevo.',
+      };
+    }
   }
 
   /**

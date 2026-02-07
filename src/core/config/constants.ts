@@ -6,6 +6,8 @@
  */
 
 import appConfig from '../../../app.json';
+import Constants from 'expo-constants';
+import * as Linking from 'expo-linking';
 
 /**
  * App configuration (from app.json)
@@ -35,20 +37,47 @@ export const APP_VERSION = APP_CONFIG.version;
 /**
  * Check if running in Expo Go
  */
-export const IS_EXPO_GO = __DEV__ && typeof expo !== 'undefined';
+export const IS_EXPO_GO = Constants.appOwnership === 'expo';
 
 /**
- * Get the base URL for deep links
- * Uses Expo Go URL in development, custom scheme in production
+ * Check if running in development mode
  */
-export function getDeepLinkBase(): string {
-  if (IS_EXPO_GO || __DEV__) {
-    // Expo Go format: exp://192.168.1.10:8081/--/
-    // Get from environment or use default
-    const expoUrl = process.env.EXPO_PUBLIC_DEV_SERVER_URL || 'exp://192.168.1.10:8081';
-    return `${expoUrl}/--`;
+export const IS_DEV = __DEV__;
+
+/**
+ * Production domain for HTTPS deep links (Android App Links)
+ * Update this with your Vercel domain
+ */
+export const PRODUCTION_DOMAIN = 'gestion-huevos-app.vercel.app';
+
+/**
+ * Generate a deep link URL
+ *
+ * Behavior:
+ * - Expo Go: exp://[host]:[port]/--/[path]
+ * - Development Build: {scheme}://[path]
+ * - Production Build: https://[domain]/[path]
+ *
+ * @param path - The path for the deep link (e.g., "invite/abc123")
+ * @returns Complete deep link URL
+ *
+ * @example
+ * ```typescript
+ * generateDeepLink('invite/token123')
+ * // Expo Go: exp://192.168.1.10:8081/--/invite/token123
+ * // Dev Build: gestionproduccionhuevos://invite/token123
+ * // Production: https://gestion-huevos-app.vercel.app/invite/token123
+ * ```
+ */
+export function generateDeepLink(path: string): string {
+  // Just for the moment
+  return `https://${PRODUCTION_DOMAIN}/${path}`;
+
+  // Expo Go or Development Build: use custom scheme
+  if (IS_EXPO_GO || IS_DEV) {
+    return Linking.createURL(path);
   }
 
-  // Production: use custom scheme
-  return `${APP_SCHEME}:/`;
+  // Production Build: use HTTPS (Android App Links)
+  return `https://${PRODUCTION_DOMAIN}/${path}`;
 }

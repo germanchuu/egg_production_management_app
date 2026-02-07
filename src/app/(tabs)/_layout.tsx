@@ -13,39 +13,49 @@ import {
 import { View, Text } from 'react-native';
 import { Home, Package, User, Bug, Users } from 'lucide-react-native';
 import { theme } from '@/core/theme';
+import { useAuth } from '@/features/auth/contexts';
+import { UserRole } from '@/shared/types/entities';
 
 /**
  * Drawer personalizado
  */
 function CustomDrawerContent(props: any) {
+  const { user } = useAuth();
+  const isAdmin = user?.role === UserRole.Admin;
+
   return (
     <DrawerContentScrollView {...props} contentContainerStyle={{ flex: 1 }}>
       <View className="flex-1">
-        {/* Items principales */}
         <DrawerItemList {...props} />
 
-        {/* Sección inferior */}
-        <View className="mt-auto px-4 pb-2">
-          <Text className="text-xs font-semibold opacity-60">
-            Administración
-          </Text>
-        </View>
+        {isAdmin && (
+          <>
+            <View className="mt-auto px-4 pb-2">
+              <Text className="text-xs font-semibold opacity-60">
+                Administración
+              </Text>
+            </View>
 
-        <DrawerItem
-          label="Gestión de usuarios"
-          onPress={() => props.navigation.navigate('admin/users/index')}
-          icon={({ color, size }) => <Users size={size} color={color} />}
-          labelStyle={{
-            fontWeight: theme.fontWeight.medium,
-            color: theme.colors.textSecondary.DEFAULT,
-          }}
-        />
+            <DrawerItem
+              label="Gestión de usuarios"
+              onPress={() => props.navigation.navigate('admin/users/index')}
+              icon={({ color, size }) => <Users size={size} color={color} />}
+              labelStyle={{
+                fontWeight: theme.fontWeight.medium,
+                color: theme.colors.textSecondary.DEFAULT,
+              }}
+            />
+          </>
+        )}
       </View>
     </DrawerContentScrollView>
   );
 }
 
 export default function AppLayout() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === UserRole.Admin;
+
   return (
     <Drawer
       drawerContent={(props) => <CustomDrawerContent {...props} />}
@@ -99,7 +109,7 @@ export default function AppLayout() {
         }}
       />
 
-      {/* DEBUG */}
+      {/* DEBUG - Solo visible para administradores */}
       <Drawer.Screen
         name="admin/debug"
         options={{
@@ -108,7 +118,7 @@ export default function AppLayout() {
         }}
       />
 
-      {/* ADMIN VISIBLE SOLO COMO ENTRY POINT */}
+      {/* ADMIN VISIBLE SOLO COMO ENTRY POINT - Solo registrado para administradores */}
       <Drawer.Screen
         name="admin/users/index"
         options={{
