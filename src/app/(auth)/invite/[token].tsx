@@ -80,6 +80,8 @@ async function acceptInvitationOnServer(
 
 export default function InviteTokenScreen() {
   const { token } = useLocalSearchParams<{ token: string }>();
+  const { user, isAuthenticated } = useAuth();
+  const { toast, success, error: showError, hide } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [accepting, setAccepting] = useState(false);
@@ -91,6 +93,13 @@ export default function InviteTokenScreen() {
 
   useEffect(() => {
     async function validate() {
+      // Check if user is already authenticated
+      if (isAuthenticated && user) {
+        setError('Ya tienes una sesión activa');
+        setLoading(false);
+        return;
+      }
+
       if (!token) {
         setError('Token de invitación no válido');
         setLoading(false);
@@ -137,12 +146,13 @@ export default function InviteTokenScreen() {
       return;
     }
 
-    Alert.alert('Invitación aceptada', 'Ya puedes acceder a la aplicación.', [
-      {
-        text: 'Continuar',
-        onPress: () => router.replace('/(tabs)'),
-      },
-    ]);
+    setAccepting(false);
+    success('¡Invitación aceptada! Ya puedes acceder a la aplicación');
+
+    // Navigate after showing toast
+    setTimeout(() => {
+      router.replace('/(tabs)');
+    }, 1500);
   };
 
   return (
@@ -211,7 +221,13 @@ export default function InviteTokenScreen() {
 
           {/* Error state */}
           {!loading && error && !invitation && (
-            <InvalidInvitation errorMessage={error} />
+            <InvalidInvitation
+              errorMessage={
+                error === 'Ya tienes una sesión activa'
+                  ? `Ya tienes una sesión activa como ${user?.displayName || 'usuario'}.`
+                  : error
+              }
+            />
           )}
 
           {/* Success state */}
@@ -232,6 +248,14 @@ export default function InviteTokenScreen() {
           )}
         </ScrollView>
       </SafeAreaView>
+
+      {/* Toast Notification */}
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={hide}
+      />
     </View>
   );
 }
