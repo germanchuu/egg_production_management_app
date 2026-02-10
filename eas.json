@@ -15,33 +15,9 @@
       },
       "node": "22.11.0"
     },
-    "preview": {
-      "distribution": "internal",
-      "env": {
-        "NODE_OPTIONS": "--max-old-space-size=4096",
-        "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyDcAtx3XMTfrXRjMLSoKZmvWCufpaiV-40",
-        "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "egg-production-management-app.firebaseapp.com",
-        "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "egg-production-management-app",
-        "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET": "egg-production-management-app.firebasestorage.app",
-        "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "463440122841",
-        "EXPO_PUBLIC_FIREBASE_APP_ID": "1:463440122841:web:5307de952128bc7488ffc8",
-        "EXPO_PUBLIC_FIREBASE_FUNCTION_URL": "https://us-central1-egg-production-management-app.cloudfunctions.net"
-      },
-      "android": {
-        "buildType": "apk"
-      }
-    },
     "production": {
-      "env": {
-        "NODE_OPTIONS": "--max-old-space-size=4096",
-        "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyDcAtx3XMTfrXRjMLSoKZmvWCufpaiV-40",
-        "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "egg-production-management-app.firebaseapp.com",
-        "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "egg-production-management-app",
-        "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET": "egg-production-management-app.firebasestorage.app",
-        "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "463440122841",
-        "EXPO_PUBLIC_FIREBASE_APP_ID": "1:463440122841:web:5307de952128bc7488ffc8",
-        "EXPO_PUBLIC_FIREBASE_FUNCTION_URL": "https://us-central1-egg-production-management-app.cloudfunctions.net"
-      },
+      "environment": "production",
+      "channel": "production",
       "android": {
         "buildType": "apk"
       }

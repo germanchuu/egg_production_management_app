@@ -30,26 +30,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getEnv } from './env';
 
 /**
- * Load and validate environment variables
- */
-const env = getEnv();
-
-/**
- * Firebase configuration object
- *
- * Values are loaded and validated from environment variables (EXPO_PUBLIC_FIREBASE_*)
- */
-const firebaseConfig = {
-  apiKey: env.FIREBASE_API_KEY,
-  authDomain: env.FIREBASE_AUTH_DOMAIN,
-  projectId: env.FIREBASE_PROJECT_ID,
-  storageBucket: env.FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: env.FIREBASE_MESSAGING_SENDER_ID,
-  appId: env.FIREBASE_APP_ID,
-  measurementId: env.FIREBASE_MEASUREMENT_ID, // Optional
-};
-
-/**
  * Initializes Firebase app
  *
  * Creates or retrieves existing Firebase app instance.
@@ -64,6 +44,18 @@ function initializeFirebaseApp(): FirebaseApp {
   } catch {
     // App doesn't exist, initialize new one
     console.log('Initializing Firebase app...');
+    const env = getEnv();
+
+    const firebaseConfig = {
+      apiKey: env.FIREBASE_API_KEY,
+      authDomain: env.FIREBASE_AUTH_DOMAIN,
+      projectId: env.FIREBASE_PROJECT_ID,
+      storageBucket: env.FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: env.FIREBASE_MESSAGING_SENDER_ID,
+      appId: env.FIREBASE_APP_ID,
+      measurementId: env.FIREBASE_MEASUREMENT_ID, // Optional
+    };
+
     const app = initializeApp(firebaseConfig);
     console.log('✅ Firebase app initialized');
     return app;
