@@ -11,7 +11,15 @@ import {
   DrawerItem,
 } from '@react-navigation/drawer';
 import { View, Text } from 'react-native';
-import { Home, Package, User, Bug, Users } from 'lucide-react-native';
+import {
+  Home,
+  Package,
+  User,
+  Bug,
+  Users,
+  ClipboardList,
+  Warehouse,
+} from 'lucide-react-native';
 import { theme } from '@/core/theme';
 import { useAuth } from '@/features/auth/contexts';
 import { UserRole } from '@/shared/types/entities';
@@ -19,7 +27,7 @@ import { UserRole } from '@/shared/types/entities';
 /**
  * Drawer personalizado
  */
-function CustomDrawerContent(props: any) {
+function AdminDrawerContent(props: any) {
   const { user } = useAuth();
   const isAdmin = user?.role === UserRole.Admin;
 
@@ -30,11 +38,33 @@ function CustomDrawerContent(props: any) {
 
         {isAdmin && (
           <>
-            <View className="mt-auto px-4 pb-2">
+            <View className="mt-auto px-4 pb-2 pt-4">
               <Text className="text-xs font-semibold opacity-60">
                 Administración
               </Text>
             </View>
+
+            <DrawerItem
+              label="Galpones"
+              onPress={() => props.navigation.navigate('admin/houses')}
+              icon={({ color, size }) => (
+                <Warehouse size={size} color={color} />
+              )}
+              labelStyle={{
+                fontWeight: theme.fontWeight.medium,
+                color: theme.colors.textSecondary.DEFAULT,
+              }}
+            />
+
+            <DrawerItem
+              label="Lotes"
+              onPress={() => props.navigation.navigate('lots')}
+              icon={({ color, size }) => <Package size={size} color={color} />}
+              labelStyle={{
+                fontWeight: theme.fontWeight.medium,
+                color: theme.colors.textSecondary.DEFAULT,
+              }}
+            />
 
             <DrawerItem
               label="Gestión de usuarios"
@@ -53,12 +83,9 @@ function CustomDrawerContent(props: any) {
 }
 
 export default function AppLayout() {
-  const { user } = useAuth();
-  const isAdmin = user?.role === UserRole.Admin;
-
   return (
     <Drawer
-      drawerContent={(props) => <CustomDrawerContent {...props} />}
+      drawerContent={(props) => <AdminDrawerContent {...props} />}
       screenOptions={{
         headerShown: false,
         drawerActiveTintColor: theme.colors.primary['500'],
@@ -92,11 +119,11 @@ export default function AppLayout() {
       />
 
       <Drawer.Screen
-        name="lots"
+        name="mortality/index"
         options={{
-          title: 'Lotes',
+          title: 'Mortalidad',
           drawerIcon: ({ color, size }) => (
-            <Package size={size} color={color} />
+            <ClipboardList size={size} color={color} />
           ),
         }}
       />
@@ -118,7 +145,23 @@ export default function AppLayout() {
         }}
       />
 
-      {/* ADMIN VISIBLE SOLO COMO ENTRY POINT - Solo registrado para administradores */}
+      {/* ADMIN - Screens renderizados en CustomDrawerContent */}
+      <Drawer.Screen
+        name="admin/houses"
+        options={{
+          title: 'Galpones',
+          drawerItemStyle: { display: 'none' },
+        }}
+      />
+
+      <Drawer.Screen
+        name="lots"
+        options={{
+          title: 'Lotes',
+          drawerItemStyle: { display: 'none' },
+        }}
+      />
+
       <Drawer.Screen
         name="admin/users/index"
         options={{
@@ -128,6 +171,13 @@ export default function AppLayout() {
       />
 
       {/* SUBRUTAS OCULTAS */}
+      <Drawer.Screen
+        name="lots/[lotId]"
+        options={{
+          drawerItemStyle: { display: 'none' },
+        }}
+      />
+
       <Drawer.Screen
         name="admin/users/create"
         options={{
