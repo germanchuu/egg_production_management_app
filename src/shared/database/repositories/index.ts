@@ -2,4 +2,6 @@ export * from './IRepository';
 export * from './UserRepository';
 export * from './InvitationRepository';
 export * from './AuditLogRepository';
+export * from './ChickenHouseRepository';
+export * from './ChickenLotRepository';
 export * from './RepositoryFactory';
