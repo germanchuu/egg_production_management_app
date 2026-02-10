@@ -1,18 +1,17 @@
 /**
  * App Constants
  *
- * Re-exports configuration from app.json to be used throughout the app.
+ * Re-exports configuration from app.config.ts to be used throughout the app.
  * This provides type-safe access to app configuration with @ imports.
  */
 
-import appConfig from '../../../app.json';
 import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 
 /**
- * App configuration (from app.json)
+ * App configuration (from app.config.ts via expo-constants)
  */
-export const APP_CONFIG = appConfig.expo;
+export const APP_CONFIG = Constants.expoConfig!
 
 /**
  * Deep link scheme

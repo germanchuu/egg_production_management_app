@@ -19,11 +19,11 @@ import { FacilityServiceProvider } from '@/features/facilities/services/Facility
 import { MortalityServiceProvider } from '@/features/mortality/services/MortalityServiceProvider';
 import { MortalityForm } from '@/features/mortality/components/MortalityForm';
 import { MortalityRecordFormData } from '@/features/mortality/utils/validation';
-import { useAuthContext } from '@/features/auth/contexts/AuthContext';
+import { useAuth } from '@/features/auth/contexts/AuthContext';
 import { MortalityRecordHelper } from '@/features/mortality/models/MortalityRecord';
 
 export default function MortalityScreen() {
-  const { currentUser } = useAuthContext();
+  const { user } = useAuth();
   const [lots, setLots] = useState<ChickenLot[]>([]);
   const [recentRecords, setRecentRecords] = useState<MortalityRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,7 +63,7 @@ export default function MortalityScreen() {
   );
 
   const handleRecordMortality = async (data: MortalityRecordFormData) => {
-    if (!currentUser) {
+    if (!user) {
       Alert.alert('Error', 'Debes estar autenticado');
       return;
     }
@@ -75,7 +75,7 @@ export default function MortalityScreen() {
         data.lotId,
         data.date,
         data.hensDied,
-        currentUser.id
+        user.id
       );
 
       if (result.success) {

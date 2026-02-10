@@ -18,10 +18,10 @@ import { ChickenHouse } from '@/shared/types/entities';
 import { FacilityServiceProvider } from '@/features/facilities/services/FacilityServiceProvider';
 import { HouseForm } from '@/features/facilities/components/HouseForm';
 import { ChickenHouseFormData } from '@/features/facilities/utils/validation';
-import { useAuthContext } from '@/features/auth/contexts/AuthContext';
+import { useAuth } from '@/features/auth/contexts/AuthContext';
 
 export default function HousesScreen() {
-  const { currentUser } = useAuthContext();
+  const { user } = useAuth();
   const [houses, setHouses] = useState<ChickenHouse[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -52,7 +52,7 @@ export default function HousesScreen() {
   );
 
   const handleCreateHouse = async (data: ChickenHouseFormData) => {
-    if (!currentUser) {
+    if (!user) {
       Alert.alert('Error', 'Debes estar autenticado');
       return;
     }
@@ -63,7 +63,7 @@ export default function HousesScreen() {
       const result = await service.createHouse(
         data.name,
         data.description,
-        currentUser.id
+        user.id
       );
 
       if (result.success) {

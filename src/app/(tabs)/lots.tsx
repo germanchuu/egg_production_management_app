@@ -19,11 +19,11 @@ import { FacilityServiceProvider } from '@/features/facilities/services/Facility
 import { LotCard } from '@/features/facilities/components/LotCard';
 import { LotForm } from '@/features/facilities/components/LotForm';
 import { ChickenLotFormData } from '@/features/facilities/utils/validation';
-import { useAuthContext } from '@/features/auth/contexts/AuthContext';
+import { useAuth } from '@/features/auth/contexts/AuthContext';
 
 export default function LotsScreen() {
   const router = useRouter();
-  const { currentUser } = useAuthContext();
+  const { user } = useAuth();
   const [lots, setLots] = useState<ChickenLot[]>([]);
   const [houses, setHouses] = useState<ChickenHouse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,7 +64,7 @@ export default function LotsScreen() {
   );
 
   const handleCreateLot = async (data: ChickenLotFormData) => {
-    if (!currentUser) {
+    if (!user) {
       Alert.alert('Error', 'Debes estar autenticado');
       return;
     }
@@ -78,7 +78,7 @@ export default function LotsScreen() {
         data.purchaseDate,
         data.initialHenCount,
         data.ageWeeks,
-        currentUser.id
+        user.id
       );
 
       if (result.success) {
