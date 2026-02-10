@@ -66,6 +66,7 @@ const COLLECTION_MAP: Record<string, string> = {
   feeding_records: 'feeding_records',
   health_events: 'health_events',
   biosecurity_events: 'biosecurity_events',
+  audit_logs: 'audit_logs', // Firestore collection for audit logs
 };
 
 /**
@@ -148,7 +149,12 @@ export class SyncService {
     entityType: string,
     entityId: string
   ): Promise<any> {
-    const tableName = entityType; // Same as collection name
+    // Map entity type to table name (handle special cases)
+    const TABLE_NAME_MAP: Record<string, string> = {
+      audit_logs: 'audit_log_local',
+    };
+
+    const tableName = TABLE_NAME_MAP[entityType] || entityType;
     const result = await this.db.getFirstAsync(
       `SELECT * FROM ${tableName} WHERE id = ?`,
       [entityId]
@@ -196,6 +202,19 @@ export class SyncService {
       return data;
     }
 
+    if (entityType === 'audit_logs') {
+      return {
+        id: dbRecord.id,
+        entityType: dbRecord.entity_type,
+        entityId: dbRecord.entity_id,
+        operationType: dbRecord.operation_type,
+        timestamp: dbRecord.timestamp,
+        userId: dbRecord.user_id,
+        deviceId: dbRecord.device_id,
+        synced: Boolean(dbRecord.synced),
+      };
+    }
+
     // Add more entity type conversions as needed
     // For now, return as-is for other types
     return dbRecord;
@@ -219,7 +238,7 @@ export class SyncService {
 
     // For now, download production_records only
     // In full implementation, iterate over all collection types
-    const collections = ['production_records', 'users'];
+    const collections = ['production_records', 'users', 'audit_logs'];
 
     for (const collectionName of collections) {
       const collectionRef = collection(this.firestore, collectionName);
@@ -316,6 +335,25 @@ export class SyncService {
           remoteData.lastAccessAt ?? null,
           remoteData.createdAt,
           remoteData.updatedAt,
+        ]
+      );
+      return;
+    }
+
+    if (entityType === 'audit_logs') {
+      await this.db.runAsync(
+        `INSERT OR REPLACE INTO audit_log_local
+         (id, entity_type, entity_id, operation_type, timestamp, user_id, device_id, synced)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          remoteData.id,
+          remoteData.entityType,
+          remoteData.entityId,
+          remoteData.operationType,
+          remoteData.timestamp,
+          remoteData.userId,
+          remoteData.deviceId,
+          remoteData.synced ? 1 : 0,
         ]
       );
       return;
