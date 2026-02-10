@@ -155,14 +155,14 @@ Per Constitution II (Feature-Based Organization):
 - [x] T058 [US2] Create FacilityService in src/features/facilities/services/FacilityService.ts with methods: createHouse(), listHouses(), createLot(), listLots(), getLotDetails(), updateLiveHenCount()
 - [x] T059 [US2] Create MortalityService in src/features/mortality/services/MortalityService.ts with methods: recordMortality(), getMortalityHistory() (includes transaction to update lot live_hen_count)
 - [x] T060 [US2] Implement SQLite transaction in MortalityService to ensure atomic mortality record creation + lot update
-- [ ] T061 [US2] Add sync queue integration in FacilityService and MortalityService to enqueue all CREATE/UPDATE operations
+- [x] T061 [US2] Add sync queue integration in FacilityService and MortalityService to enqueue all CREATE/UPDATE operations
 
 ### Validation & Business Logic
 
-- [ ] T062 [P] [US2] Create validation schema in src/features/facilities/utils/validation.ts for chicken house (name required, unique) and lot (purchase date not future, initial hen count > 0)
-- [ ] T063 [P] [US2] Create validation schema in src/features/mortality/utils/validation.ts (hensDied > 0, hensDied <= currentLiveHenCount)
-- [ ] T064 [US2] Implement edge case handling: prevent mortality if hensDied > liveHenCount, show validation error (FR-020)
-- [ ] T065 [US2] Implement audit logging for lot creation/deletion and mortality >10% threshold in MortalityService
+- [x] T062 [P] [US2] Create validation schema in src/features/facilities/utils/validation.ts for chicken house (name required, unique) and lot (purchase date not future, initial hen count > 0)
+- [x] T063 [P] [US2] Create validation schema in src/features/mortality/utils/validation.ts (hensDied > 0, hensDied <= currentLiveHenCount)
+- [x] T064 [US2] Implement edge case handling: prevent mortality if hensDied > liveHenCount, show validation error (FR-020)
+- [x] T065 [US2] Implement audit logging for lot creation/deletion and mortality >10% threshold in MortalityService
 
 ### UI Components & Screens
 
