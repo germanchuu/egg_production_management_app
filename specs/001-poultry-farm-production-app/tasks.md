@@ -166,10 +166,10 @@ Per Constitution II (Feature-Based Organization):
 
 ### UI Components & Screens
 
-- [ ] T066 [P] [US2] Create HouseForm component in src/features/facilities/components/HouseForm.tsx with name and description inputs
-- [ ] T067 [P] [US2] Create LotForm component in src/features/facilities/components/LotForm.tsx with house selector, purchase date picker, hen count input, age input
-- [ ] T068 [P] [US2] Create LotCard component in src/features/facilities/components/LotCard.tsx displaying lot name, house, live hens, age
-- [ ] T069 [P] [US2] Create MortalityForm component in src/features/mortality/components/MortalityForm.tsx with lot selector, date picker, mortality count input
+- [x] T066 [P] [US2] Create HouseForm component in src/features/facilities/components/HouseForm.tsx with name and description inputs
+- [x] T067 [P] [US2] Create LotForm component in src/features/facilities/components/LotForm.tsx with house selector, purchase date picker, hen count input, age input
+- [x] T068 [P] [US2] Create LotCard component in src/features/facilities/components/LotCard.tsx displaying lot name, house, live hens, age
+- [x] T069 [P] [US2] Create MortalityForm component in src/features/mortality/components/MortalityForm.tsx with lot selector, date picker, mortality count input
 - [ ] T070 [US2] Create chicken houses list screen in src/app/(tabs)/admin/houses.tsx (admin only) with create house button
 - [ ] T071 [US2] Create lots list screen in src/app/(tabs)/lots.tsx showing all active lots with live hen counts
 - [ ] T072 [US2] Create lot details screen in src/app/(tabs)/lots/[lotId].tsx displaying lot info, current age, mortality history, production summary
