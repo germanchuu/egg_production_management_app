@@ -41,19 +41,18 @@ export const HouseForm: React.FC<HouseFormProps> = ({
   return (
     <View className="space-y-4">
       <View>
-        <Text className="text-gray-700 font-medium mb-2">
-          Nombre del Galpón *
-        </Text>
         <Controller
           control={control}
           name="name"
           render={({ field: { onChange, onBlur, value } }) => (
             <FormInput
+              label="Nombre del Galpón"
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
               placeholder="Ej: Galpón 1"
               error={errors.name?.message}
+              required
               autoCapitalize="words"
               maxLength={100}
             />
@@ -62,14 +61,12 @@ export const HouseForm: React.FC<HouseFormProps> = ({
       </View>
 
       <View>
-        <Text className="text-gray-700 font-medium mb-2">
-          Descripción (Opcional)
-        </Text>
         <Controller
           control={control}
           name="description"
           render={({ field: { onChange, onBlur, value } }) => (
             <FormInput
+              label="Descripción"
               value={value || ''}
               onChangeText={onChange}
               onBlur={onBlur}

@@ -48,17 +48,18 @@ export const LotForm: React.FC<LotFormProps> = ({
     <View className="space-y-4">
       {/* Lot Name */}
       <View>
-        <Text className="text-gray-700 font-medium mb-2">Nombre del Lote *</Text>
         <Controller
           control={control}
           name="name"
           render={({ field: { onChange, onBlur, value } }) => (
             <FormInput
+              label="Nombre del Lote"
               value={value}
               onChangeText={onChange}
               onBlur={onBlur}
               placeholder="Ej: Lote Marzo 2024"
               error={errors.name?.message}
+              required
               autoCapitalize="words"
               maxLength={100}
             />
@@ -101,10 +102,15 @@ export const LotForm: React.FC<LotFormProps> = ({
           name="purchaseDate"
           render={({ field: { onChange, value } }) => (
             <DatePicker
-              value={value}
-              onChange={onChange}
+              label="Fecha de Compra"
+              value={new Date(value)}
+              onChange={(date) => {
+                // Convert Date to string (YYYY-MM-DD) for schema validation
+                onChange(date.toISOString().split('T')[0]);
+              }}
               error={errors.purchaseDate?.message}
               maxDate={new Date()}
+              required
             />
           )}
         />
@@ -112,14 +118,12 @@ export const LotForm: React.FC<LotFormProps> = ({
 
       {/* Initial Hen Count */}
       <View>
-        <Text className="text-gray-700 font-medium mb-2">
-          Cantidad Inicial de Gallinas *
-        </Text>
         <Controller
           control={control}
           name="initialHenCount"
           render={({ field: { onChange, onBlur, value } }) => (
             <FormInput
+              label="Cantidad Inicial de Gallinas"
               value={value.toString()}
               onChangeText={(text) => {
                 const num = parseInt(text) || 0;
@@ -128,6 +132,7 @@ export const LotForm: React.FC<LotFormProps> = ({
               onBlur={onBlur}
               placeholder="Ej: 500"
               error={errors.initialHenCount?.message}
+              required
               keyboardType="numeric"
             />
           )}
@@ -136,14 +141,12 @@ export const LotForm: React.FC<LotFormProps> = ({
 
       {/* Age in Weeks */}
       <View>
-        <Text className="text-gray-700 font-medium mb-2">
-          Edad en Semanas *
-        </Text>
         <Controller
           control={control}
           name="ageWeeks"
           render={({ field: { onChange, onBlur, value } }) => (
             <FormInput
+              label="Edad en Semanas"
               value={value.toString()}
               onChangeText={(text) => {
                 const num = parseInt(text) || 0;
@@ -152,6 +155,7 @@ export const LotForm: React.FC<LotFormProps> = ({
               onBlur={onBlur}
               placeholder="Ej: 18"
               error={errors.ageWeeks?.message}
+              required
               keyboardType="numeric"
             />
           )}

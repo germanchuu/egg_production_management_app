@@ -291,6 +291,226 @@ export class FacilityService {
   }
 
   /**
+   * Get house details by ID
+   */
+  async getHouseDetails(houseId: string): Promise<ServiceResult<ChickenHouse>> {
+    try {
+      const house = await this.houseRepository.findById(houseId);
+      if (!house) {
+        return {
+          success: false,
+          error: 'Galpón no encontrado',
+        };
+      }
+
+      return {
+        success: true,
+        data: house,
+      };
+    } catch (error) {
+      console.error('Error getting house details:', error);
+      return {
+        success: false,
+        error: 'Error al obtener detalles del galpón',
+      };
+    }
+  }
+
+  /**
+   * Update a chicken house
+   */
+  async updateHouse(
+    houseId: string,
+    name: string,
+    description: string | undefined,
+    updatedBy: string
+  ): Promise<ServiceResult<ChickenHouse>> {
+    try {
+      // Check if house exists
+      const exists = await this.houseRepository.exists(houseId);
+      if (!exists) {
+        return {
+          success: false,
+          error: 'Galpón no encontrado',
+        };
+      }
+
+      // Check if new name conflicts with another house
+      const existingHouse = await this.houseRepository.findByName(name);
+      if (existingHouse && existingHouse.id !== houseId) {
+        return {
+          success: false,
+          error: `Ya existe otro galpón con el nombre "${name}"`,
+        };
+      }
+
+      const timestamp = new Date().toISOString();
+
+      const updateData: UpdateChickenHouseData = {
+        name,
+        description,
+        updatedAt: timestamp,
+      };
+
+      // Update house
+      const house = await this.houseRepository.update(houseId, updateData);
+
+      // Enqueue for sync
+      await this.syncQueue.enqueue({
+        entityType: 'chicken_houses',
+        entityId: house.id,
+        operation: SyncOperation.Update,
+      });
+
+      return {
+        success: true,
+        data: house,
+      };
+    } catch (error) {
+      console.error('Error updating chicken house:', error);
+      return {
+        success: false,
+        error: 'Error al actualizar el galpón',
+      };
+    }
+  }
+
+  /**
+   * Delete a chicken house
+   */
+  async deleteHouse(
+    houseId: string,
+    deletedBy: string
+  ): Promise<ServiceResult<void>> {
+    try {
+      // Check if house exists
+      const exists = await this.houseRepository.exists(houseId);
+      if (!exists) {
+        return {
+          success: false,
+          error: 'Galpón no encontrado',
+        };
+      }
+
+      // Check if house has active lots
+      const lots = await this.lotRepository.findByHouse(houseId);
+      if (lots.length > 0) {
+        return {
+          success: false,
+          error: 'No se puede eliminar un galpón con lotes asociados',
+        };
+      }
+
+      // Delete house
+      await this.houseRepository.delete(houseId);
+
+      // Enqueue for sync
+      await this.syncQueue.enqueue({
+        entityType: 'chicken_houses',
+        entityId: houseId,
+        operation: SyncOperation.Delete,
+      });
+
+      return {
+        success: true,
+      };
+    } catch (error) {
+      console.error('Error deleting chicken house:', error);
+      return {
+        success: false,
+        error: 'Error al eliminar el galpón',
+      };
+    }
+  }
+
+  /**
+   * Update a chicken lot (name only - other fields are immutable)
+   */
+  async updateLot(
+    lotId: string,
+    name: string,
+    updatedBy: string
+  ): Promise<ServiceResult<ChickenLot>> {
+    try {
+      // Check if lot exists
+      const existingLot = await this.lotRepository.findById(lotId);
+      if (!existingLot) {
+        return {
+          success: false,
+          error: 'Lote no encontrado',
+        };
+      }
+
+      const timestamp = new Date().toISOString();
+
+      const updateData: UpdateChickenLotData = {
+        name,
+        updatedAt: timestamp,
+      };
+
+      // Update lot
+      const lot = await this.lotRepository.update(lotId, updateData);
+
+      // Enqueue for sync
+      await this.syncQueue.enqueue({
+        entityType: 'chicken_lots',
+        entityId: lot.id,
+        operation: SyncOperation.Update,
+      });
+
+      return {
+        success: true,
+        data: lot,
+      };
+    } catch (error) {
+      console.error('Error updating chicken lot:', error);
+      return {
+        success: false,
+        error: 'Error al actualizar el lote',
+      };
+    }
+  }
+
+  /**
+   * Delete a chicken lot
+   */
+  async deleteLot(
+    lotId: string,
+    deletedBy: string
+  ): Promise<ServiceResult<void>> {
+    try {
+      // Check if lot exists
+      const exists = await this.lotRepository.exists(lotId);
+      if (!exists) {
+        return {
+          success: false,
+          error: 'Lote no encontrado',
+        };
+      }
+
+      // Delete lot
+      await this.lotRepository.delete(lotId);
+
+      // Enqueue for sync
+      await this.syncQueue.enqueue({
+        entityType: 'chicken_lots',
+        entityId: lotId,
+        operation: SyncOperation.Delete,
+      });
+
+      return {
+        success: true,
+      };
+    } catch (error) {
+      console.error('Error deleting chicken lot:', error);
+      return {
+        success: false,
+        error: 'Error al eliminar el lote',
+      };
+    }
+  }
+
+  /**
    * Generate UUID v4
    */
   private generateUUID(): string {

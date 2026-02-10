@@ -215,6 +215,32 @@ export class SyncService {
       };
     }
 
+    if (entityType === 'chicken_houses') {
+      return {
+        id: dbRecord.id,
+        name: dbRecord.name,
+        description: dbRecord.description,
+        createdBy: dbRecord.created_by,
+        createdAt: dbRecord.created_at,
+        updatedAt: dbRecord.updated_at,
+      };
+    }
+
+    if (entityType === 'chicken_lots') {
+      return {
+        id: dbRecord.id,
+        name: dbRecord.name,
+        chickenHouseId: dbRecord.chicken_house_id,
+        purchaseDate: dbRecord.purchase_date,
+        initialHenCount: dbRecord.initial_hen_count,
+        liveHenCount: dbRecord.live_hen_count,
+        ageWeeks: dbRecord.age_weeks,
+        createdBy: dbRecord.created_by,
+        createdAt: dbRecord.created_at,
+        updatedAt: dbRecord.updated_at,
+      };
+    }
+
     // Add more entity type conversions as needed
     // For now, return as-is for other types
     return dbRecord;
@@ -238,7 +264,13 @@ export class SyncService {
 
     // For now, download production_records only
     // In full implementation, iterate over all collection types
-    const collections = ['production_records', 'users', 'audit_logs'];
+    const collections = [
+      'production_records',
+      'users',
+      'audit_logs',
+      'chicken_houses',
+      'chicken_lots',
+    ];
 
     for (const collectionName of collections) {
       const collectionRef = collection(this.firestore, collectionName);
@@ -354,6 +386,45 @@ export class SyncService {
           remoteData.userId,
           remoteData.deviceId,
           remoteData.synced ? 1 : 0,
+        ]
+      );
+      return;
+    }
+
+    if (entityType === 'chicken_houses') {
+      await this.db.runAsync(
+        `INSERT OR REPLACE INTO chicken_houses
+         (id, name, description, created_by, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+          remoteData.id,
+          remoteData.name,
+          remoteData.description ?? null,
+          remoteData.createdBy,
+          remoteData.createdAt,
+          remoteData.updatedAt,
+        ]
+      );
+      return;
+    }
+
+    if (entityType === 'chicken_lots') {
+      await this.db.runAsync(
+        `INSERT OR REPLACE INTO chicken_lots
+         (id, name, chicken_house_id, purchase_date, initial_hen_count,
+          live_hen_count, age_weeks, created_by, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          remoteData.id,
+          remoteData.name,
+          remoteData.chickenHouseId,
+          remoteData.purchaseDate,
+          remoteData.initialHenCount,
+          remoteData.liveHenCount,
+          remoteData.ageWeeks,
+          remoteData.createdBy,
+          remoteData.createdAt,
+          remoteData.updatedAt,
         ]
       );
       return;

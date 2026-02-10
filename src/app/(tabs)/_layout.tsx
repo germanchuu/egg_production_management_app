@@ -46,7 +46,7 @@ function AdminDrawerContent(props: any) {
 
             <DrawerItem
               label="Galpones"
-              onPress={() => props.navigation.navigate('admin/houses')}
+              onPress={() => props.navigation.navigate('admin/houses/index')}
               icon={({ color, size }) => (
                 <Warehouse size={size} color={color} />
               )}
@@ -58,7 +58,7 @@ function AdminDrawerContent(props: any) {
 
             <DrawerItem
               label="Lotes"
-              onPress={() => props.navigation.navigate('lots')}
+              onPress={() => props.navigation.navigate('lots/index')}
               icon={({ color, size }) => <Package size={size} color={color} />}
               labelStyle={{
                 fontWeight: theme.fontWeight.medium,
@@ -147,7 +147,7 @@ export default function AppLayout() {
 
       {/* ADMIN - Screens renderizados en CustomDrawerContent */}
       <Drawer.Screen
-        name="admin/houses"
+        name="admin/houses/index"
         options={{
           title: 'Galpones',
           drawerItemStyle: { display: 'none' },
@@ -155,7 +155,7 @@ export default function AppLayout() {
       />
 
       <Drawer.Screen
-        name="lots"
+        name="lots/index"
         options={{
           title: 'Lotes',
           drawerItemStyle: { display: 'none' },
@@ -170,14 +170,37 @@ export default function AppLayout() {
         }}
       />
 
-      {/* SUBRUTAS OCULTAS */}
+      {/* SUBRUTAS OCULTAS - HOUSES */}
       <Drawer.Screen
-        name="lots/[lotId]"
+        name="admin/houses/create"
         options={{
           drawerItemStyle: { display: 'none' },
         }}
       />
 
+      <Drawer.Screen
+        name="admin/houses/[id]"
+        options={{
+          drawerItemStyle: { display: 'none' },
+        }}
+      />
+
+      {/* SUBRUTAS OCULTAS - LOTS */}
+      <Drawer.Screen
+        name="lots/create"
+        options={{
+          drawerItemStyle: { display: 'none' },
+        }}
+      />
+
+      <Drawer.Screen
+        name="lots/[id]"
+        options={{
+          drawerItemStyle: { display: 'none' },
+        }}
+      />
+
+      {/* SUBRUTAS OCULTAS - USERS */}
       <Drawer.Screen
         name="admin/users/create"
         options={{
