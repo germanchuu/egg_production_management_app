@@ -132,7 +132,7 @@ Per Constitution II (Feature-Based Organization):
 
 - [x] T051 [US3] Add validation for 7-day invitation expiry in InvitationService
 - [x] T052 [US3] Add audit logging for user creation and invitation acceptance in src/shared/sync/AuditService.ts
-- [ ] T053 [US3] Test offline app access with cached session (SC-010: <3s app launch offline)
+- [x] T053 [US3] Test offline app access with cached session (SC-010: <3s app launch offline)
 - [ ] T054 [US3] Test background session validation when online BEFORE any sync operations
 - [ ] T054a [US3] Test user revocation flow: admin revokes user → user goes online → session validation fails → "Access Denied" shown → user cannot access app
 - [ ] T054b [US3] Test revocation is permanent: revoked user cannot be re-enabled, cannot accept new invitations
