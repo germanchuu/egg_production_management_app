@@ -4,4 +4,5 @@ export * from './InvitationRepository';
 export * from './AuditLogRepository';
 export * from './ChickenHouseRepository';
 export * from './ChickenLotRepository';
+export * from './MortalityRecordRepository';
 export * from './RepositoryFactory';

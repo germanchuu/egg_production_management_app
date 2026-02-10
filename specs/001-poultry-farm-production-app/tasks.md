@@ -153,8 +153,8 @@ Per Constitution II (Feature-Based Organization):
 - [x] T056 [P] [US2] Create ChickenLot model in src/features/facilities/models/ChickenLot.ts with computed fields (currentAgeWeeks, totalMortality, mortalityRate)
 - [x] T057 [P] [US2] Create MortalityRecord model in src/features/mortality/models/MortalityRecord.ts
 - [x] T058 [US2] Create FacilityService in src/features/facilities/services/FacilityService.ts with methods: createHouse(), listHouses(), createLot(), listLots(), getLotDetails(), updateLiveHenCount()
-- [ ] T059 [US2] Create MortalityService in src/features/mortality/services/MortalityService.ts with methods: recordMortality(), getMortalityHistory() (includes transaction to update lot live_hen_count)
-- [ ] T060 [US2] Implement SQLite transaction in MortalityService to ensure atomic mortality record creation + lot update
+- [x] T059 [US2] Create MortalityService in src/features/mortality/services/MortalityService.ts with methods: recordMortality(), getMortalityHistory() (includes transaction to update lot live_hen_count)
+- [x] T060 [US2] Implement SQLite transaction in MortalityService to ensure atomic mortality record creation + lot update
 - [ ] T061 [US2] Add sync queue integration in FacilityService and MortalityService to enqueue all CREATE/UPDATE operations
 
 ### Validation & Business Logic
