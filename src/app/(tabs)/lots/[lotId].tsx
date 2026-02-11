@@ -1,10 +1,9 @@
 /**
- * Lot Details Screen
+ * Lot Details Screen (Improved UI)
  *
- * Displays detailed information about a chicken lot including:
- * - Lot info and stats
- * - Mortality history
- * - Production summary (placeholder)
+ * - Header con botón back + ícono
+ * - Layout más analítico
+ * - Historial con scroll interno
  */
 
 import React, { useState, useCallback } from 'react';
@@ -14,10 +13,12 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  TouchableOpacity,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { AlertTriangle } from 'lucide-react-native';
+import { AlertTriangle, ArrowLeft, BarChart3 } from 'lucide-react-native';
 import { ChickenLot, MortalityRecord } from '@/shared/types/entities';
 import { FacilityServiceProvider } from '@/features/facilities/services/FacilityServiceProvider';
 import { MortalityServiceProvider } from '@/features/mortality/services/MortalityServiceProvider';
@@ -44,7 +45,6 @@ export default function LotDetailsScreen() {
       const mortalityService =
         await MortalityServiceProvider.getMortalityService();
 
-      // Load lot
       const lotResult = await facilityService.getLotDetails(lotId);
       if (lotResult.success && lotResult.data) {
         setLot(lotResult.data);
@@ -54,7 +54,6 @@ export default function LotDetailsScreen() {
         return;
       }
 
-      // Load mortality history
       const mortalityResult = await mortalityService.getMortalityHistory(lotId);
       if (mortalityResult.success && mortalityResult.data) {
         setMortalityHistory(mortalityResult.data);
@@ -90,118 +89,175 @@ export default function LotDetailsScreen() {
   return (
     <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-background">
       <ScrollView className="flex-1">
-        {/* Header */}
-        <View className="bg-white border-b border-gray-200 px-lg py-md">
-          <Text className="text-2xl font-bold text-textPrimary">{lot.name}</Text>
-          <Text className="text-sm text-textSecondary mt-xs">
+        {/* HEADER */}
+        <View className="bg-white border-b border-gray-200 px-lg pt-xl pb-md">
+          <View className="flex-row items-center gap-md">
+            <Pressable
+              onPress={() => router.push('/lots')}
+              hitSlop={8}
+              style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+            >
+              <ArrowLeft size={24} color={theme.colors.primary['500']} />
+            </Pressable>
+
+            <View className="flex-1 flex-row items-center">
+              <BarChart3 size={28} color={theme.colors.primary['500']} />
+              <Text className="text-2xl font-bold text-textPrimary ml-md">
+                {lot.name}
+              </Text>
+            </View>
+          </View>
+
+          <Text className="text-sm text-textSecondary mt-xs ml-10">
             Fecha de compra:{' '}
             {new Date(lot.purchaseDate).toLocaleDateString('es-ES')}
           </Text>
+          <Text className="text-sm text-textSecondary mt-xs ml-10">
+            Galpón: {lot.chickenHouseId}
+          </Text>
         </View>
 
-        {/* Stats Cards */}
+        {/* DASHBOARD ANALÍTICO */}
         <View className="px-lg py-md gap-md">
-          {/* Live Hens Card */}
-          <View className="bg-white rounded-md p-lg border border-gray-200">
-            <Text className="text-sm text-textTertiary mb-xs">Gallinas Vivas</Text>
-            <Text className="text-3xl font-bold text-textPrimary">
-              {lot.liveHenCount}
+          {/* MÉTRICA PRINCIPAL */}
+          <View className="bg-white rounded-2xl p-xl border border-gray-200 shadow-sm">
+            <Text className="text-xs text-textTertiary mb-xs">
+              Gallinas vivas
             </Text>
-            <Text className="text-sm text-textSecondary mt-xs">
-              de {lot.initialHenCount} iniciales
-            </Text>
-          </View>
 
-          {/* Age Card */}
-          <View className="bg-white rounded-md p-lg border border-gray-200">
-            <Text className="text-sm text-textTertiary mb-xs">Edad Actual</Text>
-            <Text className="text-3xl font-bold text-textPrimary">
-              {currentAge} semanas
-            </Text>
-            <Text className="text-sm text-textSecondary mt-xs">
-              Edad inicial: {lot.ageWeeks} semanas
-            </Text>
-          </View>
+            <View className="flex-row items-end justify-between">
+              <Text className="text-4xl font-bold text-textPrimary">
+                {lot.liveHenCount}
+              </Text>
 
-          {/* Mortality Card */}
-          <View className="bg-white rounded-md p-lg border border-gray-200">
-            <Text className="text-sm text-textTertiary mb-xs">Mortalidad Total</Text>
-            <Text
-              className={`text-3xl font-bold ${mortalityRate > 10 ? 'text-error' : 'text-textPrimary'}`}
-            >
-              {mortalityRate.toFixed(1)}%
-            </Text>
-            <Text className="text-sm text-textSecondary mt-xs">
-              {totalMortality} gallinas ({mortalityHistory.length} eventos)
-            </Text>
-            {mortalityRate > 10 && (
-              <View className="flex-row items-center gap-xs mt-xs">
-                <AlertTriangle size={14} color={theme.colors.error.DEFAULT} />
-                <Text className="text-sm text-error">Alta mortalidad</Text>
+              <View className="items-end">
+                <Text className="text-xs text-textTertiary">Inicial</Text>
+                <Text className="text-lg font-semibold text-textSecondary">
+                  {lot.initialHenCount}
+                </Text>
               </View>
-            )}
+            </View>
+          </View>
+
+          {/* GRID SECUNDARIO */}
+          <View className="flex-row gap-md">
+            {/* EDAD */}
+            <View className="flex-1 bg-white rounded-2xl p-lg border border-gray-200 shadow-sm">
+              <Text className="text-xs text-textTertiary mb-xs">
+                Edad actual
+              </Text>
+
+              <Text className="text-2xl font-bold text-textPrimary">
+                {currentAge} semanas
+              </Text>
+
+              <Text className="text-xs text-textTertiary mt-sm">
+                Inicial: {lot.ageWeeks}{' '}
+                {lot.ageWeeks === 1 ? 'semana' : 'semanas'}
+              </Text>
+            </View>
+
+            {/* MORTALIDAD */}
+            <View className="flex-1 bg-white rounded-2xl p-lg border border-gray-200 shadow-sm">
+              <Text className="text-xs text-textTertiary mb-xs">
+                Mortalidad
+              </Text>
+
+              <Text
+                className={`text-2xl font-bold ${
+                  mortalityRate > 10 ? 'text-error' : 'text-textPrimary'
+                }`}
+              >
+                {mortalityRate.toFixed(1)}%
+              </Text>
+
+              <Text className="text-xs text-textSecondary mt-xs">
+                {totalMortality} {totalMortality === 1 ? 'gallina' : 'gallinas'}
+              </Text>
+
+              {mortalityRate > 10 && (
+                <View className="flex-row items-center gap-xs mt-sm bg-error/10 px-sm py-xs rounded-md self-start">
+                  <AlertTriangle size={12} color={theme.colors.error.DEFAULT} />
+                  <Text className="text-[11px] font-medium text-error">
+                    Alta
+                  </Text>
+                </View>
+              )}
+            </View>
           </View>
         </View>
 
-        {/* Mortality History */}
+        {/* HISTORIAL MORTALIDAD*/}
         <View className="px-lg py-md">
           <Text className="text-lg font-bold text-textPrimary mb-md">
             Historial de Mortalidad
           </Text>
+
           {mortalityHistory.length === 0 ? (
-            <View className="bg-white rounded-md px-xl py-2xl items-center border border-gray-200">
+            <View className="bg-white rounded-xl px-xl py-2xl items-center border border-gray-200">
               <Text className="text-textTertiary text-center">
                 No hay registros de mortalidad
               </Text>
             </View>
           ) : (
-            <View className="bg-white rounded-md border border-gray-200 overflow-hidden">
-              {mortalityHistory.map((record, index) => {
-                const isHigh = MortalityRecordHelper.isHighMortality(
-                  record.hensDied,
-                  lot.liveHenCount + totalMortality
-                );
-                return (
-                  <View
-                    key={record.id}
-                    className={`p-lg ${index !== 0 ? 'border-t border-gray-200' : ''}`}
-                  >
-                    <View className="flex-row justify-between items-start">
-                      <View className="flex-1">
-                        <Text className="text-base font-medium text-textPrimary">
-                          {record.hensDied} gallina
-                          {record.hensDied !== 1 ? 's' : ''}
-                        </Text>
-                        <Text className="text-sm text-textSecondary mt-xs">
-                          {new Date(record.date).toLocaleDateString('es-ES', {
-                            day: '2-digit',
-                            month: 'long',
-                            year: 'numeric',
-                          })}
-                        </Text>
-                      </View>
-                      {isHigh && (
-                        <View className="bg-error/10 px-sm py-xs rounded-sm flex-row items-center gap-xs">
-                          <AlertTriangle size={12} color={theme.colors.error.DEFAULT} />
-                          <Text className="text-xs font-medium text-error">
-                            Alta
+            <View className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <ScrollView style={{ maxHeight: 260 }}>
+                {mortalityHistory.map((record, index) => {
+                  const isHigh = MortalityRecordHelper.isHighMortality(
+                    record.hensDied,
+                    lot.liveHenCount + totalMortality
+                  );
+
+                  return (
+                    <View
+                      key={record.id}
+                      className={`p-lg ${
+                        index !== 0 ? 'border-t border-gray-200' : ''
+                      }`}
+                    >
+                      <View className="flex-row justify-between items-center">
+                        <View>
+                          <Text className="text-base font-medium text-textPrimary">
+                            {record.hensDied} gallina
+                            {record.hensDied !== 1 ? 's' : ''}
+                          </Text>
+
+                          <Text className="text-sm text-textSecondary mt-xs">
+                            {new Date(record.date).toLocaleDateString('es-ES', {
+                              day: '2-digit',
+                              month: 'long',
+                              year: 'numeric',
+                            })}
                           </Text>
                         </View>
-                      )}
+
+                        {isHigh && (
+                          <View className="bg-error/10 px-sm py-xs rounded-md flex-row items-center gap-xs">
+                            <AlertTriangle
+                              size={12}
+                              color={theme.colors.error.DEFAULT}
+                            />
+                            <Text className="text-xs font-medium text-error">
+                              Alta
+                            </Text>
+                          </View>
+                        )}
+                      </View>
                     </View>
-                  </View>
-                );
-              })}
+                  );
+                })}
+              </ScrollView>
             </View>
           )}
         </View>
 
-        {/* Production Summary Placeholder */}
+        {/* PRODUCCIÓN */}
         <View className="px-lg py-md">
           <Text className="text-lg font-bold text-textPrimary mb-md">
             Resumen de Producción
           </Text>
-          <View className="bg-white rounded-md px-xl py-2xl items-center border border-gray-200">
+
+          <View className="bg-white rounded-xl px-xl py-2xl items-center border border-gray-200">
             <Text className="text-textTertiary text-center">
               Funcionalidad en desarrollo
             </Text>

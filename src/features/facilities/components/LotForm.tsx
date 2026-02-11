@@ -5,19 +5,21 @@
  * Uses react-hook-form with Zod validation.
  */
 
-import React from 'react';
-import { View, Text } from 'react-native';
+import React, { useMemo } from 'react';
+import { View } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { chickenLotSchema, ChickenLotFormData } from '../utils/validation';
 import { FormInput } from '@/shared/components/FormInput';
 import { DatePicker } from '@/shared/components/DatePicker';
+import { SelectPicker } from '@/shared/components/SelectPicker';
 import { Button } from '@/shared/components/Button';
 import { ChickenHouse } from '@/shared/types/entities';
 
 interface LotFormProps {
   houses: ChickenHouse[];
   onSubmit: (data: ChickenLotFormData) => void;
+  onCancel: () => void;
   isSubmitting?: boolean;
   submitLabel?: string;
 }
@@ -25,6 +27,7 @@ interface LotFormProps {
 export const LotForm: React.FC<LotFormProps> = ({
   houses,
   onSubmit,
+  onCancel,
   isSubmitting = false,
   submitLabel = 'Crear Lote',
 }) => {
@@ -43,6 +46,16 @@ export const LotForm: React.FC<LotFormProps> = ({
       ageWeeks: 0,
     },
   });
+
+  // Transform houses to SelectPicker options
+  const houseOptions = useMemo(
+    () =>
+      houses.map((house) => ({
+        label: house.name,
+        value: house.id,
+      })),
+    [houses]
+  );
 
   return (
     <View className="space-y-4">
@@ -68,35 +81,25 @@ export const LotForm: React.FC<LotFormProps> = ({
       </View>
 
       {/* House Selector */}
-      <View>
-        <Text className="text-gray-700 font-medium mb-2">Galpón *</Text>
-        <Controller
-          control={control}
-          name="chickenHouseId"
-          render={({ field: { onChange, value } }) => (
-            <View className="border border-gray-300 rounded-lg p-3 bg-white">
-              {houses.map((house) => (
-                <Text
-                  key={house.id}
-                  onPress={() => onChange(house.id)}
-                  className={`py-2 ${value === house.id ? 'font-bold text-blue-600' : 'text-gray-700'}`}
-                >
-                  {house.name}
-                </Text>
-              ))}
-            </View>
-          )}
-        />
-        {errors.chickenHouseId && (
-          <Text className="text-red-600 text-sm mt-1">
-            {errors.chickenHouseId.message}
-          </Text>
+      <Controller
+        control={control}
+        name="chickenHouseId"
+        render={({ field: { onChange, value } }) => (
+          <SelectPicker
+            label="Galpón"
+            value={value}
+            onChange={onChange}
+            options={houseOptions}
+            error={errors.chickenHouseId?.message}
+            disabled={isSubmitting}
+            required
+            placeholder="Selecciona un galpón"
+          />
         )}
-      </View>
+      />
 
       {/* Purchase Date */}
       <View>
-        <Text className="text-gray-700 font-medium mb-2">Fecha de Compra *</Text>
         <Controller
           control={control}
           name="purchaseDate"
@@ -162,13 +165,28 @@ export const LotForm: React.FC<LotFormProps> = ({
         />
       </View>
 
-      <Button
-        onPress={handleSubmit(onSubmit)}
-        disabled={isSubmitting}
-        className="mt-4"
-      >
-        {isSubmitting ? 'Creando...' : submitLabel}
-      </Button>
+      {/* Action Buttons */}
+      <View className="flex-row gap-md mt-md">
+        <View className="flex-1">
+          <Button
+            variant="secondary"
+            onPress={onCancel}
+            disabled={isSubmitting}
+          >
+            Cancelar
+          </Button>
+        </View>
+        <View className="flex-1">
+          <Button
+            variant="primary"
+            onPress={handleSubmit(onSubmit)}
+            loading={isSubmitting}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Creando...' : submitLabel}
+          </Button>
+        </View>
+      </View>
     </View>
   );
 };

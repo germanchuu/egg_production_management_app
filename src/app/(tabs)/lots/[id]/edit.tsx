@@ -6,10 +6,10 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Bird } from 'lucide-react-native';
+import { Bird, ArrowLeft, Info } from 'lucide-react-native';
 import { useToastContext } from '@/shared/contexts/ToastContext';
 import { useAuth } from '@/features/auth/contexts/AuthContext';
 import { FormInput } from '@/shared/components/FormInput';
@@ -53,7 +53,7 @@ export default function EditLotScreen() {
           error(result.error || 'Lote no encontrado');
           router.back();
         }
-      } catch (err) {
+      } catch {
         error('Error al cargar el lote');
         router.back();
       } finally {
@@ -74,7 +74,6 @@ export default function EditLotScreen() {
       return;
     }
 
-    // Create form data with all fields (even though only name will be updated)
     const formData = {
       name: name.trim(),
       chickenHouseId: lot!.chickenHouseId,
@@ -89,14 +88,29 @@ export default function EditLotScreen() {
   if (loading) {
     return (
       <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-background">
-        <View className="bg-white border-b border-gray-200 px-lg py-md">
+        <View className="bg-white border-b border-gray-200 px-lg pt-xl pb-md">
           <View className="flex-row items-center gap-md">
-            <Bird size={28} color={theme.colors.primary.DEFAULT} />
-            <Text className="text-2xl font-bold text-textPrimary">
-              Editar Lote
-            </Text>
+            <Pressable
+              onPress={() => router.back()}
+              hitSlop={8}
+              style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+            >
+              <ArrowLeft size={24} color={theme.colors.primary['500']} />
+            </Pressable>
+
+            <View className="flex-1 flex-row items-center">
+              <Bird size={28} color={theme.colors.primary['500']} />
+              <Text className="text-2xl font-bold text-textPrimary ml-md">
+                Editar Lote
+              </Text>
+            </View>
           </View>
+
+          <Text className="text-sm text-textSecondary mt-xs ml-10">
+            Cargando información del lote...
+          </Text>
         </View>
+
         <View className="px-lg py-md">
           <Text className="text-textSecondary">Cargando...</Text>
         </View>
@@ -104,93 +118,115 @@ export default function EditLotScreen() {
     );
   }
 
-  if (!lot) {
-    return null;
-  }
+  if (!lot) return null;
 
   return (
     <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-background">
-      <ScrollView className="flex-1">
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ paddingBottom: 32 }}
+      >
         {/* Header */}
-        <View className="bg-white border-b border-gray-200 px-lg py-md">
+        <View className="bg-white border-b border-gray-200 px-lg pt-xl pb-md">
           <View className="flex-row items-center gap-md">
-            <Bird size={28} color={theme.colors.primary.DEFAULT} />
-            <Text className="text-2xl font-bold text-textPrimary">
-              Editar Lote
-            </Text>
+            <Pressable
+              onPress={() => router.push('/lots')}
+              hitSlop={8}
+              style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+            >
+              <ArrowLeft size={24} color={theme.colors.primary['500']} />
+            </Pressable>
+
+            <View className="flex-1 flex-row items-center">
+              <Bird size={28} color={theme.colors.primary['500']} />
+              <Text className="text-2xl font-bold text-textPrimary ml-md">
+                Editar Lote
+              </Text>
+            </View>
           </View>
+
+          <Text className="text-sm text-textSecondary mt-xs ml-10">
+            Modificar el nombre del lote
+          </Text>
         </View>
 
-        {/* Form */}
-        <View className="px-lg py-md space-y-lg">
+        {/* Content */}
+        <View className="px-lg pt-lg">
           {/* Info Banner */}
-          <View className="bg-blue-50 border border-blue-200 rounded-md p-md">
-            <Text className="text-sm text-blue-800">
-              ℹ️ Solo el nombre del lote puede ser editado. Los demás campos
-              (galpón, fecha, gallinas iniciales, edad) son inmutables después
-              de la creación.
+          <View className="flex flex-row gap-1 bg-info/10 border border-info/20 rounded-xl p-lg">
+            <Info size={18} color={theme.colors.primary.DEFAULT} />
+            <Text className="text-sm text-primary-900 leading-relaxed">
+              Solo el nombre del lote puede ser editado. Los demás campos
+              (galpón, fecha, gallinas iniciales y edad) se mantienen bloqueados
+              después de la creación.
             </Text>
           </View>
 
-          {/* Name Field */}
-          <View>
-            <FormInput
-              label="Nombre del Lote"
-              value={name}
-              onChangeText={setName}
-              placeholder="Ej: Lote Marzo 2024"
-              required
-              autoCapitalize="words"
-              maxLength={100}
-            />
-          </View>
+          {/* Spacer between banner and form */}
+          <View className="h-xl" />
 
-          {/* Read-only Fields Display */}
-          <View className="space-y-md border-t border-gray-200 pt-lg">
-            <Text className="text-base font-semibold text-textPrimary">
-              Campos no editables:
+          {/* Editable field */}
+          <FormInput
+            label="Nombre del lote"
+            value={name}
+            onChangeText={setName}
+            placeholder="Ej: Lote Marzo 2024"
+            required
+            autoCapitalize="words"
+            maxLength={100}
+          />
+
+          {/* Read-only section */}
+          <View className="mt-sm border-t border-gray-200 pt-lg">
+            <Text className="text-base font-semibold text-textPrimary mb-md">
+              Información del lote
             </Text>
 
-            <View>
-              <Text className="text-xs text-textTertiary mb-xs">Galpón</Text>
-              <Text className="text-base text-textSecondary">
-                {lot.chickenHouseId}
-              </Text>
-            </View>
-
-            <View>
-              <Text className="text-xs text-textTertiary mb-xs">
-                Fecha de Compra
-              </Text>
-              <Text className="text-base text-textSecondary">
-                {new Date(lot.purchaseDate).toLocaleDateString('es-ES')}
-              </Text>
-            </View>
-
-            <View className="flex-row gap-md">
-              <View className="flex-1">
-                <Text className="text-xs text-textTertiary mb-xs">
-                  Gallinas Iniciales
-                </Text>
+            <View className="gap-lg">
+              <View>
+                <Text className="text-xs text-textTertiary mb-xs">Galpón</Text>
                 <Text className="text-base text-textSecondary">
-                  {lot.initialHenCount}
+                  {lot.chickenHouseId}
                 </Text>
               </View>
 
-              <View className="flex-1">
+              <View>
                 <Text className="text-xs text-textTertiary mb-xs">
-                  Edad Inicial (semanas)
+                  Fecha de compra
                 </Text>
                 <Text className="text-base text-textSecondary">
-                  {lot.ageWeeks}
+                  {new Date(lot.purchaseDate).toLocaleDateString('es-ES')}
                 </Text>
+              </View>
+
+              <View className="flex-row gap-md">
+                <View className="flex-1">
+                  <Text className="text-xs text-textTertiary mb-xs">
+                    Gallinas iniciales
+                  </Text>
+                  <Text className="text-base text-textSecondary">
+                    {lot.initialHenCount}
+                  </Text>
+                </View>
+
+                <View className="flex-1">
+                  <Text className="text-xs text-textTertiary mb-xs">
+                    Edad inicial (semanas)
+                  </Text>
+                  <Text className="text-base text-textSecondary">
+                    {lot.ageWeeks}
+                  </Text>
+                </View>
               </View>
             </View>
           </View>
 
-          {/* Submit Button */}
+          {/* Spacer between read-only fields and button */}
+          <View className="h-2xl" />
+
+          {/* Submit */}
           <Button onPress={handleSubmit} disabled={formLoading}>
-            {formLoading ? 'Guardando...' : 'Guardar Cambios'}
+            {formLoading ? 'Guardando...' : 'Guardar cambios'}
           </Button>
         </View>
       </ScrollView>

@@ -8,7 +8,7 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Home, Plus, RefreshCw } from 'lucide-react-native';
+import { Home, Plus } from 'lucide-react-native';
 import { ChickenHouse } from '@/shared/types/entities';
 import { FacilityServiceProvider } from '@/features/facilities/services/FacilityServiceProvider';
 import { HouseCard } from '@/features/facilities/components/HouseCard';
@@ -16,7 +16,6 @@ import { HouseCardSkeleton } from '@/features/facilities/components/HouseCardSke
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
 import { useAuth } from '@/features/auth/contexts/AuthContext';
 import { useToastContext } from '@/shared/contexts/ToastContext';
-import { useSyncContext } from '@/shared/contexts/SyncContext';
 import { theme } from '@/core/theme';
 import { Button } from '@/shared/components/Button';
 
@@ -24,13 +23,9 @@ export default function HousesScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const { success, error } = useToastContext();
-  const { sync, status, pendingCount, getPendingEntityIds } = useSyncContext();
 
   const [houses, setHouses] = useState<ChickenHouse[]>([]);
   const [loading, setLoading] = useState(true);
-  const [pendingHouseIds, setPendingHouseIds] = useState<Set<string>>(
-    new Set()
-  );
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [houseToDelete, setHouseToDelete] = useState<string | null>(null);
 
@@ -45,33 +40,18 @@ export default function HousesScreen() {
       } else {
         error(result.error || 'Error al cargar galpones');
       }
-
-      // Load pending IDs
-      const pending = await getPendingEntityIds('chicken_houses');
-      setPendingHouseIds(pending);
     } catch (err) {
       error('Error al cargar galpones');
     } finally {
       setLoading(false);
     }
-  }, [error, getPendingEntityIds]);
+  }, [error]);
 
   useFocusEffect(
     useCallback(() => {
       loadHouses();
     }, [loadHouses])
   );
-
-  // Sync handler
-  const handleSync = async () => {
-    try {
-      await sync();
-      success('Sincronización completada');
-      loadHouses(); // Refresh
-    } catch (err) {
-      error('Error al sincronizar');
-    }
-  };
 
   // Delete handler
   const handleDeleteRequest = (houseId: string) => {
@@ -108,36 +88,9 @@ export default function HousesScreen() {
           <Home size={28} color={theme.colors.primary.DEFAULT} />
           <Text className="text-2xl font-bold text-textPrimary">Galpones</Text>
         </View>
-        <View className="flex-row items-center justify-between">
-          <Text className="text-sm text-textSecondary">
-            {houses.length} {houses.length === 1 ? 'galpón' : 'galpones'}
-          </Text>
-
-          {/* Sync Button */}
-          <Pressable
-            onPress={handleSync}
-            disabled={status === 'syncing'}
-            className={`flex-row items-center gap-xs px-md py-sm rounded-md ${
-              pendingCount > 0 ? 'bg-warning/10' : 'bg-gray-100'
-            }`}
-          >
-            <RefreshCw
-              size={16}
-              color={
-                pendingCount > 0
-                  ? theme.colors.warning.DEFAULT
-                  : theme.colors.gray['600']
-              }
-            />
-            {pendingCount > 0 && (
-              <View className="bg-error rounded-full w-5 h-5 items-center justify-center">
-                <Text className="text-white text-xs font-bold">
-                  {pendingCount}
-                </Text>
-              </View>
-            )}
-          </Pressable>
-        </View>
+        <Text className="text-sm text-textSecondary">
+          {houses.length} {houses.length === 1 ? 'galpón' : 'galpones'}
+        </Text>
       </View>
 
       {/* Create Button */}
@@ -181,7 +134,6 @@ export default function HousesScreen() {
           renderItem={({ item }) => (
             <HouseCard
               house={item}
-              hasPending={pendingHouseIds.has(item.id)}
               onEdit={() => router.push(`/admin/houses/${item.id}`)}
               onDelete={() => handleDeleteRequest(item.id)}
             />

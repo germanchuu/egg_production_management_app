@@ -8,26 +8,23 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Bird, Plus, RefreshCw } from 'lucide-react-native';
+import { Bird, Plus } from 'lucide-react-native';
 import { ChickenLot, ChickenHouse } from '@/shared/types/entities';
 import { FacilityServiceProvider } from '@/features/facilities/services/FacilityServiceProvider';
 import { LotCard } from '@/features/facilities/components/LotCard';
 import { LotCardSkeleton } from '@/features/facilities/components/LotCardSkeleton';
 import { useToastContext } from '@/shared/contexts/ToastContext';
-import { useSyncContext } from '@/shared/contexts/SyncContext';
 import { theme } from '@/core/theme';
 import { Button } from '@/shared/components/Button';
 
 export default function LotsScreen() {
   const router = useRouter();
   const { success, error } = useToastContext();
-  const { sync, status, pendingCount, getPendingEntityIds } = useSyncContext();
 
   const [lots, setLots] = useState<ChickenLot[]>([]);
   const [houses, setHouses] = useState<ChickenHouse[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeOnly, setActiveOnly] = useState(true);
-  const [pendingLotIds, setPendingLotIds] = useState<Set<string>>(new Set());
 
   const loadData = useCallback(async () => {
     try {
@@ -50,33 +47,18 @@ export default function LotsScreen() {
       if (housesResult.success && housesResult.data) {
         setHouses(housesResult.data);
       }
-
-      // Load pending IDs
-      const pending = await getPendingEntityIds('chicken_lots');
-      setPendingLotIds(pending);
     } catch (err) {
       error('Error al cargar lotes');
     } finally {
       setLoading(false);
     }
-  }, [activeOnly, error, getPendingEntityIds]);
+  }, [activeOnly, error]);
 
   useFocusEffect(
     useCallback(() => {
       loadData();
     }, [loadData])
   );
-
-  // Sync handler
-  const handleSync = async () => {
-    try {
-      await sync();
-      success('Sincronización completada');
-      loadData(); // Refresh
-    } catch (err) {
-      error('Error al sincronizar');
-    }
-  };
 
   const getHouseName = (houseId: string) => {
     return houses.find((h) => h.id === houseId)?.name || 'Galpón desconocido';
@@ -98,37 +80,10 @@ export default function LotsScreen() {
           <Bird size={28} color={theme.colors.primary.DEFAULT} />
           <Text className="text-2xl font-bold text-textPrimary">Lotes</Text>
         </View>
-        <View className="flex-row items-center justify-between mb-md">
-          <Text className="text-sm text-textSecondary">
-            {lots.length} {lots.length === 1 ? 'lote' : 'lotes'}{' '}
-            {activeOnly ? 'activos' : 'totales'}
-          </Text>
-
-          {/* Sync Button */}
-          <Pressable
-            onPress={handleSync}
-            disabled={status === 'syncing'}
-            className={`flex-row items-center gap-xs px-md py-sm rounded-md ${
-              pendingCount > 0 ? 'bg-warning/10' : 'bg-gray-100'
-            }`}
-          >
-            <RefreshCw
-              size={16}
-              color={
-                pendingCount > 0
-                  ? theme.colors.warning.DEFAULT
-                  : theme.colors.gray['600']
-              }
-            />
-            {pendingCount > 0 && (
-              <View className="bg-error rounded-full w-5 h-5 items-center justify-center">
-                <Text className="text-white text-xs font-bold">
-                  {pendingCount}
-                </Text>
-              </View>
-            )}
-          </Pressable>
-        </View>
+        <Text className="text-sm text-textSecondary mb-md">
+          {lots.length} {lots.length === 1 ? 'lote' : 'lotes'}{' '}
+          {activeOnly ? 'activos' : 'totales'}
+        </Text>
 
         {/* Filter Toggle */}
         <View className="flex-row gap-sm">
@@ -200,7 +155,6 @@ export default function LotsScreen() {
             <LotCard
               lot={item}
               houseName={getHouseName(item.chickenHouseId)}
-              hasPending={pendingLotIds.has(item.id)}
               onPress={() => router.push(`/lots/${item.id}`)}
               onEdit={() => router.push(`/lots/${item.id}/edit`)}
             />

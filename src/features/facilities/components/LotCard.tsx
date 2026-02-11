@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
-import { MapPin, AlertTriangle, Edit3, CloudOff } from 'lucide-react-native';
+import { MapPin, AlertTriangle, Edit3 } from 'lucide-react-native';
 import { ChickenLot } from '@/shared/types/entities';
 import { ChickenLotCompute } from '../models/ChickenLot';
 import { theme } from '@/core/theme';
@@ -15,7 +15,6 @@ import { theme } from '@/core/theme';
 interface LotCardProps {
   lot: ChickenLot;
   houseName?: string;
-  hasPending?: boolean;
   onPress?: () => void;
   onEdit?: () => void;
 }
@@ -23,7 +22,6 @@ interface LotCardProps {
 export const LotCard: React.FC<LotCardProps> = ({
   lot,
   houseName,
-  hasPending,
   onPress,
   onEdit,
 }) => {
@@ -69,16 +67,6 @@ export const LotCard: React.FC<LotCardProps> = ({
         <View className="flex-row items-center gap-xs mb-md">
           <MapPin size={16} color={theme.colors.gray['500']} />
           <Text className="text-sm text-textSecondary">{houseName}</Text>
-        </View>
-      )}
-
-      {/* Pending Sync Badge */}
-      {hasPending && (
-        <View className="flex-row items-center gap-xs bg-warning/10 border border-warning rounded-md px-sm py-xs mb-md">
-          <CloudOff size={14} color={theme.colors.warning.DEFAULT} />
-          <Text className="text-xs font-medium text-warning">
-            Cambios pendientes por sincronizar
-          </Text>
         </View>
       )}
 

@@ -194,7 +194,14 @@ export default function AppLayout() {
       />
 
       <Drawer.Screen
-        name="lots/[id]"
+        name="lots/[id]/edit"
+        options={{
+          drawerItemStyle: { display: 'none' },
+        }}
+      />
+
+      <Drawer.Screen
+        name="lots/[lotId]"
         options={{
           drawerItemStyle: { display: 'none' },
         }}

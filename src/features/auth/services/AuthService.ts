@@ -461,8 +461,11 @@ export class AuthService {
         updatedAt: firestoreData.updatedAt,
       };
 
-      // Save to local DB
-      await userRepo.create(adminUser);
+      // Save to local DB (ensure authorizedDevices is not undefined)
+      await userRepo.create({
+        ...adminUser,
+        authorizedDevices: adminUser.authorizedDevices || [],
+      });
 
       // Create session and authorize device (direct login)
       const result = await AuthService.createSession(adminUser, deviceName);

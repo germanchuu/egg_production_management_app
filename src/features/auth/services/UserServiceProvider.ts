@@ -5,7 +5,7 @@ import { UserService } from './UserService';
 
 export class UserServiceProvider {
   static async getUserService(): Promise<UserService> {
-    const db = await getDatabase();
+    const db = getDatabase();
     const factory = new RepositoryFactory(db);
     const userRepository = factory.getUserRepository();
     const syncQueue = new SyncQueue(db);

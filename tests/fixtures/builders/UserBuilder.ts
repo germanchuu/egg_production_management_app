@@ -1,4 +1,4 @@
-import { User, UserRole } from '@/shared/types/entities';
+import { User, UserRole, AuthStatus } from '@/shared/types/entities';
 
 /**
  * Builder pattern for creating User test fixtures
@@ -11,6 +11,7 @@ export class UserBuilder {
     id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     displayName: 'Test User',
     role: UserRole.User,
+    authStatus: AuthStatus.Pending,
     isActive: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -26,14 +27,13 @@ export class UserBuilder {
     return this;
   }
 
-  withPhoneNumber(phoneNumber: string): this {
-    this.user.phoneNumber = phoneNumber;
+  withAuthStatus(authStatus: AuthStatus): this {
+    this.user.authStatus = authStatus;
     return this;
   }
 
-  withIdNumber(idNumber: string): this {
-    this.user.idNumber = idNumber;
-    return this;
+  authenticated(): this {
+    return this.withAuthStatus(AuthStatus.Authenticated);
   }
 
   withRole(role: UserRole): this {
@@ -59,8 +59,8 @@ export class UserBuilder {
     return this;
   }
 
-  withLastLoginAt(lastLoginAt: string): this {
-    this.user.lastLoginAt = lastLoginAt;
+  withLastAccessAt(lastAccessAt: string): this {
+    this.user.lastAccessAt = lastAccessAt;
     return this;
   }
 

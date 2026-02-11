@@ -24,9 +24,7 @@ import { Button } from '@/shared/components';
 
 const userFormSchema = z.object({
   displayName: displayNameSchema,
-  role: z.nativeEnum(UserRole, {
-    errorMap: () => ({ message: 'Selecciona un rol válido' }),
-  }),
+  role: z.enum(UserRole),
 });
 
 export type UserFormData = z.infer<typeof userFormSchema>;
@@ -72,7 +70,11 @@ export const UserForm: React.FC<UserFormProps> = ({
       from={{ opacity: 0, translateY: 20 }}
       animate={{ opacity: 1, translateY: 0 }}
       transition={{ type: 'timing', duration: 250 }}
-      className={showBorder ? 'bg-white rounded-md shadow-sm border border-gray-100 p-lg' : ''}
+      className={
+        showBorder
+          ? 'bg-white rounded-md shadow-sm border border-gray-100 p-lg'
+          : ''
+      }
     >
       {/* Header - only show if close button is visible */}
       {showCloseButton && (

@@ -20,7 +20,7 @@ export class MortalityServiceProvider {
    */
   static async getMortalityService(): Promise<MortalityService> {
     // Get database instance
-    const db = await getDatabase();
+    const db = getDatabase();
 
     // Create repository factory
     const factory = new RepositoryFactory(db);

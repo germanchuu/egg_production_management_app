@@ -16,7 +16,6 @@ import {
   Smartphone,
   Clock,
   Upload,
-  CloudOff,
 } from 'lucide-react-native';
 import { Button, ConfirmDialog } from '@/shared/components';
 import { theme } from '@/core/theme';
@@ -30,7 +29,6 @@ interface UserCardProps {
   onGenerateInvitation: (user: User) => void;
   onRevokeUser: (user: User) => void;
   onEdit: (user: User) => void;
-  hasPending?: boolean;
 }
 
 export const UserCard: React.FC<UserCardProps> = ({
@@ -39,7 +37,6 @@ export const UserCard: React.FC<UserCardProps> = ({
   onGenerateInvitation,
   onRevokeUser,
   onEdit,
-  hasPending = false,
 }) => {
   const [showRevokeDialog, setShowRevokeDialog] = useState(false);
 
@@ -124,15 +121,6 @@ export const UserCard: React.FC<UserCardProps> = ({
             </View>
           </View>
         </View>
-
-        {hasPending && (
-          <View className="flex-row items-center gap-2 bg-warning/10 border border-warning rounded-xl px-md py-sm">
-            <CloudOff size={16} color={theme.colors.warning.DEFAULT} />
-            <Text className="text-xs font-medium text-warning flex-1">
-              Cambios pendientes por sincronizar
-            </Text>
-          </View>
-        )}
 
         {/* Metadata */}
         <View className="flex-row flex-wrap gap-md mt-sm">

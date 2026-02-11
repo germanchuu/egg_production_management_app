@@ -76,19 +76,23 @@ export class ChickenHouseRepository
 
   async create(data: CreateChickenHouseData): Promise<ChickenHouse> {
     try {
-      await this.db.runAsync(
-        `INSERT INTO chicken_houses (id, name, description, created_by, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [
-          data.id,
-          data.name,
-          data.description ?? null,
-          data.createdBy,
-          data.createdAt,
-          data.updatedAt,
-        ]
-      );
+      // Wrap INSERT in transaction to ensure atomicity and prevent lock conflicts
+      await this.db.withTransactionAsync(async () => {
+        await this.db.runAsync(
+          `INSERT INTO chicken_houses (id, name, description, created_by, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?)`,
+          [
+            data.id,
+            data.name,
+            data.description ?? null,
+            data.createdBy,
+            data.createdAt,
+            data.updatedAt,
+          ]
+        );
+      });
 
+      // Read after transaction completes
       const created = await this.findById(data.id);
       if (!created) {
         throw new Error('Failed to retrieve created chicken house');

@@ -10,14 +10,11 @@ import { QuickActionSection } from '@/shared/components/home/QuickActionSection'
 import { AdminSection } from '@/shared/components/home/AdminSection';
 
 export default function HomeScreen() {
-  const { user } = useAuth();
-  const { status, pendingCount } = useSync();
-
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top', 'bottom']}>
       {/* ───────────────── Sync Status ───────────────── */}
       <View className="flex-row items-center justify-between px-lg py-sm">
-        <SyncStatusIndicator status={status} pendingCount={pendingCount} />
+        <SyncStatusIndicator />
       </View>
 
       <View className="px-lg flex-1">

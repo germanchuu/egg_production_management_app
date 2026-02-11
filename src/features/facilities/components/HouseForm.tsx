@@ -15,6 +15,7 @@ import { Button } from '@/shared/components/Button';
 
 interface HouseFormProps {
   onSubmit: (data: ChickenHouseFormData) => void;
+  onCancel: () => void;
   initialValues?: Partial<ChickenHouseFormData>;
   isSubmitting?: boolean;
   submitLabel?: string;
@@ -22,6 +23,7 @@ interface HouseFormProps {
 
 export const HouseForm: React.FC<HouseFormProps> = ({
   onSubmit,
+  onCancel,
   initialValues,
   isSubmitting = false,
   submitLabel = 'Guardar',
@@ -80,13 +82,24 @@ export const HouseForm: React.FC<HouseFormProps> = ({
         />
       </View>
 
-      <Button
-        onPress={handleSubmit(onSubmit)}
-        disabled={isSubmitting}
-        className="mt-4"
-      >
-        {isSubmitting ? 'Guardando...' : submitLabel}
-      </Button>
+      {/* Action Buttons */}
+      <View className="flex-row gap-md mt-md">
+        <View className="flex-1">
+          <Button variant="secondary" onPress={onCancel} disabled={isSubmitting}>
+            Cancelar
+          </Button>
+        </View>
+        <View className="flex-1">
+          <Button
+            variant="primary"
+            onPress={handleSubmit(onSubmit)}
+            loading={isSubmitting}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Guardando...' : submitLabel}
+          </Button>
+        </View>
+      </View>
     </View>
   );
 };

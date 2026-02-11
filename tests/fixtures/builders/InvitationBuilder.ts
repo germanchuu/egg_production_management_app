@@ -9,7 +9,7 @@ import { Invitation, InvitationStatus, UserRole } from '@/shared/types/entities'
 export class InvitationBuilder {
   private invitation: Invitation = {
     id: `inv-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-    role: UserRole.User,
+    userId: `user-${Date.now()}`,
     token: `token-${Math.random().toString(36).substr(2, 16)}`,
     createdBy: 'user-1',
     createdAt: new Date().toISOString(),
@@ -23,17 +23,9 @@ export class InvitationBuilder {
     return this;
   }
 
-  withRole(role: UserRole): this {
-    this.invitation.role = role;
+  withUserId(userId: string): this {
+    this.invitation.userId = userId;
     return this;
-  }
-
-  asAdmin(): this {
-    return this.withRole(UserRole.Admin);
-  }
-
-  asUser(): this {
-    return this.withRole(UserRole.User);
   }
 
   withToken(token: string): this {
@@ -57,9 +49,8 @@ export class InvitationBuilder {
     return this;
   }
 
-  accepted(acceptedBy: string): this {
+  accepted(): this {
     this.invitation.status = InvitationStatus.Accepted;
-    this.invitation.acceptedBy = acceptedBy;
     this.invitation.acceptedAt = new Date().toISOString();
     return this;
   }

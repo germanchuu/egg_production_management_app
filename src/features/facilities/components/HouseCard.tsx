@@ -6,20 +6,18 @@
 
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
-import { Edit3, CloudOff } from 'lucide-react-native';
+import { Edit3 } from 'lucide-react-native';
 import { ChickenHouse } from '@/shared/types/entities';
 import { theme } from '@/core/theme';
 
 interface HouseCardProps {
   house: ChickenHouse;
-  hasPending?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
 }
 
 export const HouseCard: React.FC<HouseCardProps> = ({
   house,
-  hasPending,
   onEdit,
   onDelete,
 }) => {
@@ -47,16 +45,6 @@ export const HouseCard: React.FC<HouseCardProps> = ({
         <Text className="text-sm text-textSecondary mb-md">
           {house.description}
         </Text>
-      )}
-
-      {/* Pending Sync Badge */}
-      {hasPending && (
-        <View className="flex-row items-center gap-xs bg-warning/10 border border-warning rounded-md px-sm py-xs mb-md">
-          <CloudOff size={14} color={theme.colors.warning.DEFAULT} />
-          <Text className="text-xs font-medium text-warning">
-            Cambios pendientes por sincronizar
-          </Text>
-        </View>
       )}
 
       {/* Created Date */}

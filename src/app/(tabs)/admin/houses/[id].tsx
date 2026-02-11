@@ -5,10 +5,10 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Home } from 'lucide-react-native';
+import { Home, ArrowLeft } from 'lucide-react-native';
 import { useToastContext } from '@/shared/contexts/ToastContext';
 import { useAuth } from '@/features/auth/contexts/AuthContext';
 import { HouseForm } from '@/features/facilities/components/HouseForm';
@@ -72,13 +72,27 @@ export default function EditHouseScreen() {
   if (loading) {
     return (
       <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-background">
-        <View className="bg-white border-b border-gray-200 px-lg py-md">
+        <View className="bg-white border-b border-gray-200 px-lg pt-xl pb-md">
           <View className="flex-row items-center gap-md">
-            <Home size={28} color={theme.colors.primary.DEFAULT} />
-            <Text className="text-2xl font-bold text-textPrimary">
-              Editar Galpón
-            </Text>
+            <Pressable
+              onPress={() => router.replace('/admin/houses')}
+              hitSlop={8}
+              style={({ pressed }) => ({
+                opacity: pressed ? 0.7 : 1,
+              })}
+            >
+              <ArrowLeft size={24} color={theme.colors.primary['500']} />
+            </Pressable>
+            <View className="flex-1 flex-row items-center">
+              <Home size={28} color={theme.colors.primary['500']} />
+              <Text className="text-2xl font-bold text-textPrimary ml-md">
+                Editar Galpón
+              </Text>
+            </View>
           </View>
+          <Text className="text-sm text-textSecondary mt-xs ml-10">
+            Cargando información del galpón...
+          </Text>
         </View>
         <HouseFormSkeleton />
       </SafeAreaView>
@@ -93,13 +107,27 @@ export default function EditHouseScreen() {
     <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-background">
       <ScrollView className="flex-1">
         {/* Header */}
-        <View className="bg-white border-b border-gray-200 px-lg py-md">
+        <View className="bg-white border-b border-gray-200 px-lg pt-xl pb-md">
           <View className="flex-row items-center gap-md">
-            <Home size={28} color={theme.colors.primary.DEFAULT} />
-            <Text className="text-2xl font-bold text-textPrimary">
-              Editar Galpón
-            </Text>
+            <Pressable
+              onPress={() => router.replace('/admin/houses')}
+              hitSlop={8}
+              style={({ pressed }) => ({
+                opacity: pressed ? 0.7 : 1,
+              })}
+            >
+              <ArrowLeft size={24} color={theme.colors.primary['500']} />
+            </Pressable>
+            <View className="flex-1 flex-row items-center">
+              <Home size={28} color={theme.colors.primary['500']} />
+              <Text className="text-2xl font-bold text-textPrimary ml-md">
+                Editar Galpón
+              </Text>
+            </View>
           </View>
+          <Text className="text-sm text-textSecondary mt-xs ml-10">
+            Modificar la información del galpón
+          </Text>
         </View>
 
         {/* Form */}
@@ -110,6 +138,7 @@ export default function EditHouseScreen() {
               description: house.description,
             }}
             onSubmit={onSubmit}
+            onCancel={() => router.replace('/admin/houses')}
             isSubmitting={formLoading}
             submitLabel="Guardar Cambios"
           />

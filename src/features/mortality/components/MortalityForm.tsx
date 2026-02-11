@@ -6,7 +6,7 @@
  * Validates hensDied against lot's current liveHenCount.
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,12 +18,14 @@ import {
 } from '../utils/validation';
 import { FormInput } from '@/shared/components/FormInput';
 import { DatePicker } from '@/shared/components/DatePicker';
+import { SelectPicker } from '@/shared/components/SelectPicker';
 import { Button } from '@/shared/components/Button';
 import { ChickenLot } from '@/shared/types/entities';
 
 interface MortalityFormProps {
   lots: ChickenLot[];
   onSubmit: (data: MortalityRecordFormData) => void;
+  onCancel?: () => void;
   isSubmitting?: boolean;
   submitLabel?: string;
 }
@@ -31,6 +33,7 @@ interface MortalityFormProps {
 export const MortalityForm: React.FC<MortalityFormProps> = ({
   lots,
   onSubmit,
+  onCancel,
   isSubmitting = false,
   submitLabel = 'Registrar',
 }) => {
@@ -52,6 +55,18 @@ export const MortalityForm: React.FC<MortalityFormProps> = ({
   const selectedLotId = watch('lotId');
   const hensDied = watch('hensDied');
   const selectedLot = lots.find((l) => l.id === selectedLotId);
+
+  // Transform active lots to SelectPicker options
+  const lotOptions = useMemo(
+    () =>
+      lots
+        .filter((l) => l.liveHenCount > 0)
+        .map((lot) => ({
+          label: `${lot.name} (${lot.liveHenCount} vivas)`,
+          value: lot.id,
+        })),
+    [lots]
+  );
 
   const handleFormSubmit = (data: MortalityRecordFormData) => {
     if (!selectedLot) {
@@ -82,92 +97,78 @@ export const MortalityForm: React.FC<MortalityFormProps> = ({
   return (
     <View className="space-y-4">
       {/* Lot Selector */}
-      <View>
-        <Text className="text-gray-700 font-medium mb-2">Lote *</Text>
+      {lotOptions.length === 0 ? (
+        <View className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <Text className="text-amber-800 font-medium text-center">
+            No hay lotes activos disponibles
+          </Text>
+          <Text className="text-amber-700 text-sm text-center mt-1">
+            Debes crear un lote con gallinas vivas para registrar mortalidad
+          </Text>
+        </View>
+      ) : (
         <Controller
           control={control}
           name="lotId"
           render={({ field: { onChange, value } }) => (
-            <View className="border border-gray-300 rounded-lg bg-white">
-              {lots.filter((l) => l.liveHenCount > 0).length === 0 ? (
-                <Text className="p-4 text-gray-500 text-center">
-                  No hay lotes activos disponibles
-                </Text>
-              ) : (
-                lots
-                  .filter((l) => l.liveHenCount > 0)
-                  .map((lot) => (
-                    <Pressable
-                      key={lot.id}
-                      onPress={() => onChange(lot.id)}
-                      className={`p-3 border-b border-gray-200 ${value === lot.id ? 'bg-blue-50' : ''}`}
-                    >
-                      <Text
-                        className={`font-medium ${value === lot.id ? 'text-blue-600' : 'text-gray-900'}`}
-                      >
-                        {lot.name}
-                      </Text>
-                      <Text className="text-sm text-gray-600">
-                        {lot.liveHenCount} gallinas vivas
-                      </Text>
-                    </Pressable>
-                  ))
-              )}
-            </View>
-          )}
-        />
-        {errors.lotId && (
-          <Text className="text-red-600 text-sm mt-1">
-            {errors.lotId.message}
-          </Text>
-        )}
-      </View>
-
-      {/* Date */}
-      <View>
-        <Text className="text-gray-700 font-medium mb-2">Fecha *</Text>
-        <Controller
-          control={control}
-          name="date"
-          render={({ field: { onChange, value } }) => (
-            <DatePicker
+            <SelectPicker
+              label="Lote"
               value={value}
               onChange={onChange}
-              error={errors.date?.message}
-              maxDate={new Date()}
+              options={lotOptions}
+              error={errors.lotId?.message}
+              disabled={isSubmitting}
+              required
+              placeholder="Selecciona un lote"
             />
           )}
         />
-      </View>
+      )}
+
+      {/* Date */}
+      <Controller
+        control={control}
+        name="date"
+        render={({ field: { onChange, value } }) => (
+          <DatePicker
+            label="Fecha"
+            value={new Date(value)}
+            onChange={(date) => {
+              // Convert Date to string (YYYY-MM-DD) for schema validation
+              onChange(date.toISOString().split('T')[0]);
+            }}
+            error={errors.date?.message}
+            maxDate={new Date()}
+            required
+          />
+        )}
+      />
 
       {/* Hens Died */}
-      <View>
-        <Text className="text-gray-700 font-medium mb-2">
-          Gallinas Muertas *
-        </Text>
-        <Controller
-          control={control}
-          name="hensDied"
-          render={({ field: { onChange, onBlur, value } }) => (
-            <FormInput
-              value={value.toString()}
-              onChangeText={(text) => {
-                const num = parseInt(text) || 0;
-                onChange(num);
-              }}
-              onBlur={onBlur}
-              placeholder="Cantidad"
-              error={errors.hensDied?.message}
-              keyboardType="numeric"
-            />
-          )}
-        />
-        {selectedLot && (
-          <Text className="text-sm text-gray-500 mt-1">
-            Gallinas vivas: {selectedLot.liveHenCount}
-          </Text>
+      <Controller
+        control={control}
+        name="hensDied"
+        render={({ field: { onChange, onBlur, value } }) => (
+          <FormInput
+            label="Gallinas Muertas"
+            value={value.toString()}
+            onChangeText={(text) => {
+              const num = parseInt(text) || 0;
+              onChange(num);
+            }}
+            onBlur={onBlur}
+            placeholder="Cantidad"
+            error={errors.hensDied?.message}
+            helpText={
+              selectedLot
+                ? `Gallinas vivas: ${selectedLot.liveHenCount}`
+                : undefined
+            }
+            keyboardType="numeric"
+            required
+          />
         )}
-      </View>
+      />
 
       {/* High Mortality Warning */}
       {showHighMortalityWarning && (
@@ -182,13 +183,40 @@ export const MortalityForm: React.FC<MortalityFormProps> = ({
         </View>
       )}
 
-      <Button
-        onPress={handleSubmit(handleFormSubmit)}
-        disabled={isSubmitting || lots.filter((l) => l.liveHenCount > 0).length === 0}
-        className="mt-4"
-      >
-        {isSubmitting ? 'Registrando...' : submitLabel}
-      </Button>
+      {/* Action Buttons */}
+      {onCancel ? (
+        <View className="flex-row gap-md mt-md">
+          <View className="flex-1">
+            <Button
+              variant="secondary"
+              onPress={onCancel}
+              disabled={isSubmitting}
+            >
+              Cancelar
+            </Button>
+          </View>
+          <View className="flex-1">
+            <Button
+              variant="primary"
+              onPress={handleSubmit(handleFormSubmit)}
+              loading={isSubmitting}
+              disabled={isSubmitting || lotOptions.length === 0}
+            >
+              {isSubmitting ? 'Registrando...' : submitLabel}
+            </Button>
+          </View>
+        </View>
+      ) : (
+        <Button
+          variant="primary"
+          onPress={handleSubmit(handleFormSubmit)}
+          loading={isSubmitting}
+          disabled={isSubmitting || lotOptions.length === 0}
+          className="mt-md"
+        >
+          {isSubmitting ? 'Registrando...' : submitLabel}
+        </Button>
+      )}
     </View>
   );
 };
