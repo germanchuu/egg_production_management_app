@@ -16,7 +16,7 @@ import { FormInput } from '@/shared/components/FormInput';
 import { Button } from '@/shared/components/Button';
 import { useLotFormActions } from '@/features/facilities/hooks/useLotFormActions';
 import { FacilityServiceProvider } from '@/features/facilities/services/FacilityServiceProvider';
-import { ChickenLot } from '@/shared/types/entities';
+import { ChickenLot, ChickenHouse } from '@/shared/types/entities';
 import { theme } from '@/core/theme';
 
 export default function EditLotScreen() {
@@ -27,6 +27,7 @@ export default function EditLotScreen() {
 
   const [loading, setLoading] = useState(true);
   const [lot, setLot] = useState<ChickenLot | null>(null);
+  const [houses, setHouses] = useState<ChickenHouse[]>([]);
   const [name, setName] = useState('');
 
   const { formLoading, handleEditLot } = useLotFormActions({
@@ -53,6 +54,12 @@ export default function EditLotScreen() {
           error(result.error || 'Lote no encontrado');
           router.back();
         }
+
+        // Load houses for house names
+        const housesResult = await service.listHouses();
+        if (housesResult.success && housesResult.data) {
+          setHouses(housesResult.data);
+        }
       } catch {
         error('Error al cargar el lote');
         router.back();
@@ -62,6 +69,10 @@ export default function EditLotScreen() {
     }
     loadLot();
   }, [id]);
+
+  const getHouseName = (houseId: string) => {
+    return houses.find((h) => h.id === houseId)?.name || 'Galpón desconocido';
+  };
 
   const handleSubmit = async () => {
     if (!user) {
@@ -186,7 +197,7 @@ export default function EditLotScreen() {
               <View>
                 <Text className="text-xs text-textTertiary mb-xs">Galpón</Text>
                 <Text className="text-base text-textSecondary">
-                  {lot.chickenHouseId}
+                  {getHouseName(lot.chickenHouseId)}
                 </Text>
               </View>
 

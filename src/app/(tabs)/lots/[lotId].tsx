@@ -19,7 +19,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { AlertTriangle, ArrowLeft, BarChart3 } from 'lucide-react-native';
-import { ChickenLot, MortalityRecord } from '@/shared/types/entities';
+import { ChickenLot, ChickenHouse, MortalityRecord } from '@/shared/types/entities';
 import { FacilityServiceProvider } from '@/features/facilities/services/FacilityServiceProvider';
 import { MortalityServiceProvider } from '@/features/mortality/services/MortalityServiceProvider';
 import { ChickenLotCompute } from '@/features/facilities/models/ChickenLot';
@@ -30,6 +30,7 @@ export default function LotDetailsScreen() {
   const { lotId } = useLocalSearchParams<{ lotId: string }>();
   const router = useRouter();
   const [lot, setLot] = useState<ChickenLot | null>(null);
+  const [houses, setHouses] = useState<ChickenHouse[]>([]);
   const [mortalityHistory, setMortalityHistory] = useState<MortalityRecord[]>(
     []
   );
@@ -58,6 +59,12 @@ export default function LotDetailsScreen() {
       if (mortalityResult.success && mortalityResult.data) {
         setMortalityHistory(mortalityResult.data);
       }
+
+      // Load houses for house names
+      const housesResult = await facilityService.listHouses();
+      if (housesResult.success && housesResult.data) {
+        setHouses(housesResult.data);
+      }
     } catch (error) {
       Alert.alert('Error', 'Error al cargar detalles del lote');
     } finally {
@@ -70,6 +77,10 @@ export default function LotDetailsScreen() {
       loadLotDetails();
     }, [loadLotDetails])
   );
+
+  const getHouseName = (houseId: string) => {
+    return houses.find((h) => h.id === houseId)?.name || 'Galpón desconocido';
+  };
 
   if (loading || !lot) {
     return (
@@ -113,7 +124,7 @@ export default function LotDetailsScreen() {
             {new Date(lot.purchaseDate).toLocaleDateString('es-ES')}
           </Text>
           <Text className="text-sm text-textSecondary mt-xs ml-10">
-            Galpón: {lot.chickenHouseId}
+            Galpón: {getHouseName(lot.chickenHouseId)}
           </Text>
         </View>
 
