@@ -13,7 +13,8 @@ import {
 /**
  * ProductionRecord type combining entity and computed fields
  */
-export type ProductionRecord = ProductionRecordEntity & ProductionRecordComputed;
+export type ProductionRecord = ProductionRecordEntity &
+  ProductionRecordComputed;
 
 /**
  * Input data for creating a production record
@@ -266,9 +267,7 @@ export class ProductionRecordHelper {
   /**
    * Calculates average daily production for a set of records
    */
-  static calculateAverageDailyProduction(
-    records: ProductionRecord[]
-  ): number {
+  static calculateAverageDailyProduction(records: ProductionRecord[]): number {
     if (records.length === 0) return 0;
     const totalEggs = this.calculateTotalEggs(records);
     return Number((totalEggs / records.length).toFixed(0));
@@ -348,7 +347,9 @@ export class ProductionRecordHelper {
   /**
    * Groups production records by week
    */
-  static groupByWeek(records: ProductionRecord[]): Map<string, ProductionRecord[]> {
+  static groupByWeek(
+    records: ProductionRecord[]
+  ): Map<string, ProductionRecord[]> {
     const grouped = new Map<string, ProductionRecord[]>();
 
     records.forEach((record) => {
@@ -370,17 +371,21 @@ export class ProductionRecordHelper {
    * Gets ISO week number for a date
    */
   private static getWeekNumber(date: Date): number {
-    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const d = new Date(
+      Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
+    );
     const dayNum = d.getUTCDay() || 7;
     d.setUTCDate(d.getUTCDate() + 4 - dayNum);
     const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+    return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
   }
 
   /**
    * Groups production records by month
    */
-  static groupByMonth(records: ProductionRecord[]): Map<string, ProductionRecord[]> {
+  static groupByMonth(
+    records: ProductionRecord[]
+  ): Map<string, ProductionRecord[]> {
     const grouped = new Map<string, ProductionRecord[]>();
 
     records.forEach((record) => {

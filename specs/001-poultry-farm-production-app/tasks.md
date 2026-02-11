@@ -202,9 +202,9 @@ Per Constitution II (Feature-Based Organization):
 
 ### Validation & Business Logic
 
-- [ ] T083 [P] [US1] Create validation schema in src/features/production/utils/validation.ts (date not future, eggsCollected >= 0, lotId exists, unique lot+date per day)
-- [ ] T084 [US1] Implement edge case handling: prevent future dates (FR-017), prevent production for lots with liveHenCount = 0
-- [ ] T085 [US1] Add sanity check warning (not blocking) if eggsCollected > liveHenCount \* 2
+- [x] T083 [P] [US1] Create validation schema in src/features/production/utils/validation.ts (date not future, eggsCollected >= 0, lotId exists, unique lot+date per day)
+- [x] T084 [US1] Implement edge case handling: prevent future dates (FR-017), prevent production for lots with liveHenCount = 0
+- [x] T085 [US1] Add sanity check warning (not blocking) if eggsCollected > liveHenCount \* 2
 
 ### UI Components & Screens (Constitution III: ≤3 taps)
 
