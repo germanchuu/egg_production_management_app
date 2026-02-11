@@ -177,10 +177,10 @@ Per Constitution II (Feature-Based Organization):
 
 ### Integration & Validation
 
-- [ ] T074 [US2] Test automatic live hen count update when mortality recorded (SC-002: <10s to see update)
-- [ ] T075 [US2] Test offline lot creation and mortality recording with sync queue
-- [ ] T076 [US2] Test edge case: mortality exceeds live hen count (should reject)
-- [ ] T077 [US2] Test edge case: lot with zero live hens (should prevent new production/feeding records)
+- [x] T074 [US2] Test automatic live hen count update when mortality recorded (SC-002: <10s to see update)
+- [x] T075 [US2] Test offline lot creation and mortality recording with sync queue
+- [x] T076 [US2] Test edge case: mortality exceeds live hen count (should reject)
+- [x] T077 [US2] Test edge case: lot with zero live hens (should prevent new production/feeding records)
 
 **Checkpoint**: Facility and lot management complete and independently testable
 
