@@ -19,10 +19,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { AlertTriangle, ArrowLeft, BarChart3 } from 'lucide-react-native';
 import { ChickenLot, ChickenHouse, MortalityRecord } from '@/shared/types/entities';
+import { ProductionRecord } from '@/features/production/models/ProductionRecord';
 import { FacilityServiceProvider } from '@/features/facilities/services/FacilityServiceProvider';
 import { MortalityServiceProvider } from '@/features/mortality/services/MortalityServiceProvider';
+import { ProductionServiceProvider } from '@/features/production/services/ProductionServiceProvider';
 import { ChickenLotCompute } from '@/features/facilities/models/ChickenLot';
 import { MortalityRecordHelper } from '@/features/mortality/models/MortalityRecord';
+import { ProductionHistoryList } from '@/features/production/components/ProductionHistoryList';
+import { ProductionMetricsCard, ProductionMetrics } from '@/features/production/components/ProductionMetricsCard';
 import { useToastContext } from '@/shared/contexts/ToastContext';
 import { theme } from '@/core/theme';
 
@@ -34,6 +38,12 @@ export default function LotDetailsScreen() {
   const [houses, setHouses] = useState<ChickenHouse[]>([]);
   const [mortalityHistory, setMortalityHistory] = useState<MortalityRecord[]>(
     []
+  );
+  const [productionHistory, setProductionHistory] = useState<ProductionRecord[]>(
+    []
+  );
+  const [productionMetrics, setProductionMetrics] = useState<ProductionMetrics | null>(
+    null
   );
   const [loading, setLoading] = useState(true);
 
@@ -59,6 +69,19 @@ export default function LotDetailsScreen() {
       const mortalityResult = await mortalityService.getMortalityHistory(lotId);
       if (mortalityResult.success && mortalityResult.data) {
         setMortalityHistory(mortalityResult.data);
+      }
+
+      // Load production history and metrics
+      const productionService =
+        await ProductionServiceProvider.getProductionService();
+      const productionResult = await productionService.getProductionHistory(lotId);
+      if (productionResult.success && productionResult.data) {
+        setProductionHistory(productionResult.data);
+      }
+
+      const metricsResult = await productionService.calculateMetrics(lotId);
+      if (metricsResult.success && metricsResult.data) {
+        setProductionMetrics(metricsResult.data);
       }
 
       // Load houses for house names
@@ -263,20 +286,41 @@ export default function LotDetailsScreen() {
           )}
         </View>
 
-        {/* PRODUCCIÓN */}
+        {/* PRODUCCIÓN - MÉTRICAS */}
+        {productionMetrics && (
+          <View className="px-lg py-md">
+            <Text className="text-lg font-bold text-textPrimary mb-md">
+              Métricas de Producción
+            </Text>
+            <ProductionMetricsCard
+              metrics={productionMetrics}
+              lotName={lot.name}
+            />
+          </View>
+        )}
+
+        {/* PRODUCCIÓN - HISTORIAL */}
         <View className="px-lg py-md">
           <Text className="text-lg font-bold text-textPrimary mb-md">
-            Resumen de Producción
+            Historial de Producción
           </Text>
-
-          <View className="bg-white rounded-xl px-xl py-2xl items-center border border-gray-200">
-            <Text className="text-textTertiary text-center">
-              Funcionalidad en desarrollo
-            </Text>
-            <Text className="text-sm text-gray-400 text-center mt-sm">
-              (User Story 1 - Production)
-            </Text>
-          </View>
+          {productionHistory.length === 0 ? (
+            <View className="bg-white rounded-xl px-xl py-2xl items-center border border-gray-200">
+              <Text className="text-textTertiary text-center">
+                No hay registros de producción
+              </Text>
+            </View>
+          ) : (
+            <View style={{ maxHeight: 400 }}>
+              <ScrollView>
+                <ProductionHistoryList
+                  records={productionHistory.slice(0, 10)}
+                  lots={[lot]}
+                  emptyMessage="No hay registros de producción para este lote"
+                />
+              </ScrollView>
+            </View>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
