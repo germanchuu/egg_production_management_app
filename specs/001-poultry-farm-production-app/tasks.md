@@ -216,8 +216,8 @@ Per Constitution II (Feature-Based Organization):
 
 ### Performance & UX
 
-- [ ] T091 [US1] Optimize form for <100ms UI response (FR-UX-003) using React Hook Form uncontrolled components
-- [ ] T092 [US1] Ensure numeric keyboard opens automatically for egg count input (FR-UX-005)
+- [x] T091 [US1] Optimize form for <100ms UI response (FR-UX-003) using React Hook Form uncontrolled components
+- [x] T092 [US1] Ensure numeric keyboard opens automatically for egg count input (FR-UX-005)
 - [ ] T093 [US1] Test 3-tap workflow: tap lot dropdown (default selected), tap egg input, tap save (SC-001: <30s total time)
 
 ### Integration & Validation
