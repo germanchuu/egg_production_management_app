@@ -4,6 +4,7 @@ import { AuditLogRepository } from './AuditLogRepository';
 import { ChickenHouseRepository } from './ChickenHouseRepository';
 import { ChickenLotRepository } from './ChickenLotRepository';
 import { MortalityRecordRepository } from './MortalityRecordRepository';
+import { ProductionRecordRepository } from './ProductionRecordRepository';
 
 export class RepositoryFactory {
   constructor(private db: SQLiteDatabase) {}
@@ -26,5 +27,9 @@ export class RepositoryFactory {
 
   getMortalityRecordRepository(): MortalityRecordRepository {
     return new MortalityRecordRepository(this.db);
+  }
+
+  getProductionRecordRepository(): ProductionRecordRepository {
+    return new ProductionRecordRepository(this.db);
   }
 }
