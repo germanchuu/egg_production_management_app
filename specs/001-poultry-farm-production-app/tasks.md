@@ -194,7 +194,7 @@ Per Constitution II (Feature-Based Organization):
 
 ### Models & Services
 
-- [ ] T078 [P] [US1] Create ProductionRecord model in src/features/production/models/ProductionRecord.ts with computed field eggsPerHen
+- [x] T078 [P] [US1] Create ProductionRecord model in src/features/production/models/ProductionRecord.ts with computed field eggsPerHen
 - [ ] T079 [US1] Create ProductionService in src/features/production/services/ProductionService.ts with methods: recordProduction(), getProductionHistory(), calculateLifetimeEggsPerHen(), getRecentLot()
 - [ ] T080 [US1] Implement smart defaults in ProductionService: getRecentLot() returns most recently used lot ID from localStorage
 - [ ] T081 [US1] Implement metrics calculation: daily eggs/hen = eggs / liveHenCount, lifetime eggs/hen = SUM(eggs) / initialHenCount
