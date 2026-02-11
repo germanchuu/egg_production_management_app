@@ -208,10 +208,10 @@ Per Constitution II (Feature-Based Organization):
 
 ### UI Components & Screens (Constitution III: ≤3 taps)
 
-- [ ] T086 [P] [US1] Create ProductionEntryForm component in src/features/production/components/ProductionEntryForm.tsx with lot selector (defaulted to recent), date picker (defaulted to today), numeric input for eggs
-- [ ] T087 [P] [US1] Create ProductionHistoryList component in src/features/production/components/ProductionHistoryList.tsx showing chronological records with dates, eggs, eggs/hen
-- [ ] T088 [P] [US1] Create ProductionMetricsCard component in src/features/production/components/ProductionMetricsCard.tsx displaying daily eggs/hen and lifetime eggs/hen
-- [ ] T089 [US1] Create production entry screen in src/app/(tabs)/production.tsx with form at top (≤3 taps: lot, eggs, save) and recent entries below
+- [x] T086 [P] [US1] Create ProductionEntryForm component in src/features/production/components/ProductionEntryForm.tsx with lot selector (defaulted to recent), date picker (defaulted to today), numeric input for eggs
+- [x] T087 [P] [US1] Create ProductionHistoryList component in src/features/production/components/ProductionHistoryList.tsx showing chronological records with dates, eggs, eggs/hen
+- [x] T088 [P] [US1] Create ProductionMetricsCard component in src/features/production/components/ProductionMetricsCard.tsx displaying daily eggs/hen and lifetime eggs/hen
+- [x] T089 [US1] Create production entry screen in src/app/(tabs)/production.tsx with form at top (≤3 taps: lot, eggs, save) and recent entries below
 - [ ] T090 [US1] Add production history to lot details screen (integrate with T072)
 
 ### Performance & UX
