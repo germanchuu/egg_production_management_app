@@ -19,6 +19,8 @@ import {
   Users,
   ClipboardList,
   Warehouse,
+  Bird,
+  BarChart3,
 } from 'lucide-react-native';
 import { theme } from '@/core/theme';
 import { useAuth } from '@/features/auth/contexts';
@@ -59,7 +61,7 @@ function AdminDrawerContent(props: any) {
             <DrawerItem
               label="Lotes"
               onPress={() => props.navigation.navigate('lots/index')}
-              icon={({ color, size }) => <Package size={size} color={color} />}
+              icon={({ color, size }) => <Bird size={size} color={color} />}
               labelStyle={{
                 fontWeight: theme.fontWeight.medium,
                 color: theme.colors.textSecondary.DEFAULT,
@@ -113,7 +115,7 @@ export default function AppLayout() {
         options={{
           title: 'Producción',
           drawerIcon: ({ color, size }) => (
-            <Package size={size} color={color} />
+            <BarChart3 size={size} color={color} />
           ),
         }}
       />

@@ -12,7 +12,6 @@ import {
   Text,
   ScrollView,
   ActivityIndicator,
-  Alert,
   TouchableOpacity,
   Pressable,
 } from 'react-native';
@@ -24,11 +23,13 @@ import { FacilityServiceProvider } from '@/features/facilities/services/Facility
 import { MortalityServiceProvider } from '@/features/mortality/services/MortalityServiceProvider';
 import { ChickenLotCompute } from '@/features/facilities/models/ChickenLot';
 import { MortalityRecordHelper } from '@/features/mortality/models/MortalityRecord';
+import { useToastContext } from '@/shared/contexts/ToastContext';
 import { theme } from '@/core/theme';
 
 export default function LotDetailsScreen() {
   const { lotId } = useLocalSearchParams<{ lotId: string }>();
   const router = useRouter();
+  const { error } = useToastContext();
   const [lot, setLot] = useState<ChickenLot | null>(null);
   const [houses, setHouses] = useState<ChickenHouse[]>([]);
   const [mortalityHistory, setMortalityHistory] = useState<MortalityRecord[]>(
@@ -50,7 +51,7 @@ export default function LotDetailsScreen() {
       if (lotResult.success && lotResult.data) {
         setLot(lotResult.data);
       } else {
-        Alert.alert('Error', 'No se pudo cargar el lote');
+        error('No se pudo cargar el lote');
         router.back();
         return;
       }
@@ -65,12 +66,12 @@ export default function LotDetailsScreen() {
       if (housesResult.success && housesResult.data) {
         setHouses(housesResult.data);
       }
-    } catch (error) {
-      Alert.alert('Error', 'Error al cargar detalles del lote');
+    } catch (err) {
+      error('Error al cargar detalles del lote');
     } finally {
       setLoading(false);
     }
-  }, [lotId, router]);
+  }, [lotId, router, error]);
 
   useFocusEffect(
     useCallback(() => {

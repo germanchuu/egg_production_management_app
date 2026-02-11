@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, Alert, ScrollView } from 'react-native';
+import { View, Text, FlatList, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { AlertTriangle, HeartPulse } from 'lucide-react-native';
@@ -16,11 +16,13 @@ import { MortalityForm } from '@/features/mortality/components/MortalityForm';
 import { MortalityFormSkeleton } from '@/features/mortality/components/MortalityFormSkeleton';
 import { MortalityRecordFormData } from '@/features/mortality/utils/validation';
 import { useAuth } from '@/features/auth/contexts/AuthContext';
+import { useToastContext } from '@/shared/contexts/ToastContext';
 import { MortalityRecordHelper } from '@/features/mortality/models/MortalityRecord';
 import { theme } from '@/core/theme';
 
 export default function MortalityScreen() {
   const { user } = useAuth();
+  const { success, error } = useToastContext();
   const [lots, setLots] = useState<ChickenLot[]>([]);
   const [recentRecords, setRecentRecords] = useState<MortalityRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,12 +48,12 @@ export default function MortalityScreen() {
         // Show last 10 records
         setRecentRecords(recordsResult.data.slice(0, 10));
       }
-    } catch (error) {
-      Alert.alert('Error', 'No se pudo cargar los datos');
+    } catch (err) {
+      error('No se pudo cargar los datos');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [error]);
 
   useFocusEffect(
     useCallback(() => {
@@ -61,7 +63,7 @@ export default function MortalityScreen() {
 
   const handleRecordMortality = async (data: MortalityRecordFormData) => {
     if (!user) {
-      Alert.alert('Error', 'Debes estar autenticado');
+      error('Debes estar autenticado');
       return;
     }
 
@@ -76,16 +78,15 @@ export default function MortalityScreen() {
       );
 
       if (result.success) {
-        Alert.alert(
-          'Éxito',
+        success(
           `Mortalidad registrada: ${data.hensDied} gallina${data.hensDied !== 1 ? 's' : ''}`
         );
         await loadData();
       } else {
-        Alert.alert('Error', result.error || 'Error al registrar mortalidad');
+        error(result.error || 'Error al registrar mortalidad');
       }
-    } catch (error) {
-      Alert.alert('Error', 'No se pudo registrar la mortalidad');
+    } catch (err) {
+      error('No se pudo registrar la mortalidad');
     } finally {
       setIsSubmitting(false);
     }
@@ -100,10 +101,13 @@ export default function MortalityScreen() {
       <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-background">
         <ScrollView className="flex-1">
           {/* Header */}
-          <View className="bg-white border-b border-gray-200 px-lg py-md">
-            <Text className="text-2xl font-bold text-textPrimary">
-              Registro de Mortalidad
-            </Text>
+          <View className="px-lg pt-xl pb-md border-b border-gray-200">
+            <View className="flex-row items-center">
+              <HeartPulse size={32} color={theme.colors.primary['500']} />
+              <Text className="text-2xl font-bold text-textPrimary ml-md">
+                Registro de Mortalidad
+              </Text>
+            </View>
             <Text className="text-sm text-textSecondary mt-xs">
               Cargando...
             </Text>
@@ -134,10 +138,13 @@ export default function MortalityScreen() {
     <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-background">
       <ScrollView className="flex-1">
         {/* Header */}
-        <View className="bg-white border-b border-gray-200 px-lg py-md">
-          <Text className="text-2xl font-bold text-textPrimary">
-            Registro de Mortalidad
-          </Text>
+        <View className="px-lg pt-xl pb-md border-b border-gray-200">
+          <View className="flex-row items-center">
+            <HeartPulse size={32} color={theme.colors.primary['500']} />
+            <Text className="text-2xl font-bold text-textPrimary ml-md">
+              Registro de Mortalidad
+            </Text>
+          </View>
           <Text className="text-sm text-textSecondary mt-xs">
             {lots.length} {lots.length === 1 ? 'lote activo' : 'lotes activos'}
           </Text>

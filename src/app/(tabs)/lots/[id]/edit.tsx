@@ -232,13 +232,31 @@ export default function EditLotScreen() {
             </View>
           </View>
 
-          {/* Spacer between read-only fields and button */}
+          {/* Spacer between read-only fields and buttons */}
           <View className="h-2xl" />
 
-          {/* Submit */}
-          <Button onPress={handleSubmit} disabled={formLoading}>
-            {formLoading ? 'Guardando...' : 'Guardar cambios'}
-          </Button>
+          {/* Action Buttons */}
+          <View className="flex-row gap-md">
+            <View className="flex-1">
+              <Button
+                variant="secondary"
+                onPress={() => router.back()}
+                disabled={formLoading}
+              >
+                Cancelar
+              </Button>
+            </View>
+            <View className="flex-1">
+              <Button
+                variant="primary"
+                onPress={handleSubmit}
+                loading={formLoading}
+                disabled={formLoading}
+              >
+                {formLoading ? 'Guardando...' : 'Guardar cambios'}
+              </Button>
+            </View>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
