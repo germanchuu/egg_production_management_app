@@ -198,7 +198,7 @@ Per Constitution II (Feature-Based Organization):
 - [x] T079 [US1] Create ProductionService in src/features/production/services/ProductionService.ts with methods: recordProduction(), getProductionHistory(), calculateLifetimeEggsPerHen(), getRecentLot()
 - [x] T080 [US1] Implement smart defaults in ProductionService: getRecentLot() returns most recently used lot ID from localStorage
 - [x] T081 [US1] Implement metrics calculation: daily eggs/hen = eggs / liveHenCount, lifetime eggs/hen = SUM(eggs) / initialHenCount
-- [ ] T082 [US1] Add sync queue integration in ProductionService to enqueue CREATE/UPDATE operations
+- [x] T082 [US1] Add sync queue integration in ProductionService to enqueue CREATE/UPDATE operations
 
 ### Validation & Business Logic
 

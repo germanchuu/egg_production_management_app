@@ -161,6 +161,67 @@ export class ProductionService {
   }
 
   /**
+   * Update production record
+   *
+   * Note: Production records should generally be immutable for audit purposes.
+   * This method is provided for corrections only.
+   *
+   * Steps:
+   * 1. Validate record exists
+   * 2. Validate new eggs collected value
+   * 3. Update record
+   * 4. Enqueue for sync
+   */
+  async updateProduction(
+    recordId: string,
+    eggsCollected: number
+  ): Promise<ServiceResult<ProductionRecord>> {
+    try {
+      // Step 1: Check record exists
+      const existing = await this.productionRepository.findById(recordId);
+      if (!existing) {
+        return {
+          success: false,
+          error: 'El registro de producción no existe',
+        };
+      }
+
+      // Step 2: Validate eggs collected
+      if (eggsCollected <= 0) {
+        return {
+          success: false,
+          error: 'La cantidad de huevos recolectados debe ser mayor a 0',
+        };
+      }
+
+      // Step 3: Update record
+      const timestamp = new Date().toISOString();
+      const updated = await this.productionRepository.update(recordId, {
+        eggsCollected,
+        updatedAt: timestamp,
+      });
+
+      // Step 4: Enqueue for sync
+      await this.syncQueue.enqueue({
+        entityType: 'production_records',
+        entityId: updated.id,
+        operation: SyncOperation.Update,
+      });
+
+      return {
+        success: true,
+        data: updated,
+      };
+    } catch (error) {
+      console.error('Error updating production:', error);
+      return {
+        success: false,
+        error: 'Error al actualizar la producción',
+      };
+    }
+  }
+
+  /**
    * Get production history for a lot
    */
   async getProductionHistory(

@@ -218,6 +218,55 @@ describe('ProductionService', () => {
     });
   });
 
+  describe('updateProduction', () => {
+    it('should successfully update production record', async () => {
+      const updatedRecord = { ...mockProductionRecord, eggsCollected: 90 };
+      mockProductionRepo.findById.mockResolvedValue(mockProductionRecord);
+      mockProductionRepo.update.mockResolvedValue(updatedRecord);
+      mockSyncQueue.enqueue.mockResolvedValue(undefined);
+
+      const result = await service.updateProduction('prod-1', 90);
+
+      expect(result.success).toBe(true);
+      expect(result.data?.eggsCollected).toBe(90);
+      expect(mockProductionRepo.update).toHaveBeenCalled();
+      expect(mockSyncQueue.enqueue).toHaveBeenCalledWith({
+        entityType: 'production_records',
+        entityId: 'prod-1',
+        operation: SyncOperation.Update,
+      });
+    });
+
+    it('should reject update for non-existent record', async () => {
+      mockProductionRepo.findById.mockResolvedValue(null);
+
+      const result = await service.updateProduction('prod-999', 90);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('no existe');
+      expect(mockProductionRepo.update).not.toHaveBeenCalled();
+    });
+
+    it('should reject update with zero eggs', async () => {
+      mockProductionRepo.findById.mockResolvedValue(mockProductionRecord);
+
+      const result = await service.updateProduction('prod-1', 0);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('mayor a 0');
+      expect(mockProductionRepo.update).not.toHaveBeenCalled();
+    });
+
+    it('should reject update with negative eggs', async () => {
+      mockProductionRepo.findById.mockResolvedValue(mockProductionRecord);
+
+      const result = await service.updateProduction('prod-1', -10);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('mayor a 0');
+    });
+  });
+
   describe('getProductionHistory', () => {
     it('should return production history for a lot', async () => {
       const mockRecords = [mockProductionRecord];
