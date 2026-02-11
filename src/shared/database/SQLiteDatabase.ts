@@ -124,37 +124,37 @@ async function runMigrations(
       // Migration v1 -> v2: Add production_records table
       if (currentVersion === 1 && targetVersion >= 2) {
         console.log('📦 Adding production_records table...');
-        await db.withTransactionAsync(async () => {
-          // Create production_records table
-          await db.execAsync(`
-            CREATE TABLE IF NOT EXISTS production_records (
-              id TEXT PRIMARY KEY,
-              lot_id TEXT NOT NULL,
-              date TEXT NOT NULL,
-              eggs_collected INTEGER NOT NULL CHECK(eggs_collected >= 0),
-              recorded_by TEXT NOT NULL,
-              created_at TEXT NOT NULL,
-              updated_at TEXT NOT NULL,
-              FOREIGN KEY (lot_id) REFERENCES chicken_lots(id),
-              FOREIGN KEY (recorded_by) REFERENCES users(id),
-              UNIQUE(lot_id, date)
-            );
-          `);
 
-          // Create indexes for production_records
-          await db.execAsync(`
-            CREATE INDEX IF NOT EXISTS idx_production_records_lot_id
-            ON production_records(lot_id);
-          `);
-          await db.execAsync(`
-            CREATE INDEX IF NOT EXISTS idx_production_records_date
-            ON production_records(date);
-          `);
-          await db.execAsync(`
-            CREATE INDEX IF NOT EXISTS idx_production_records_recorded_by
-            ON production_records(recorded_by);
-          `);
-        });
+        // Create production_records table (DDL - no transaction needed)
+        await db.execAsync(`
+          CREATE TABLE IF NOT EXISTS production_records (
+            id TEXT PRIMARY KEY,
+            lot_id TEXT NOT NULL,
+            date TEXT NOT NULL,
+            eggs_collected INTEGER NOT NULL CHECK(eggs_collected >= 0),
+            recorded_by TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            FOREIGN KEY (lot_id) REFERENCES chicken_lots(id),
+            FOREIGN KEY (recorded_by) REFERENCES users(id),
+            UNIQUE(lot_id, date)
+          );
+        `);
+
+        // Create indexes for production_records
+        await db.execAsync(`
+          CREATE INDEX IF NOT EXISTS idx_production_records_lot_id
+          ON production_records(lot_id);
+        `);
+        await db.execAsync(`
+          CREATE INDEX IF NOT EXISTS idx_production_records_date
+          ON production_records(date);
+        `);
+        await db.execAsync(`
+          CREATE INDEX IF NOT EXISTS idx_production_records_recorded_by
+          ON production_records(recorded_by);
+        `);
+
         console.log('✅ production_records table created successfully');
       }
     } else {
