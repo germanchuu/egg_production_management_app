@@ -184,39 +184,27 @@ export const MortalityForm: React.FC<MortalityFormProps> = ({
       )}
 
       {/* Action Buttons */}
-      {onCancel ? (
-        <View className="flex-row gap-md mt-md">
-          <View className="flex-1">
-            <Button
-              variant="secondary"
-              onPress={onCancel}
-              disabled={isSubmitting}
-            >
-              Cancelar
-            </Button>
-          </View>
-          <View className="flex-1">
-            <Button
-              variant="primary"
-              onPress={handleSubmit(handleFormSubmit)}
-              loading={isSubmitting}
-              disabled={isSubmitting || lotOptions.length === 0}
-            >
-              {isSubmitting ? 'Registrando...' : submitLabel}
-            </Button>
-          </View>
+      <View className="flex-row gap-md mt-md">
+        <View className="flex-1">
+          <Button
+            variant="secondary"
+            onPress={onCancel || (() => {})}
+            disabled={isSubmitting}
+          >
+            Limpiar
+          </Button>
         </View>
-      ) : (
-        <Button
-          variant="primary"
-          onPress={handleSubmit(handleFormSubmit)}
-          loading={isSubmitting}
-          disabled={isSubmitting || lotOptions.length === 0}
-          className="mt-md"
-        >
-          {isSubmitting ? 'Registrando...' : submitLabel}
-        </Button>
-      )}
+        <View className="flex-1">
+          <Button
+            variant="primary"
+            onPress={handleSubmit(handleFormSubmit)}
+            loading={isSubmitting}
+            disabled={isSubmitting || lotOptions.length === 0}
+          >
+            {isSubmitting ? 'Registrando...' : submitLabel}
+          </Button>
+        </View>
+      </View>
     </View>
   );
 };

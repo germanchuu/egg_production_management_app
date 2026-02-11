@@ -124,9 +124,7 @@ export default function MortalityScreen() {
               Registros Recientes
             </Text>
             <View className="bg-white rounded-md border border-gray-200 p-lg">
-              <Text className="text-textTertiary text-center">
-                Cargando...
-              </Text>
+              <Text className="text-textTertiary text-center">Cargando...</Text>
             </View>
           </View>
         </ScrollView>
@@ -136,7 +134,10 @@ export default function MortalityScreen() {
 
   return (
     <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-background">
-      <ScrollView className="flex-1">
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ paddingBottom: 16 }}
+      >
         {/* Header */}
         <View className="px-lg pt-xl pb-md border-b border-gray-200">
           <View className="flex-row items-center">
@@ -151,8 +152,8 @@ export default function MortalityScreen() {
         </View>
 
         {/* Mortality Form */}
-        <View className="px-lg py-md bg-white border-b border-gray-200">
-          {lots.length === 0 ? (
+        {lots.length === 0 ? (
+          <View className="px-lg py-md bg-white border-b border-gray-200">
             <View className="px-xl py-2xl items-center">
               <View className="w-24 h-24 rounded-full bg-primary-100 items-center justify-center mb-lg">
                 <HeartPulse size={48} color={theme.colors.primary.DEFAULT} />
@@ -164,14 +165,16 @@ export default function MortalityScreen() {
                 Todos los lotes tienen 0 gallinas vivas
               </Text>
             </View>
-          ) : (
+          </View>
+        ) : (
+          <View className="px-lg py-md">
             <MortalityForm
               lots={lots}
               onSubmit={handleRecordMortality}
               isSubmitting={isSubmitting}
             />
-          )}
-        </View>
+          </View>
+        )}
 
         {/* Recent Entries */}
         <View className="px-lg py-md">
