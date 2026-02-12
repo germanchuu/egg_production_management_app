@@ -225,8 +225,8 @@ Per Constitution II (Feature-Based Organization):
 - [x] T094 [US1] Test production recording offline and sync when online
 - [x] T095 [US1] Test metrics calculation accuracy (daily and lifetime eggs/hen)
 - [x] T096 [US1] Test smart defaults (current date, recent lot pre-selected)
-- [ ] T097 [US1] Test edge case: future date rejection
-- [ ] T098 [US1] Test edge case: production for lot with zero hens (should prevent)
+- [x] T097 [US1] Test edge case: future date rejection
+- [x] T098 [US1] Test edge case: production for lot with zero hens (should prevent)
 
 **Checkpoint**: Production tracking complete - MVP READY (US1 + US2 + US3 deliver core value)
 

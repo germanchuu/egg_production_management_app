@@ -24,7 +24,7 @@ import {
 } from '@/shared/database/repositories/ProductionRecordRepository';
 import { ChickenLotRepository } from '@/shared/database/repositories/ChickenLotRepository';
 import { SyncQueue } from '@/shared/sync/SyncQueue';
-import { ProductionRecordHelper } from '../models/ProductionRecord';
+import { ProductionRecordHelper, ProductionRecordValidator } from '../models/ProductionRecord';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /**
@@ -62,12 +62,13 @@ export class ProductionService {
    * Record production for a lot
    *
    * Steps:
-   * 1. Validate lot exists and has live hens
-   * 2. Validate eggs collected is reasonable
-   * 3. Create production record
-   * 4. Get daily total
-   * 5. Store recent lot ID
-   * 6. Enqueue for sync
+   * 1. Validate input data (date format, future date, eggs collected)
+   * 2. Validate lot exists and has live hens
+   * 3. Validate eggs collected is reasonable
+   * 4. Create production record
+   * 5. Get daily total
+   * 6. Store recent lot ID
+   * 7. Enqueue for sync
    */
   async recordProduction(
     lotId: string,
@@ -76,7 +77,22 @@ export class ProductionService {
     recordedBy: string
   ): Promise<ServiceResult<{ record: ProductionRecord; dailyTotal: number }>> {
     try {
-      // Step 1: Get lot and validate
+      // Step 1: Validate input data
+      const validation = ProductionRecordValidator.validateCreate({
+        lotId,
+        date,
+        eggsCollected,
+        recordedBy,
+      });
+
+      if (!validation.valid) {
+        return {
+          success: false,
+          error: validation.errors[0], // Return first error
+        };
+      }
+
+      // Step 2: Get lot and validate
       const lot = await this.lotRepository.findById(lotId);
       if (!lot) {
         return {
@@ -93,15 +109,7 @@ export class ProductionService {
         };
       }
 
-      // Step 2: Validate eggs collected
-      if (eggsCollected <= 0) {
-        return {
-          success: false,
-          error: 'La cantidad de huevos recolectados debe ser mayor a 0',
-        };
-      }
-
-      // Check if production is reasonable (warning, not blocking)
+      // Step 3: Validate eggs collected is reasonable (warning, not blocking)
       const eggsPerHen = eggsCollected / lot.liveHenCount;
       if (eggsPerHen > 2) {
         console.warn(
@@ -109,7 +117,7 @@ export class ProductionService {
         );
       }
 
-      // Step 3: Create production record
+      // Step 4: Create production record
       const recordId = this.generateUUID();
       const timestamp = new Date().toISOString();
 
@@ -125,16 +133,16 @@ export class ProductionService {
 
       const record = await this.productionRepository.create(data);
 
-      // Step 4: Get daily total (includes the newly created record)
+      // Step 5: Get daily total (includes the newly created record)
       const dailyTotal = await this.productionRepository.getDailyTotal(
         lotId,
         date
       );
 
-      // Step 5: Store recent lot ID for smart defaults
+      // Step 6: Store recent lot ID for smart defaults
       await this.saveRecentLot(lotId);
 
-      // Step 6: Enqueue for sync
+      // Step 7: Enqueue for sync
       await this.syncQueue.enqueue({
         entityType: 'production_records',
         entityId: record.id,
