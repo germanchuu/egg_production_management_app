@@ -161,6 +161,122 @@ export class MortalityService {
   }
 
   /**
+   * Update mortality record with atomic transaction
+   *
+   * Transaction steps:
+   * 1. Validate record exists
+   * 2. Validate new hensDied value
+   * 3. Calculate difference and adjust lot's live hen count
+   * 4. Update mortality record
+   * 5. Update lot
+   * 6. Enqueue both operations for sync
+   *
+   * If any step fails, entire transaction is rolled back
+   */
+  async updateMortality(
+    recordId: string,
+    hensDied: number
+  ): Promise<ServiceResult<MortalityRecord>> {
+    try {
+      // Step 1: Validate record exists
+      const existing = await this.mortalityRepository.findById(recordId);
+      if (!existing) {
+        return {
+          success: false,
+          error: 'Registro no encontrado',
+        };
+      }
+
+      // Step 2: Validate hensDied > 0
+      if (hensDied <= 0) {
+        return {
+          success: false,
+          error: 'El número de gallinas debe ser mayor a 0',
+        };
+      }
+
+      // Get lot to validate against live count
+      const lot = await this.lotRepository.findById(existing.lotId);
+      if (!lot) {
+        return {
+          success: false,
+          error: 'No se encontró el lote',
+        };
+      }
+
+      // Step 3: Calculate the difference to adjust lot's live count
+      const difference = existing.hensDied - hensDied;
+      const newLiveHenCount = lot.liveHenCount + difference;
+
+      // Validate new count is valid
+      if (newLiveHenCount < 0) {
+        return {
+          success: false,
+          error: `No se puede actualizar: excede el número de gallinas vivas (${lot.liveHenCount})`,
+        };
+      }
+
+      if (newLiveHenCount > lot.initialHenCount) {
+        return {
+          success: false,
+          error: 'No se puede actualizar: excede el número inicial de gallinas',
+        };
+      }
+
+      // Step 4: Update in transaction
+      const timestamp = new Date().toISOString();
+
+      await this.db.execAsync(`
+        BEGIN TRANSACTION;
+
+        -- Update mortality record
+        UPDATE mortality_records
+        SET hens_died = ${hensDied}, updated_at = '${timestamp}'
+        WHERE id = '${recordId}';
+
+        -- Adjust lot's live hen count
+        UPDATE chicken_lots
+        SET live_hen_count = ${newLiveHenCount}, updated_at = '${timestamp}'
+        WHERE id = '${existing.lotId}';
+
+        COMMIT;
+      `);
+
+      // Get updated record
+      const updated = await this.mortalityRepository.findById(recordId);
+      if (!updated) {
+        throw new Error('Failed to retrieve updated record');
+      }
+
+      // Step 5: Enqueue for sync
+      await this.syncQueue.enqueue({
+        entityType: 'mortality_records',
+        entityId: recordId,
+        operation: SyncOperation.Update,
+      });
+
+      if (difference !== 0) {
+        await this.syncQueue.enqueue({
+          entityType: 'chicken_lots',
+          entityId: existing.lotId,
+          operation: SyncOperation.Update,
+        });
+      }
+
+      return {
+        success: true,
+        data: updated,
+      };
+    } catch (error) {
+      console.error('Error updating mortality:', error);
+      return {
+        success: false,
+        error: 'Error al actualizar mortalidad',
+      };
+    }
+  }
+
+  /**
    * Get mortality history for a lot
    */
   async getMortalityHistory(lotId: string): Promise<ServiceResult<MortalityRecord[]>> {
@@ -175,6 +291,34 @@ export class MortalityService {
       return {
         success: false,
         error: 'Error al obtener el historial de mortalidad',
+      };
+    }
+  }
+
+  /**
+   * Get all mortality records for a specific lot and date
+   *
+   * Returns all individual mortality records for the given day.
+   * Used to show detailed breakdown when multiple records exist.
+   */
+  async getMortalityByDay(
+    lotId: string,
+    date: string
+  ): Promise<ServiceResult<MortalityRecord[]>> {
+    try {
+      const records = await this.mortalityRepository.findByLotAndDate(
+        lotId,
+        date
+      );
+      return {
+        success: true,
+        data: records,
+      };
+    } catch (error) {
+      console.error('Error getting mortality by day:', error);
+      return {
+        success: false,
+        error: 'Error al obtener mortalidad del día',
       };
     }
   }

@@ -4,9 +4,10 @@
  * Form for recording daily egg production.
  * Uses react-hook-form with Zod validation.
  * Includes smart defaults (recent lot, today's date).
+ * Shows existing daily total when multiple records for same day.
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { View, Text } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -25,6 +26,7 @@ import { Button } from '@/shared/components/Button';
 import { ChickenLot } from '@/shared/types/entities';
 import { theme } from '@/core/theme';
 import { TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react-native';
+import { ProductionServiceProvider } from '../services/ProductionServiceProvider';
 
 interface ProductionEntryFormProps {
   lots: ChickenLot[];
@@ -60,8 +62,46 @@ export const ProductionEntryForm: React.FC<ProductionEntryFormProps> = ({
   });
 
   const selectedLotId = watch('lotId');
+  const watchedDate = watch('date');
   const eggsCollected = watch('eggsCollected');
   const selectedLot = lots.find((l) => l.id === selectedLotId);
+
+  // State for existing daily total
+  const [existingDailyTotal, setExistingDailyTotal] = useState<number>(0);
+  const [loadingDailyTotal, setLoadingDailyTotal] = useState<boolean>(false);
+
+  // Load daily total when date or lot changes
+  useEffect(() => {
+    const loadDailyTotal = async () => {
+      if (!selectedLotId || !watchedDate) {
+        setExistingDailyTotal(0);
+        return;
+      }
+
+      setLoadingDailyTotal(true);
+      try {
+        const service = await ProductionServiceProvider.getProductionService();
+        const result = await service.getProductionByDay(selectedLotId, watchedDate);
+
+        if (result.success && result.data) {
+          const total = result.data.reduce(
+            (sum: number, r) => sum + r.eggsCollected,
+            0
+          );
+          setExistingDailyTotal(total);
+        } else {
+          setExistingDailyTotal(0);
+        }
+      } catch (error) {
+        console.error('Error loading daily total:', error);
+        setExistingDailyTotal(0);
+      } finally {
+        setLoadingDailyTotal(false);
+      }
+    };
+
+    loadDailyTotal();
+  }, [watchedDate, selectedLotId]);
 
   // Transform active lots to SelectPicker options
   const lotOptions = useMemo(
@@ -157,6 +197,22 @@ export const ProductionEntryForm: React.FC<ProductionEntryFormProps> = ({
           />
         )}
       />
+
+      {/* Existing Daily Total Display */}
+      {existingDailyTotal > 0 && !loadingDailyTotal && (
+        <View className="mb-md p-md bg-primary-50 rounded-lg border border-primary-200">
+          <Text className="text-sm text-primary-700">
+            Ya registrado hoy: {existingDailyTotal} huevo
+            {existingDailyTotal !== 1 ? 's' : ''}
+          </Text>
+          {selectedLot && (
+            <Text className="text-xs text-primary-600 mt-xs">
+              Total proyectado: {existingDailyTotal + eggsCollected} huevo
+              {existingDailyTotal + eggsCollected !== 1 ? 's' : ''}
+            </Text>
+          )}
+        </View>
+      )}
 
       {/* Eggs Collected */}
       <Controller

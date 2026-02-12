@@ -63,9 +63,9 @@ export class ProductionService {
    *
    * Steps:
    * 1. Validate lot exists and has live hens
-   * 2. Check unique constraint (lot + date)
-   * 3. Validate eggs collected is reasonable
-   * 4. Create production record
+   * 2. Validate eggs collected is reasonable
+   * 3. Create production record
+   * 4. Get daily total
    * 5. Store recent lot ID
    * 6. Enqueue for sync
    */
@@ -74,7 +74,7 @@ export class ProductionService {
     date: string,
     eggsCollected: number,
     recordedBy: string
-  ): Promise<ServiceResult<ProductionRecord>> {
+  ): Promise<ServiceResult<{ record: ProductionRecord; dailyTotal: number }>> {
     try {
       // Step 1: Get lot and validate
       const lot = await this.lotRepository.findById(lotId);
@@ -93,19 +93,7 @@ export class ProductionService {
         };
       }
 
-      // Step 2: Check unique constraint (one record per lot per day)
-      const existing = await this.productionRepository.findByLotAndDate(
-        lotId,
-        date
-      );
-      if (existing) {
-        return {
-          success: false,
-          error: `Ya existe un registro de producción para este lote en la fecha ${date}`,
-        };
-      }
-
-      // Step 3: Validate eggs collected
+      // Step 2: Validate eggs collected
       if (eggsCollected <= 0) {
         return {
           success: false,
@@ -121,7 +109,7 @@ export class ProductionService {
         );
       }
 
-      // Step 4: Create production record
+      // Step 3: Create production record
       const recordId = this.generateUUID();
       const timestamp = new Date().toISOString();
 
@@ -137,6 +125,12 @@ export class ProductionService {
 
       const record = await this.productionRepository.create(data);
 
+      // Step 4: Get daily total (includes the newly created record)
+      const dailyTotal = await this.productionRepository.getDailyTotal(
+        lotId,
+        date
+      );
+
       // Step 5: Store recent lot ID for smart defaults
       await this.saveRecentLot(lotId);
 
@@ -149,7 +143,7 @@ export class ProductionService {
 
       return {
         success: true,
-        data: record,
+        data: { record, dailyTotal },
       };
     } catch (error) {
       console.error('Error recording production:', error);
@@ -312,10 +306,13 @@ export class ProductionService {
    * Calculate production metrics for a lot
    *
    * Includes:
-   * - Daily eggs per hen (from most recent record)
+   * - Daily eggs per hen (from most recent day's total)
    * - Lifetime eggs per hen (total eggs / initial hen count)
    * - Total eggs collected
-   * - Average daily production
+   * - Average daily production (by day, not by individual record)
+   *
+   * Note: Metrics are calculated using daily totals, so multiple records
+   * on the same day are aggregated first.
    */
   async calculateMetrics(lotId: string): Promise<ServiceResult<ProductionMetrics>> {
     try {
@@ -328,16 +325,32 @@ export class ProductionService {
       }
 
       const records = await this.productionRepository.findByLot(lotId);
-      const totalEggs = await this.productionRepository.getTotalEggsForLot(
-        lotId
-      );
 
-      // Daily eggs per hen: most recent record
+      // Group records by day and calculate daily totals
+      const dailyTotals = new Map<string, number>();
+      records.forEach((record) => {
+        const dateKey = record.date.split('T')[0];
+        const current = dailyTotals.get(dateKey) ?? 0;
+        dailyTotals.set(dateKey, current + record.eggsCollected);
+      });
+
+      // Calculate total eggs and average from daily totals
+      const totalDays = dailyTotals.size;
+      const totalEggs = Array.from(dailyTotals.values()).reduce(
+        (sum, eggs) => sum + eggs,
+        0
+      );
+      const averageDaily = totalDays > 0 ? Math.round(totalEggs / totalDays) : 0;
+
+      // Daily eggs per hen: most recent day's total
       let dailyEggsPerHen = 0;
-      if (records.length > 0 && lot.liveHenCount > 0) {
-        const mostRecent = records[0]; // Already sorted by date DESC
+      if (dailyTotals.size > 0 && lot.liveHenCount > 0) {
+        // Get most recent date
+        const sortedDates = Array.from(dailyTotals.keys()).sort().reverse();
+        const mostRecentDate = sortedDates[0];
+        const mostRecentTotal = dailyTotals.get(mostRecentDate) ?? 0;
         dailyEggsPerHen = ProductionRecordHelper.calculateEggsPerHen(
-          mostRecent.eggsCollected,
+          mostRecentTotal,
           lot.liveHenCount
         );
       }
@@ -346,12 +359,6 @@ export class ProductionService {
       const lifetimeEggsPerHen =
         lot.initialHenCount > 0
           ? Number((totalEggs / lot.initialHenCount).toFixed(2))
-          : 0;
-
-      // Average daily production
-      const averageDaily =
-        records.length > 0
-          ? Number((totalEggs / records.length).toFixed(0))
           : 0;
 
       return {
@@ -368,6 +375,34 @@ export class ProductionService {
       return {
         success: false,
         error: 'Error al calcular las métricas de producción',
+      };
+    }
+  }
+
+  /**
+   * Get all production records for a specific lot and date
+   *
+   * Returns all individual collection records for the given day.
+   * Used to show detailed breakdown when multiple records exist.
+   */
+  async getProductionByDay(
+    lotId: string,
+    date: string
+  ): Promise<ServiceResult<ProductionRecord[]>> {
+    try {
+      const records = await this.productionRepository.findByLotAndDate(
+        lotId,
+        date
+      );
+      return {
+        success: true,
+        data: records,
+      };
+    } catch (error) {
+      console.error('Error getting production by day:', error);
+      return {
+        success: false,
+        error: 'Error al obtener producción del día',
       };
     }
   }

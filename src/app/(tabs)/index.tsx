@@ -1,7 +1,5 @@
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ScrollView, View, Text, Dimensions, Pressable } from 'react-native';
-import { useAuth } from '@/features/auth/contexts';
-import { useSync } from '@/shared/hooks/useSync';
+import { ScrollView, View, Text, Pressable } from 'react-native';
 import { SyncStatusIndicator } from '@/shared/components/SyncStatusIndicator';
 import { UserHeader } from '@/shared/components/home/UserHeader';
 import { MetricSection } from '@/shared/components/home/MetricSection';
@@ -19,7 +17,10 @@ export default function HomeScreen() {
 
       <View className="px-lg flex-1">
         {/* ───────────────── Content ───────────────── */}
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 16 }}
+        >
           {/* ───────────── Welcome Banner ───────────── */}
           <View className="mt-2 mb-6">
             <UserHeader />

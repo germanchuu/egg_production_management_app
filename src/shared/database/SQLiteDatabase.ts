@@ -157,6 +157,58 @@ async function runMigrations(
 
         console.log('✅ production_records table created successfully');
       }
+
+      // Migration v2 -> v3: Remove UNIQUE constraint from production_records
+      if (currentVersion === 2 && targetVersion >= 3) {
+        console.log('📦 Removing UNIQUE constraint from production_records...');
+
+        await db.execAsync('PRAGMA foreign_keys = OFF');
+
+        // Create new table without UNIQUE constraint
+        await db.execAsync(`
+          CREATE TABLE production_records_new (
+            id TEXT PRIMARY KEY,
+            lot_id TEXT NOT NULL,
+            date TEXT NOT NULL,
+            eggs_collected INTEGER NOT NULL CHECK(eggs_collected >= 0),
+            recorded_by TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            FOREIGN KEY (lot_id) REFERENCES chicken_lots(id),
+            FOREIGN KEY (recorded_by) REFERENCES users(id)
+          );
+        `);
+
+        // Copy existing data
+        await db.execAsync(`
+          INSERT INTO production_records_new
+          SELECT * FROM production_records;
+        `);
+
+        // Drop old table
+        await db.execAsync('DROP TABLE production_records');
+
+        // Rename new table
+        await db.execAsync('ALTER TABLE production_records_new RENAME TO production_records');
+
+        // Recreate indexes
+        await db.execAsync(`
+          CREATE INDEX IF NOT EXISTS idx_production_records_lot_id
+          ON production_records(lot_id);
+        `);
+        await db.execAsync(`
+          CREATE INDEX IF NOT EXISTS idx_production_records_date
+          ON production_records(date);
+        `);
+        await db.execAsync(`
+          CREATE INDEX IF NOT EXISTS idx_production_records_recorded_by
+          ON production_records(recorded_by);
+        `);
+
+        await db.execAsync('PRAGMA foreign_keys = ON');
+
+        console.log('✅ UNIQUE constraint removed successfully');
+      }
     } else {
       console.log('✅ Database schema is up to date');
     }

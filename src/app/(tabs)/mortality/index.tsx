@@ -14,10 +14,10 @@ import { FacilityServiceProvider } from '@/features/facilities/services/Facility
 import { MortalityServiceProvider } from '@/features/mortality/services/MortalityServiceProvider';
 import { MortalityForm } from '@/features/mortality/components/MortalityForm';
 import { MortalityFormSkeleton } from '@/features/mortality/components/MortalityFormSkeleton';
+import { MortalityHistoryList } from '@/features/mortality/components/MortalityHistoryList';
 import { MortalityRecordFormData } from '@/features/mortality/utils/validation';
 import { useAuth } from '@/features/auth/contexts/AuthContext';
 import { useToastContext } from '@/shared/contexts/ToastContext';
-import { MortalityRecordHelper } from '@/features/mortality/models/MortalityRecord';
 import { theme } from '@/core/theme';
 
 export default function MortalityScreen() {
@@ -90,10 +90,6 @@ export default function MortalityScreen() {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const getLotName = (lotId: string) => {
-    return lots.find((l) => l.id === lotId)?.name || 'Lote desconocido';
   };
 
   if (loading) {
@@ -181,62 +177,11 @@ export default function MortalityScreen() {
           <Text className="text-lg font-bold text-textPrimary mb-md">
             Registros Recientes
           </Text>
-          {recentRecords.length === 0 ? (
-            <View className="bg-white rounded-md px-xl py-2xl items-center border border-gray-200">
-              <Text className="text-textTertiary text-center">
-                No hay registros de mortalidad
-              </Text>
-            </View>
-          ) : (
-            <View className="bg-white rounded-md border border-gray-200 overflow-hidden">
-              {recentRecords.map((record, index) => {
-                const lot = lots.find((l) => l.id === record.lotId);
-                const isHigh = lot
-                  ? MortalityRecordHelper.isHighMortality(
-                      record.hensDied,
-                      lot.liveHenCount
-                    )
-                  : false;
-
-                return (
-                  <View
-                    key={record.id}
-                    className={`p-lg ${index !== 0 ? 'border-t border-gray-200' : ''}`}
-                  >
-                    <View className="flex-row justify-between items-start">
-                      <View className="flex-1">
-                        <Text className="text-base font-medium text-textPrimary">
-                          {record.hensDied} gallina
-                          {record.hensDied !== 1 ? 's' : ''}
-                        </Text>
-                        <Text className="text-sm text-textSecondary mt-xs">
-                          {getLotName(record.lotId)}
-                        </Text>
-                        <Text className="text-xs text-textTertiary mt-xs">
-                          {new Date(record.date).toLocaleDateString('es-ES', {
-                            day: '2-digit',
-                            month: 'short',
-                            year: 'numeric',
-                          })}
-                        </Text>
-                      </View>
-                      {isHigh && (
-                        <View className="bg-error/10 px-sm py-xs rounded-sm flex-row items-center gap-xs">
-                          <AlertTriangle
-                            size={12}
-                            color={theme.colors.error.DEFAULT}
-                          />
-                          <Text className="text-xs font-medium text-error">
-                            Alta
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                  </View>
-                );
-              })}
-            </View>
-          )}
+          <MortalityHistoryList
+            records={recentRecords}
+            lots={lots}
+            emptyMessage="No hay registros de mortalidad"
+          />
         </View>
       </ScrollView>
     </SafeAreaView>

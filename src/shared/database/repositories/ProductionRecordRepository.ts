@@ -228,25 +228,68 @@ export class ProductionRecordRepository
   }
 
   /**
-   * Find production record by lot and date (for unique constraint check)
+   * Find production records by lot and date
+   * Returns all records for the given lot on the specified date
    */
   async findByLotAndDate(
     lotId: string,
     date: string
-  ): Promise<ProductionRecord | null> {
+  ): Promise<ProductionRecord[]> {
     try {
-      const result = await this.db.getFirstAsync<ProductionRecordDbRecord>(
-        'SELECT * FROM production_records WHERE lot_id = ? AND date = ?',
-        [lotId, date]
+      // Extract date portion (YYYY-MM-DD) for comparison
+      const dateStr = date.split('T')[0];
+      const results = await this.db.getAllAsync<ProductionRecordDbRecord>(
+        'SELECT * FROM production_records WHERE lot_id = ? AND date LIKE ? ORDER BY created_at ASC',
+        [lotId, `${dateStr}%`]
       );
 
-      if (!result) {
-        return null;
-      }
-
-      return ProductionRecordMapper.toDomain(result);
+      return ProductionRecordMapper.toDomainList(results);
     } catch (error) {
-      console.error('Error finding production record by lot and date:', error);
+      console.error('Error finding production records by lot and date:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get total eggs collected for a specific date
+   */
+  async getDailyTotal(lotId: string, date: string): Promise<number> {
+    try {
+      const dateStr = date.split('T')[0];
+      const result = await this.db.getFirstAsync<{ total: number }>(
+        'SELECT COALESCE(SUM(eggs_collected), 0) as total FROM production_records WHERE lot_id = ? AND date LIKE ?',
+        [lotId, `${dateStr}%`]
+      );
+
+      return result?.total ?? 0;
+    } catch (error) {
+      console.error('Error getting daily total:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Find production records for a lot grouped by day
+   * Returns a map of date (YYYY-MM-DD) to array of records
+   */
+  async findByLotGroupedByDay(
+    lotId: string
+  ): Promise<Map<string, ProductionRecord[]>> {
+    try {
+      const records = await this.findByLot(lotId);
+      const grouped = new Map<string, ProductionRecord[]>();
+
+      records.forEach((record) => {
+        const dateKey = record.date.split('T')[0];
+        if (!grouped.has(dateKey)) {
+          grouped.set(dateKey, []);
+        }
+        grouped.get(dateKey)!.push(record);
+      });
+
+      return grouped;
+    } catch (error) {
+      console.error('Error grouping production records by day:', error);
       throw error;
     }
   }

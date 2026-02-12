@@ -18,13 +18,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { AlertTriangle, ArrowLeft, BarChart3 } from 'lucide-react-native';
-import { ChickenLot, ChickenHouse, MortalityRecord } from '@/shared/types/entities';
-import { ProductionRecord } from '@/features/production/models/ProductionRecord';
+import { ChickenLot, ChickenHouse, MortalityRecord, ProductionRecord } from '@/shared/types/entities';
 import { FacilityServiceProvider } from '@/features/facilities/services/FacilityServiceProvider';
 import { MortalityServiceProvider } from '@/features/mortality/services/MortalityServiceProvider';
 import { ProductionServiceProvider } from '@/features/production/services/ProductionServiceProvider';
 import { ChickenLotCompute } from '@/features/facilities/models/ChickenLot';
-import { MortalityRecordHelper } from '@/features/mortality/models/MortalityRecord';
+import { MortalityHistoryList } from '@/features/mortality/components/MortalityHistoryList';
 import { ProductionHistoryList } from '@/features/production/components/ProductionHistoryList';
 import { ProductionMetricsCard, ProductionMetrics } from '@/features/production/components/ProductionMetricsCard';
 import { useToastContext } from '@/shared/contexts/ToastContext';
@@ -228,62 +227,11 @@ export default function LotDetailsScreen() {
             Historial de Mortalidad
           </Text>
 
-          {mortalityHistory.length === 0 ? (
-            <View className="bg-white rounded-xl px-xl py-2xl items-center border border-gray-200">
-              <Text className="text-textTertiary text-center">
-                No hay registros de mortalidad
-              </Text>
-            </View>
-          ) : (
-            <View className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <ScrollView style={{ maxHeight: 260 }}>
-                {mortalityHistory.map((record, index) => {
-                  const isHigh = MortalityRecordHelper.isHighMortality(
-                    record.hensDied,
-                    lot.liveHenCount + totalMortality
-                  );
-
-                  return (
-                    <View
-                      key={record.id}
-                      className={`p-lg ${
-                        index !== 0 ? 'border-t border-gray-200' : ''
-                      }`}
-                    >
-                      <View className="flex-row justify-between items-center">
-                        <View>
-                          <Text className="text-base font-medium text-textPrimary">
-                            {record.hensDied} gallina
-                            {record.hensDied !== 1 ? 's' : ''}
-                          </Text>
-
-                          <Text className="text-sm text-textSecondary mt-xs">
-                            {new Date(record.date).toLocaleDateString('es-ES', {
-                              day: '2-digit',
-                              month: 'long',
-                              year: 'numeric',
-                            })}
-                          </Text>
-                        </View>
-
-                        {isHigh && (
-                          <View className="bg-error/10 px-sm py-xs rounded-md flex-row items-center gap-xs">
-                            <AlertTriangle
-                              size={12}
-                              color={theme.colors.error.DEFAULT}
-                            />
-                            <Text className="text-xs font-medium text-error">
-                              Alta
-                            </Text>
-                          </View>
-                        )}
-                      </View>
-                    </View>
-                  );
-                })}
-              </ScrollView>
-            </View>
-          )}
+          <MortalityHistoryList
+            records={mortalityHistory}
+            lots={lot ? [lot] : []}
+            emptyMessage="No hay registros de mortalidad"
+          />
         </View>
 
         {/* PRODUCCIÓN - MÉTRICAS */}

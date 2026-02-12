@@ -14,7 +14,7 @@
  * - Indexes for query optimization
  */
 
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 /**
  * Core Tables Schema
@@ -87,8 +87,7 @@ export const CREATE_TABLES_SQL = [
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
     FOREIGN KEY (lot_id) REFERENCES chicken_lots(id),
-    FOREIGN KEY (recorded_by) REFERENCES users(id),
-    UNIQUE(lot_id, date)
+    FOREIGN KEY (recorded_by) REFERENCES users(id)
   );`,
 
   // ==================== MORTALITY RECORDS ====================

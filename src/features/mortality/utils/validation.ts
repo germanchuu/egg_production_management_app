@@ -6,6 +6,7 @@
  */
 
 import { z } from 'zod';
+import { MortalityServiceProvider } from '../services/MortalityServiceProvider';
 
 /**
  * Mortality Record validation schema
@@ -66,3 +67,44 @@ export const isHighMortality = (
   const mortalityRate = (hensDied / liveHenCount) * 100;
   return mortalityRate > 10;
 };
+
+/**
+ * Validate daily mortality total (including existing records for the day)
+ * Ensures the total mortality for the day doesn't exceed live hen count
+ *
+ * This is the async version that checks against all records for the day.
+ */
+export async function validateDailyMortalityTotal(
+  lotId: string,
+  date: string,
+  hensDied: number,
+  liveHenCount: number
+): Promise<{ valid: boolean; error?: string }> {
+  try {
+    const service = await MortalityServiceProvider.getMortalityService();
+
+    // Get existing records for this day
+    const result = await service.getMortalityByDay(lotId, date);
+    const existingTotal =
+      result.success && result.data
+        ? result.data.reduce((sum: number, r) => sum + r.hensDied, 0)
+        : 0;
+
+    // Calculate new daily total
+    const dailyTotal = existingTotal + hensDied;
+
+    // Check if daily total exceeds live hens
+    if (dailyTotal > liveHenCount) {
+      return {
+        valid: false,
+        error: `El total de mortalidad del día (${dailyTotal}) excede las gallinas vivas (${liveHenCount})`,
+      };
+    }
+
+    return { valid: true };
+  } catch (error) {
+    console.error('Error validating daily mortality:', error);
+    // On error, fall back to single record validation
+    return validateHensDiedAgainstLiveCount(hensDied, liveHenCount);
+  }
+}

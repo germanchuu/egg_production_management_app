@@ -111,7 +111,7 @@ export default function AppLayout() {
       />
 
       <Drawer.Screen
-        name="production"
+        name="production/index"
         options={{
           title: 'Producción',
           drawerIcon: ({ color, size }) => (

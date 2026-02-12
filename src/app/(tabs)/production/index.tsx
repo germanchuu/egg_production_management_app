@@ -14,8 +14,7 @@ import { View, Text, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Egg } from 'lucide-react-native';
-import { ChickenLot } from '@/shared/types/entities';
-import { ProductionRecord } from '@/features/production/models/ProductionRecord';
+import { ChickenLot, ProductionRecord } from '@/shared/types/entities';
 import { FacilityServiceProvider } from '@/features/facilities/services/FacilityServiceProvider';
 import { ProductionServiceProvider } from '@/features/production/services/ProductionServiceProvider';
 import { ProductionEntryForm } from '@/features/production/components/ProductionEntryForm';
@@ -88,9 +87,10 @@ export default function ProductionScreen() {
         user.id
       );
 
-      if (result.success) {
+      if (result.success && result.data) {
+        const { dailyTotal } = result.data;
         success(
-          `Producción registrada: ${data.eggsCollected} huevo${data.eggsCollected !== 1 ? 's' : ''}`
+          `Producción registrada: ${data.eggsCollected} huevo${data.eggsCollected !== 1 ? 's' : ''}. Total del día: ${dailyTotal}`
         );
         await loadData();
       } else {
@@ -153,7 +153,7 @@ export default function ProductionScreen() {
               Registro de Producción
             </Text>
           </View>
-          <Text className="text-sm text-textSecondary mt-xs">
+          <Text className="text-sm text-textSecondary mt-xs ml-12">
             {lots.length} {lots.length === 1 ? 'lote activo' : 'lotes activos'}
           </Text>
         </View>

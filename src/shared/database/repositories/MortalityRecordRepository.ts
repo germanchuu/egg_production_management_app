@@ -226,4 +226,71 @@ export class MortalityRecordRepository
       throw error;
     }
   }
+
+  /**
+   * Find mortality records by lot and date
+   * Returns all records for the given lot on the specified date
+   */
+  async findByLotAndDate(
+    lotId: string,
+    date: string
+  ): Promise<MortalityRecord[]> {
+    try {
+      // Extract date portion (YYYY-MM-DD) for comparison
+      const dateStr = date.split('T')[0];
+      const results = await this.db.getAllAsync<MortalityRecordDbRecord>(
+        'SELECT * FROM mortality_records WHERE lot_id = ? AND date LIKE ? ORDER BY created_at ASC',
+        [lotId, `${dateStr}%`]
+      );
+
+      return MortalityRecordMapper.toDomainList(results);
+    } catch (error) {
+      console.error('Error finding mortality records by lot and date:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get total mortality for a specific date
+   */
+  async getDailyTotal(lotId: string, date: string): Promise<number> {
+    try {
+      const dateStr = date.split('T')[0];
+      const result = await this.db.getFirstAsync<{ total: number }>(
+        'SELECT COALESCE(SUM(hens_died), 0) as total FROM mortality_records WHERE lot_id = ? AND date LIKE ?',
+        [lotId, `${dateStr}%`]
+      );
+
+      return result?.total ?? 0;
+    } catch (error) {
+      console.error('Error getting daily mortality total:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Find mortality records for a lot grouped by day
+   * Returns a map of date (YYYY-MM-DD) to array of records
+   */
+  async findByLotGroupedByDay(
+    lotId: string
+  ): Promise<Map<string, MortalityRecord[]>> {
+    try {
+      const records = await this.findByLot(lotId);
+      const grouped = new Map<string, MortalityRecord[]>();
+
+      records.forEach((record) => {
+        const dateKey = record.date.split('T')[0];
+        if (!grouped.has(dateKey)) {
+          grouped.set(dateKey, []);
+        }
+        grouped.get(dateKey)!.push(record);
+      });
+
+      return grouped;
+    } catch (error) {
+      console.error('Error grouping mortality records by day:', error);
+      throw error;
+    }
+  }
 }

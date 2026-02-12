@@ -6,6 +6,7 @@
  */
 
 import { z } from 'zod';
+import { ProductionServiceProvider } from '../services/ProductionServiceProvider';
 
 /**
  * Production Record validation schema
@@ -84,6 +85,55 @@ export const validateEggsCollectedIsReasonable = (
 };
 
 /**
+ * Check if daily total eggs (including existing records) is reasonable
+ * Maximum: 2x live hen count per day (allows some buffer for data entry errors)
+ * Returns validation result with error message if unreasonable
+ *
+ * This is the async version that checks against all records for the day.
+ */
+export async function validateDailyEggsIsReasonable(
+  lotId: string,
+  date: string,
+  eggsCollected: number,
+  liveHenCount: number
+): Promise<{ valid: boolean; error?: string }> {
+  if (liveHenCount === 0) {
+    return {
+      valid: false,
+      error: 'El lote no tiene gallinas vivas',
+    };
+  }
+
+  try {
+    const service = await ProductionServiceProvider.getProductionService();
+
+    // Get existing records for this day
+    const result = await service.getProductionByDay(lotId, date);
+    const existingTotal =
+      result.success && result.data
+        ? result.data.reduce((sum: number, r) => sum + r.eggsCollected, 0)
+        : 0;
+
+    // Calculate new daily total
+    const dailyTotal = existingTotal + eggsCollected;
+
+    // Check if daily total exceeds 2x live hens (hard limit)
+    if (dailyTotal > liveHenCount * 2) {
+      return {
+        valid: false,
+        error: `El total del día (${dailyTotal} huevos) excede el límite razonable para ${liveHenCount} gallinas (máximo: ${liveHenCount * 2})`,
+      };
+    }
+
+    return { valid: true };
+  } catch (error) {
+    console.error('Error validating daily eggs:', error);
+    // On error, fall back to single record validation
+    return validateEggsCollectedIsReasonable(eggsCollected, liveHenCount);
+  }
+}
+
+/**
  * Check if production requires sanity check warning
  * Warning threshold: > 2x live hen count (e.g., 200 eggs for 100 hens)
  *
@@ -99,6 +149,44 @@ export const needsSanityCheckWarning = (
   }
   return eggsCollected > liveHenCount * 2;
 };
+
+/**
+ * Check if daily total production requires sanity check warning
+ * Warning threshold: daily total > 1.5x live hen count
+ *
+ * This is the async version that checks against all records for the day.
+ */
+export async function needsDailySanityCheckWarning(
+  lotId: string,
+  date: string,
+  eggsCollected: number,
+  liveHenCount: number
+): Promise<boolean> {
+  if (liveHenCount === 0) {
+    return false;
+  }
+
+  try {
+    const service = await ProductionServiceProvider.getProductionService();
+
+    // Get existing records for this day
+    const result = await service.getProductionByDay(lotId, date);
+    const existingTotal =
+      result.success && result.data
+        ? result.data.reduce((sum: number, r) => sum + r.eggsCollected, 0)
+        : 0;
+
+    // Calculate new daily total
+    const dailyTotal = existingTotal + eggsCollected;
+
+    // Warn if daily total > 1.5x live hens
+    return dailyTotal > liveHenCount * 1.5;
+  } catch (error) {
+    console.error('Error checking daily sanity warning:', error);
+    // On error, fall back to single record check
+    return needsSanityCheckWarning(eggsCollected, liveHenCount);
+  }
+}
 
 /**
  * Get sanity check warning message

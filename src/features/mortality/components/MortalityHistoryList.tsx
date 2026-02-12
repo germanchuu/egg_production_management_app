@@ -1,8 +1,8 @@
 /**
- * ProductionHistoryList Component
+ * MortalityHistoryList Component
  *
- * Displays chronological production records grouped by day.
- * Shows daily totals and individual collection records with timestamps.
+ * Displays chronological mortality records grouped by day.
+ * Shows daily totals and individual mortality records with timestamps.
  * Includes edit buttons for each record.
  */
 
@@ -10,21 +10,21 @@ import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MotiView } from 'moti';
-import { ProductionRecord, ChickenLot } from '@/shared/types/entities';
-import { getProductionStatus } from '../utils/validation';
+import { MortalityRecord } from '@/shared/types/entities';
+import { ChickenLot } from '@/shared/types/entities';
 import { theme } from '@/core/theme';
-import { Calendar, TrendingUp, TrendingDown, Egg, Pencil } from 'lucide-react-native';
+import { Calendar, AlertTriangle, Skull, Pencil } from 'lucide-react-native';
 
-interface ProductionHistoryListProps {
-  records: ProductionRecord[];
+interface MortalityHistoryListProps {
+  records: MortalityRecord[];
   lots: ChickenLot[];
   emptyMessage?: string;
 }
 
-export const ProductionHistoryList: React.FC<ProductionHistoryListProps> = ({
+export const MortalityHistoryList: React.FC<MortalityHistoryListProps> = ({
   records,
   lots,
-  emptyMessage = 'No hay registros de producción',
+  emptyMessage = 'No hay registros de mortalidad',
 }) => {
   const router = useRouter();
 
@@ -38,7 +38,7 @@ export const ProductionHistoryList: React.FC<ProductionHistoryListProps> = ({
 
   // Group records by day
   const groupedRecords = useMemo(() => {
-    const groups = new Map<string, ProductionRecord[]>();
+    const groups = new Map<string, MortalityRecord[]>();
 
     records.forEach((record) => {
       const dateKey = record.date.split('T')[0];
@@ -58,7 +58,7 @@ export const ProductionHistoryList: React.FC<ProductionHistoryListProps> = ({
     return (
       <View className="bg-white rounded-md px-xl py-2xl items-center border border-gray-200">
         <View className="w-16 h-16 rounded-full bg-gray-100 items-center justify-center mb-md">
-          <Egg size={32} color={theme.colors.gray['400']} />
+          <Skull size={32} color={theme.colors.gray['400']} />
         </View>
         <Text className="text-textTertiary text-center">{emptyMessage}</Text>
       </View>
@@ -68,9 +68,10 @@ export const ProductionHistoryList: React.FC<ProductionHistoryListProps> = ({
   return (
     <View className="bg-white rounded-md border border-gray-200 overflow-hidden">
       {Array.from(groupedRecords.entries()).map(([dateKey, dayRecords], groupIndex) => {
-        const dailyTotal = dayRecords.reduce((sum, r) => sum + r.eggsCollected, 0);
+        const dailyTotal = dayRecords.reduce((sum, r) => sum + r.hensDied, 0);
         const lot = getLot(dayRecords[0].lotId);
-        const status = lot ? getProductionStatus(dailyTotal, lot.liveHenCount) : null;
+        const isHighMortality =
+          lot && dailyTotal > 0 ? (dailyTotal / lot.liveHenCount) * 100 > 10 : false;
 
         return (
           <MotiView
@@ -85,12 +86,21 @@ export const ProductionHistoryList: React.FC<ProductionHistoryListProps> = ({
           >
             {/* Daily Total Header */}
             <View
-              className={`bg-primary-50 px-lg py-md ${groupIndex !== 0 ? 'border-t border-primary-200' : ''}`}
+              className={`${isHighMortality ? 'bg-error-50' : 'bg-gray-50'} px-lg py-md ${groupIndex !== 0 ? 'border-t border-gray-200' : ''}`}
             >
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center gap-sm flex-1">
-                  <Calendar size={16} color={theme.colors.primary['600']} />
-                  <Text className="text-sm font-semibold text-primary-700">
+                  <Calendar
+                    size={16}
+                    color={
+                      isHighMortality
+                        ? theme.colors.error.DEFAULT
+                        : theme.colors.gray['600']
+                    }
+                  />
+                  <Text
+                    className={`text-sm font-semibold ${isHighMortality ? 'text-error' : 'text-gray-700'}`}
+                  >
                     {new Date(dateKey).toLocaleDateString('es-ES', {
                       day: '2-digit',
                       month: 'long',
@@ -98,22 +108,28 @@ export const ProductionHistoryList: React.FC<ProductionHistoryListProps> = ({
                     })}
                   </Text>
                 </View>
-                <Text className="text-xs text-primary-600">{getLotName(dayRecords[0].lotId)}</Text>
+                <Text
+                  className={`text-xs ${isHighMortality ? 'text-error-700' : 'text-gray-600'}`}
+                >
+                  {getLotName(dayRecords[0].lotId)}
+                </Text>
               </View>
               <View className="flex-row items-center justify-between mt-xs">
-                <Text className="text-xs text-primary-600">
-                  Total: {dailyTotal} huevo{dailyTotal !== 1 ? 's' : ''}
-                  {dayRecords.length > 1 && ` (${dayRecords.length} recolecciones)`}
+                <Text
+                  className={`text-xs ${isHighMortality ? 'text-error-700' : 'text-gray-600'}`}
+                >
+                  Total: {dailyTotal} gallina{dailyTotal !== 1 ? 's' : ''}
+                  {dayRecords.length > 1 && ` (${dayRecords.length} registros)`}
                 </Text>
                 {lot && (
                   <View className="flex-row items-center gap-xs">
-                    {status?.status === 'optimal' ? (
-                      <TrendingUp size={14} color={theme.colors.success.DEFAULT} />
-                    ) : status?.status === 'low' ? (
-                      <TrendingDown size={14} color={theme.colors.warning.DEFAULT} />
-                    ) : null}
-                    <Text className="text-xs text-primary-600">
-                      {((dailyTotal / lot.liveHenCount) * 100).toFixed(1)}% postura
+                    {isHighMortality && (
+                      <AlertTriangle size={14} color={theme.colors.error.DEFAULT} />
+                    )}
+                    <Text
+                      className={`text-xs ${isHighMortality ? 'text-error-700' : 'text-gray-600'}`}
+                    >
+                      {((dailyTotal / lot.liveHenCount) * 100).toFixed(1)}% mortalidad
                     </Text>
                   </View>
                 )}
@@ -136,13 +152,13 @@ export const ProductionHistoryList: React.FC<ProductionHistoryListProps> = ({
                     })}
                   </Text>
                   <Text className="text-base font-medium text-textPrimary mt-xs">
-                    {record.eggsCollected} huevo{record.eggsCollected !== 1 ? 's' : ''}
+                    {record.hensDied} gallina{record.hensDied !== 1 ? 's' : ''}
                   </Text>
                 </View>
 
                 {/* Edit Button */}
                 <TouchableOpacity
-                  onPress={() => router.push(`/production/${record.id}/edit` as any)}
+                  onPress={() => router.push(`/mortality/${record.id}/edit` as any)}
                   className="ml-md p-sm"
                 >
                   <Pencil size={20} color={theme.colors.primary['500']} />
