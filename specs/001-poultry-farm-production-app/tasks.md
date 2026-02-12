@@ -222,7 +222,7 @@ Per Constitution II (Feature-Based Organization):
 
 ### Integration & Validation
 
-- [ ] T094 [US1] Test production recording offline and sync when online
+- [x] T094 [US1] Test production recording offline and sync when online
 - [ ] T095 [US1] Test metrics calculation accuracy (daily and lifetime eggs/hen)
 - [ ] T096 [US1] Test smart defaults (current date, recent lot pre-selected)
 - [ ] T097 [US1] Test edge case: future date rejection
