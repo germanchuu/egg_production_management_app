@@ -23,6 +23,16 @@ const mockQuery = jest.fn();
 const mockWhere = jest.fn();
 const mockGetDocs = jest.fn();
 
+// WriteBatch mock
+const mockBatchSet = jest.fn();
+const mockBatchDelete = jest.fn();
+const mockBatchCommit = jest.fn().mockResolvedValue(undefined);
+const mockWriteBatch = jest.fn(() => ({
+  set: mockBatchSet,
+  delete: mockBatchDelete,
+  commit: mockBatchCommit,
+}));
+
 // Mock the firebase/firestore module
 jest.mock('firebase/firestore', () => ({
   collection: (...args: any[]) => mockCollection(...args),
@@ -33,6 +43,7 @@ jest.mock('firebase/firestore', () => ({
   query: (...args: any[]) => mockQuery(...args),
   where: (...args: any[]) => mockWhere(...args),
   getDocs: (...args: any[]) => mockGetDocs(...args),
+  writeBatch: (...args: any[]) => mockWriteBatch(...args),
 }));
 
 // Mock Firestore instance
@@ -344,12 +355,12 @@ describe('SyncService', () => {
 
   describe('sync', () => {
     it('should execute full sync cycle (upload then download)', async () => {
-      const uploadSpy = jest.spyOn(syncService, 'uploadPendingChanges');
+      const batchSyncSpy = jest.spyOn(syncService, 'batchSync');
       const downloadSpy = jest.spyOn(syncService, 'downloadUpdates');
 
       await syncService.sync();
 
-      expect(uploadSpy).toHaveBeenCalled();
+      expect(batchSyncSpy).toHaveBeenCalled();
       expect(downloadSpy).toHaveBeenCalled();
     });
 

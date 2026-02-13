@@ -36,7 +36,9 @@ import {
   query,
   where,
   getDocs,
+  writeBatch,
   type DocumentData,
+  type DocumentReference,
   type WhereFilterOp,
 } from 'firebase/firestore';
 import { SyncQueue, QueueRecord, SyncOperation } from './SyncQueue';
@@ -70,6 +72,19 @@ const COLLECTION_MAP: Record<string, string> = {
 };
 
 /**
+ * Item prepared for batch write
+ */
+interface BatchItem {
+  queueRecord: QueueRecord;
+  docRef: DocumentReference;
+  operation: string;
+  data?: DocumentData;
+}
+
+/** Maximum number of operations per Firestore writeBatch */
+const BATCH_SIZE = 500;
+
+/**
  * SyncService for bidirectional Firebase Firestore synchronization
  */
 export class SyncService {
@@ -81,16 +96,100 @@ export class SyncService {
   ) {}
 
   /**
-   * Uploads all pending local changes to Firestore
+   * Uploads all pending local changes to Firestore using batch writes.
    *
    * Process:
-   * 1. Get pending operations from sync queue
-   * 2. For each operation:
-   *    - Read entity data from local DB
-   *    - Upload to Firestore (CREATE/UPDATE/DELETE)
-   *    - Mark as synced in queue
+   * 1. Get up to 500 pending operations from sync queue
+   * 2. Prepare batch items (read local data, build doc refs)
+   * 3. Commit atomically via Firestore writeBatch
+   * 4. Mark all committed items as synced
+   * 5. Repeat until no more pending items
    *
-   * @throws Error if upload fails
+   * @returns Number of successfully uploaded operations
+   * @throws Error if batch commit fails (no items marked as synced for that batch)
+   */
+  async batchSync(): Promise<number> {
+    let totalUploaded = 0;
+
+    let pending = await this.syncQueue.getPending(BATCH_SIZE);
+
+    while (pending.length > 0) {
+      const batch = writeBatch(this.firestore);
+      const batchItems: BatchItem[] = [];
+
+      for (const queueItem of pending) {
+        try {
+          const item = await this.prepareBatchItem(queueItem);
+          if (!item) continue;
+
+          if (item.operation === 'DELETE') {
+            batch.delete(item.docRef);
+          } else {
+            batch.set(item.docRef, item.data!);
+          }
+
+          batchItems.push(item);
+        } catch (error) {
+          // Skip this item, log warning, it stays pending for next sync
+          console.warn(
+            `Failed to prepare batch item ${queueItem.entity_type}/${queueItem.entity_id}: ${(error as Error).message}`
+          );
+        }
+      }
+
+      if (batchItems.length === 0) {
+        // All items in this batch were skipped — stop to avoid infinite loop.
+        // Skipped items stay pending for the next sync cycle.
+        break;
+      }
+
+      await batch.commit();
+
+      const syncedIds = batchItems.map((item) => item.queueRecord.id);
+      await this.syncQueue.markBatchSynced(syncedIds);
+
+      totalUploaded += batchItems.length;
+
+      pending = await this.syncQueue.getPending(BATCH_SIZE);
+    }
+
+    return totalUploaded;
+  }
+
+  /**
+   * Prepares a single queue record for batch write.
+   *
+   * @returns BatchItem ready for batch, or null if entity not found locally (logged as warning)
+   */
+  private async prepareBatchItem(queueItem: QueueRecord): Promise<BatchItem | null> {
+    const { entity_type, entity_id, operation } = queueItem;
+
+    const collectionName = COLLECTION_MAP[entity_type];
+    if (!collectionName) {
+      throw new Error(`Unknown entity type: ${entity_type}`);
+    }
+
+    const docRef = doc(this.firestore, collectionName, entity_id);
+
+    if (operation === 'DELETE') {
+      return { queueRecord: queueItem, docRef, operation };
+    }
+
+    // For CREATE and UPDATE, read data from local DB
+    const localData = await this.readEntityFromLocalDB(entity_type, entity_id);
+    if (!localData) {
+      console.warn(`Entity not found in local DB: ${entity_type}/${entity_id}, skipping`);
+      return null;
+    }
+
+    const firestoreData = this.convertToFirestoreFormat(entity_type, localData);
+    return { queueRecord: queueItem, docRef, operation, data: firestoreData };
+  }
+
+  /**
+   * @deprecated Use batchSync() instead. Kept for backward compatibility.
+   *
+   * Uploads all pending local changes to Firestore one by one.
    */
   async uploadPendingChanges(): Promise<number> {
     const pending = await this.syncQueue.getPending();
@@ -445,8 +544,8 @@ export class SyncService {
     let conflicts = 0;
 
     try {
-      // Phase 1: Upload pending changes
-      uploaded = await this.uploadPendingChanges();
+      // Phase 1: Upload pending changes (batch)
+      uploaded = await this.batchSync();
     } catch (error) {
       errors.push(`Upload failed: ${(error as Error).message}`);
       throw error; // Stop sync on upload failure

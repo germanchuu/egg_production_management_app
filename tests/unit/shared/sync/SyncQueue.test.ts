@@ -286,6 +286,70 @@ describe('SyncQueue', () => {
     });
   });
 
+  describe('markBatchSynced', () => {
+    it('should mark multiple items as synced', async () => {
+      await syncQueue.enqueue({
+        entityType: 'production_records',
+        entityId: 'prod-1',
+        operation: 'CREATE',
+      });
+      await syncQueue.enqueue({
+        entityType: 'production_records',
+        entityId: 'prod-2',
+        operation: 'CREATE',
+      });
+      await syncQueue.enqueue({
+        entityType: 'production_records',
+        entityId: 'prod-3',
+        operation: 'CREATE',
+      });
+
+      const pending = await syncQueue.getPending();
+      expect(pending).toHaveLength(3);
+
+      const ids = pending.map((p) => p.id);
+      await syncQueue.markBatchSynced(ids);
+
+      const pendingAfter = await syncQueue.getPending();
+      expect(pendingAfter).toHaveLength(0);
+    });
+
+    it('should be a no-op with empty array', async () => {
+      await syncQueue.enqueue({
+        entityType: 'production_records',
+        entityId: 'prod-1',
+        operation: 'CREATE',
+      });
+
+      await syncQueue.markBatchSynced([]);
+
+      const pending = await syncQueue.getPending();
+      expect(pending).toHaveLength(1);
+    });
+
+    it('should mark only specified items (partial batch)', async () => {
+      for (let i = 1; i <= 5; i++) {
+        await syncQueue.enqueue({
+          entityType: 'production_records',
+          entityId: `prod-${i}`,
+          operation: 'CREATE',
+        });
+      }
+
+      const pending = await syncQueue.getPending();
+      expect(pending).toHaveLength(5);
+
+      // Mark only the first 3
+      const idsToMark = pending.slice(0, 3).map((p) => p.id);
+      await syncQueue.markBatchSynced(idsToMark);
+
+      const remainingPending = await syncQueue.getPending();
+      expect(remainingPending).toHaveLength(2);
+      expect(remainingPending[0].entity_id).toBe('prod-4');
+      expect(remainingPending[1].entity_id).toBe('prod-5');
+    });
+  });
+
   describe('clearSynced', () => {
     it('should remove synced operations from queue', async () => {
       await syncQueue.enqueue({

@@ -140,6 +140,27 @@ export class SyncQueue {
   }
 
   /**
+   * Marks multiple queue operations as synced in a single query
+   *
+   * @param queueIds Queue record IDs to mark as synced
+   */
+  async markBatchSynced(queueIds: string[]): Promise<void> {
+    if (queueIds.length === 0) {
+      return;
+    }
+
+    const now = new Date().toISOString();
+    const placeholders = queueIds.map(() => '?').join(', ');
+
+    await this.db.runAsync(
+      `UPDATE sync_queue
+       SET synced_at = ?
+       WHERE id IN (${placeholders})`,
+      [now, ...queueIds]
+    );
+  }
+
+  /**
    * Gets all pending entity IDs for a specific entity type
    *
    * Efficient batch query to check multiple entities at once.
