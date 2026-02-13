@@ -250,10 +250,19 @@ Per Constitution II (Feature-Based Organization):
 
 ### Firebase Firestore Listeners
 
-- [ ] T106 [P] Create Firestore listener for users collection in src/shared/sync/listeners/usersListener.ts
-- [ ] T107 [P] Create Firestore listener for chicken_lots collection in src/shared/sync/listeners/lotsListener.ts
-- [ ] T108 [P] Create Firestore listener for production_records collection in src/shared/sync/listeners/productionListener.ts
-- [ ] T109 [P] Create Firestore listener for mortality_records collection in src/shared/sync/listeners/mortalityListener.ts
+NOTE: Implemented as "one-shot listeners" instead of persistent listeners for better battery/performance.
+All 10 collections handled by syncWithListeners() in src/shared/sync/listeners/syncWithListeners.ts
+
+- [X] T106 [P] Create Firestore listener for users collection (one-shot)
+- [X] T107 [P] Create Firestore listener for chicken_lots collection (one-shot)
+- [X] T108 [P] Create Firestore listener for production_records collection (one-shot)
+- [X] T109 [P] Create Firestore listener for mortality_records collection (one-shot)
+- [X] T109a [P] Create Firestore listener for invitations collection (one-shot)
+- [X] T109b [P] Create Firestore listener for chicken_houses collection (one-shot)
+- [X] T109c [P] Create Firestore listener for feed_batches collection (one-shot)
+- [X] T109d [P] Create Firestore listener for feeding_records collection (one-shot)
+- [X] T109e [P] Create Firestore listener for health_events collection (one-shot)
+- [X] T109f [P] Create Firestore listener for biosecurity_events collection (one-shot)
 
 ### Cloud Functions for Server-Side Logic
 

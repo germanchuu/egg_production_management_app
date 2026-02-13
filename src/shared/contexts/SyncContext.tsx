@@ -33,6 +33,7 @@ import { SyncQueue } from '@/shared/sync/SyncQueue';
 import { ConflictResolver } from '@/shared/sync/ConflictResolver';
 import { getDatabase } from '@/shared/database';
 import { firestore } from '@/core/config/firebase';
+import { syncWithListeners } from '@/shared/sync/listeners/syncWithListeners';
 
 export type SyncStatus = 'synced' | 'pending' | 'syncing' | 'failed';
 
@@ -116,8 +117,8 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     }
   }, [status, error, initializeServices]);
 
-  // Manual sync function
-  const sync = useCallback(async () => {
+  // Manual sync function with optional listener-based download
+  const sync = useCallback(async (useListeners = false) => {
     // Prevent concurrent syncs
     if (isSyncingRef.current) {
       console.log('[SyncContext] Sync already in progress, skipping');
@@ -144,16 +145,31 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
       setError(null);
 
       console.log('[SyncContext] Starting sync...');
-      const result = await syncServiceRef.current.sync();
-      console.log('[SyncContext] Sync completed:', result);
 
-      // Update state based on result
-      if (result.errors.length > 0) {
-        setStatus('failed');
-        setError(new Error(result.errors.join(', ')));
-      } else {
+      if (useListeners) {
+        // Use one-shot listeners for full sync (includes deletions)
+        console.log('[SyncContext] Using one-shot listeners for full sync...');
+        await syncWithListeners();
+
+        // Upload pending local changes
+        const uploaded = await syncServiceRef.current.batchSync();
+        console.log('[SyncContext] Uploaded', uploaded, 'pending changes');
+
         setStatus('synced');
         setLastSyncAt(new Date());
+      } else {
+        // Use regular incremental sync
+        const result = await syncServiceRef.current.sync();
+        console.log('[SyncContext] Sync completed:', result);
+
+        // Update state based on result
+        if (result.errors.length > 0) {
+          setStatus('failed');
+          setError(new Error(result.errors.join(', ')));
+        } else {
+          setStatus('synced');
+          setLastSyncAt(new Date());
+        }
       }
 
       // IMPORTANT: Wait a bit before querying pending count to avoid lock
@@ -211,6 +227,20 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
       }
     };
   }, [initializeServices, refreshPendingCount]);
+
+  // One-shot sync with listeners on app open (only once)
+  useEffect(() => {
+    // Small delay to ensure database is ready
+    const timeoutId = setTimeout(() => {
+      if (isConnected && isInternetReachable) {
+        console.log('[SyncContext] App opened, running initial sync with listeners...');
+        sync(true); // Use listeners for initial sync
+      }
+    }, 2000);
+
+    return () => clearTimeout(timeoutId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty deps = run only once on mount
 
   return (
     <SyncContext.Provider

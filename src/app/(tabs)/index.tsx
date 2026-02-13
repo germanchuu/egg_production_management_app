@@ -14,7 +14,8 @@ export default function HomeScreen() {
 
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
-    await sync();
+    // Use listeners for pull-to-refresh to detect deletions
+    await sync(true);
     setRefreshing(false);
   }, [sync]);
 
