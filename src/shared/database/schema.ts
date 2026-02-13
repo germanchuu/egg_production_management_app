@@ -14,7 +14,7 @@
  * - Indexes for query optimization
  */
 
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 /**
  * Core Tables Schema
@@ -168,6 +168,13 @@ export const CREATE_TABLES_SQL = [
     device_id TEXT NOT NULL,
     synced INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY (user_id) REFERENCES users(id)
+  );`,
+
+  // ==================== SYNC METADATA ====================
+  `CREATE TABLE IF NOT EXISTS sync_metadata (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TEXT NOT NULL
   );`,
 ];
 

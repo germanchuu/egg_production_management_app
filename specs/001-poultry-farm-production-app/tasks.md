@@ -240,13 +240,13 @@ Per Constitution II (Feature-Based Organization):
 
 ### Sync Logic Completion
 
-- [ ] T099 Implement batch upload in SyncService.batchSync() to upload up to 500 records per batch from sync queue
-- [ ] T100 Implement incremental download in SyncService.downloadUpdates() querying Firestore for changes since lastSyncTimestamp
-- [ ] T101 Implement LWW conflict resolution in ConflictResolver for all entity types (compare localTimestamp vs serverTimestamp)
-- [ ] T102 Add automatic sync trigger on connectivity restoration using useNetInfo hook
-- [ ] T103 [P] Add manual sync trigger in app header (pull-to-refresh gesture on home screen)
-- [ ] T104 Implement sync retry logic with exponential backoff for failed syncs (max 3 retries)
-- [ ] T105 Update SyncStatusIndicator to show real-time sync status based on useSync hook state
+- [X] T099 Implement batch upload in SyncService.batchSync() to upload up to 500 records per batch from sync queue
+- [X] T100 Implement incremental download in SyncService.downloadUpdates() querying Firestore for changes since lastSyncTimestamp
+- [X] T101 Implement LWW conflict resolution in ConflictResolver for all entity types (compare localTimestamp vs serverTimestamp)
+- [X] T102 Add automatic sync trigger on connectivity restoration using useNetInfo hook
+- [X] T103 [P] Add manual sync trigger in app header (pull-to-refresh gesture on home screen)
+- [X] T104 Implement sync retry logic with exponential backoff for failed syncs (max 3 retries)
+- [X] T105 Update SyncStatusIndicator to show real-time sync status based on useSync hook state
 
 ### Firebase Firestore Listeners
 

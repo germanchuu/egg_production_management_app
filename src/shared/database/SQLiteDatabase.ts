@@ -122,7 +122,7 @@ async function runMigrations(
       console.log(`🔄 Migrating database from v${currentVersion} to v${targetVersion}...`);
 
       // Migration v1 -> v2: Add production_records table
-      if (currentVersion === 1 && targetVersion >= 2) {
+      if (currentVersion < 2 && targetVersion >= 2) {
         console.log('📦 Adding production_records table...');
 
         // Create production_records table (DDL - no transaction needed)
@@ -159,7 +159,7 @@ async function runMigrations(
       }
 
       // Migration v2 -> v3: Remove UNIQUE constraint from production_records
-      if (currentVersion === 2 && targetVersion >= 3) {
+      if (currentVersion < 3 && targetVersion >= 3) {
         console.log('📦 Removing UNIQUE constraint from production_records...');
 
         await db.execAsync('PRAGMA foreign_keys = OFF');
@@ -208,6 +208,21 @@ async function runMigrations(
         await db.execAsync('PRAGMA foreign_keys = ON');
 
         console.log('✅ UNIQUE constraint removed successfully');
+      }
+
+      // Migration v3 -> v4: Add sync_metadata table
+      if (currentVersion < 4 && targetVersion >= 4) {
+        console.log('📦 Adding sync_metadata table...');
+
+        await db.execAsync(`
+          CREATE TABLE IF NOT EXISTS sync_metadata (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+          );
+        `);
+
+        console.log('✅ sync_metadata table created successfully');
       }
     } else {
       console.log('✅ Database schema is up to date');

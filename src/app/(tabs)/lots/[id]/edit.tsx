@@ -165,7 +165,6 @@ export default function EditLotScreen() {
         <View className="px-lg pt-lg">
           {/* Info Banner */}
           <View className="flex flex-row gap-1 bg-info/10 border border-info/20 rounded-xl p-lg">
-            <Info size={18} color={theme.colors.primary.DEFAULT} />
             <Text className="text-sm text-primary-900 leading-relaxed">
               Solo el nombre del lote puede ser editado. Los demás campos
               (galpón, fecha, gallinas iniciales y edad) se mantienen bloqueados

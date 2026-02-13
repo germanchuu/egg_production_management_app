@@ -196,6 +196,20 @@ export default function AppLayout() {
       />
 
       <Drawer.Screen
+        name="mortality/[id]/edit"
+        options={{
+          drawerItemStyle: { display: 'none' },
+        }}
+      />
+
+      <Drawer.Screen
+        name="production/[id]/edit"
+        options={{
+          drawerItemStyle: { display: 'none' },
+        }}
+      />
+
+      <Drawer.Screen
         name="lots/[id]/edit"
         options={{
           drawerItemStyle: { display: 'none' },

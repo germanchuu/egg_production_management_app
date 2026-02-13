@@ -2,6 +2,8 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, Animated, Easing } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSyncContext, type SyncStatus } from '@/shared/contexts';
+import { RefreshCw } from 'lucide-react-native';
+import { theme } from '@/core/theme';
 
 export interface SyncStatusIndicatorProps {
   status: SyncStatus;
@@ -115,12 +117,6 @@ export function SyncStatusIndicatorBase({
     >
       {/* Left: icon + text */}
       <View className="flex-row items-center gap-sm flex-1">
-        <Animated.View
-          style={config.animate ? { transform: [{ rotate: spin }] } : undefined}
-        >
-          <Ionicons size={iconSize} className={config.textClass} />
-        </Animated.View>
-
         {showLabel && (
           <Text
             className={`text-sm font-medium ${config.textClass}`}
@@ -137,10 +133,10 @@ export function SyncStatusIndicatorBase({
       {status === 'failed' && onRetry && (
         <TouchableOpacity
           onPress={onRetry}
-          className="flex-row items-center gap-xs px-sm py-xs rounded-md"
+          className="flex-row items-center gap-sm px-sm py-xs rounded-md"
           accessibilityLabel="Reintentar sincronización"
         >
-          <Ionicons name="refresh" size={14} className="text-error" />
+          <RefreshCw size={16} color={theme.colors.error.DEFAULT} />
           <Text className="text-xs font-medium text-error">Reintentar</Text>
         </TouchableOpacity>
       )}

@@ -173,9 +173,44 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isConnected, isInternetReachable, initializeServices]);
 
-  // NOTE: NO auto-sync on connectivity restoration
-  // NOTE: NO automatic polling interval
-  // All sync operations are manual only to prevent database lock conflicts
+  // T102: Auto-sync on connectivity restoration
+  useEffect(() => {
+    if (isConnected && isInternetReachable && !isSyncingRef.current) {
+      // Trigger sync when connectivity is restored
+      // Small delay to ensure network is stable
+      const timeoutId = setTimeout(() => {
+        sync();
+      }, 1000);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isConnected, isInternetReachable, sync]);
+
+  // Listen to sync queue changes for real-time UI updates
+  useEffect(() => {
+    initializeServices();
+
+    if (!syncQueueRef.current) {
+      return;
+    }
+
+    const handleQueueChanged = () => {
+      refreshPendingCount();
+    };
+
+    // Subscribe to queue changes
+    syncQueueRef.current.on('changed', handleQueueChanged);
+
+    // Initial count on mount
+    refreshPendingCount();
+
+    // Cleanup: remove listener on unmount
+    return () => {
+      if (syncQueueRef.current) {
+        syncQueueRef.current.off('changed', handleQueueChanged);
+      }
+    };
+  }, [initializeServices, refreshPendingCount]);
 
   return (
     <SyncContext.Provider

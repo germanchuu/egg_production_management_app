@@ -8,6 +8,9 @@
  * not the actual data payloads. The actual data is stored in the respective tables
  * (production_records, mortality_records, etc.) and retrieved when syncing.
  *
+ * Events:
+ * - 'changed': Emitted when queue state changes (enqueue, markSynced, markBatchSynced)
+ *
  * Usage:
  * ```typescript
  * import { SyncQueue } from '@/shared/sync/SyncQueue';
@@ -15,6 +18,11 @@
  *
  * const db = getDatabase();
  * const syncQueue = new SyncQueue(db);
+ *
+ * // Listen for queue changes
+ * syncQueue.on('changed', () => {
+ *   console.log('Queue changed');
+ * });
  *
  * // Add operation to queue (only reference, no data payload)
  * await syncQueue.enqueue({
@@ -33,6 +41,7 @@
 
 import * as SQLite from 'expo-sqlite';
 import { generateId } from '@/shared/utils/id';
+import { EventEmitter } from 'events';
 
 /**
  * Sync operation types
@@ -64,9 +73,13 @@ export interface QueueRecord {
 
 /**
  * SyncQueue service for managing offline sync operations
+ *
+ * Extends EventEmitter to notify subscribers when the queue state changes
  */
-export class SyncQueue {
-  constructor(private db: SQLite.SQLiteDatabase) {}
+export class SyncQueue extends EventEmitter {
+  constructor(private db: SQLite.SQLiteDatabase) {
+    super();
+  }
 
   /**
    * Adds an operation to the sync queue
@@ -82,6 +95,9 @@ export class SyncQueue {
        VALUES (?, ?, ?, ?, ?, 0)`,
       [id, operation.entityType, operation.entityId, operation.operation, now]
     );
+
+    // Emit event to notify listeners that queue has changed
+    this.emit('changed');
   }
 
   /**
@@ -115,6 +131,9 @@ export class SyncQueue {
        WHERE id = ?`,
       [now, queueId]
     );
+
+    // Emit event to notify listeners that queue has changed
+    this.emit('changed');
   }
 
   /**
@@ -158,6 +177,9 @@ export class SyncQueue {
        WHERE id IN (${placeholders})`,
       [now, ...queueIds]
     );
+
+    // Emit event to notify listeners that queue has changed
+    this.emit('changed');
   }
 
   /**

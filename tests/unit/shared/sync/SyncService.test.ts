@@ -264,15 +264,28 @@ describe('SyncService', () => {
         updatedAt: '2024-01-15T10:00:00.000Z',
       };
 
-      mockGetDocs.mockResolvedValue({
-        docs: [
-          {
-            id: remoteRecord.id,
-            data: () => remoteRecord,
-            exists: () => true,
-          },
-        ],
-        empty: false,
+      // Mock collection to track which collection is being queried
+      let currentCollection = '';
+      mockCollection.mockImplementation((_firestore: any, collectionName: string) => {
+        currentCollection = collectionName;
+        return { _collectionName: collectionName };
+      });
+
+      // Mock getDocs to return data only for production_records, empty for others
+      mockGetDocs.mockImplementation(() => {
+        if (currentCollection === 'production_records') {
+          return Promise.resolve({
+            docs: [
+              {
+                id: remoteRecord.id,
+                data: () => remoteRecord,
+                exists: () => true,
+              },
+            ],
+            empty: false,
+          });
+        }
+        return Promise.resolve({ docs: [], empty: true });
       });
 
       await syncService.downloadUpdates();
@@ -317,15 +330,28 @@ describe('SyncService', () => {
         updatedAt: '2024-01-15T10:00:00.000Z', // Newer
       };
 
-      mockGetDocs.mockResolvedValue({
-        docs: [
-          {
-            id: remoteRecord.id,
-            data: () => remoteRecord,
-            exists: () => true,
-          },
-        ],
-        empty: false,
+      // Mock collection to track which collection is being queried
+      let currentCollection = '';
+      mockCollection.mockImplementation((_firestore: any, collectionName: string) => {
+        currentCollection = collectionName;
+        return { _collectionName: collectionName };
+      });
+
+      // Mock getDocs to return data only for production_records, empty for others
+      mockGetDocs.mockImplementation(() => {
+        if (currentCollection === 'production_records') {
+          return Promise.resolve({
+            docs: [
+              {
+                id: remoteRecord.id,
+                data: () => remoteRecord,
+                exists: () => true,
+              },
+            ],
+            empty: false,
+          });
+        }
+        return Promise.resolve({ docs: [], empty: true });
       });
 
       await syncService.downloadUpdates();

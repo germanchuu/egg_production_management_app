@@ -44,7 +44,8 @@ export default function EditMortalityRecordScreen() {
     async function loadRecord() {
       try {
         setLoading(true);
-        const mortService = await MortalityServiceProvider.getMortalityService();
+        const mortService =
+          await MortalityServiceProvider.getMortalityService();
         const records = await mortService.getAllMortalityRecords();
 
         if (records.success && records.data) {
@@ -53,7 +54,8 @@ export default function EditMortalityRecordScreen() {
             setRecord(found);
 
             // Load lot details
-            const facService = await FacilityServiceProvider.getFacilityService();
+            const facService =
+              await FacilityServiceProvider.getFacilityService();
             const lotResult = await facService.getLotDetails(found.lotId);
             if (lotResult.success && lotResult.data) {
               setLot(lotResult.data);
@@ -146,7 +148,6 @@ export default function EditMortalityRecordScreen() {
         <View className="px-lg pt-lg">
           {/* Info Banner */}
           <View className="flex flex-row gap-1 bg-info/10 border border-info/20 rounded-xl p-lg">
-            <Info size={18} color={theme.colors.primary.DEFAULT} />
             <Text className="text-sm text-primary-900 leading-relaxed">
               Solo la cantidad de gallinas puede ser editada. La fecha y el lote
               se mantienen bloqueados después de la creación. El conteo de

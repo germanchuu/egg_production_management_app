@@ -340,9 +340,136 @@ export class SyncService {
       };
     }
 
-    // Add more entity type conversions as needed
-    // For now, return as-is for other types
+    if (entityType === 'mortality_records') {
+      return {
+        id: dbRecord.id,
+        lotId: dbRecord.lot_id,
+        date: dbRecord.date,
+        hensDied: dbRecord.hens_died,
+        recordedBy: dbRecord.recorded_by,
+        createdAt: dbRecord.created_at,
+        updatedAt: dbRecord.updated_at,
+      };
+    }
+
+    if (entityType === 'invitations') {
+      return {
+        id: dbRecord.id,
+        userId: dbRecord.user_id,
+        token: dbRecord.token,
+        status: dbRecord.status,
+        expiresAt: dbRecord.expires_at,
+        createdBy: dbRecord.created_by,
+        createdAt: dbRecord.created_at,
+        updatedAt: dbRecord.updated_at,
+      };
+    }
+
+    if (entityType === 'feed_batches') {
+      return {
+        id: dbRecord.id,
+        name: dbRecord.name,
+        preparationDate: dbRecord.preparation_date,
+        quantityKg: dbRecord.quantity_kg,
+        createdBy: dbRecord.created_by,
+        createdAt: dbRecord.created_at,
+        updatedAt: dbRecord.updated_at,
+      };
+    }
+
+    if (entityType === 'feeding_records') {
+      return {
+        id: dbRecord.id,
+        lotId: dbRecord.lot_id,
+        feedBatchId: dbRecord.feed_batch_id,
+        date: dbRecord.date,
+        quantityFedKg: dbRecord.quantity_fed_kg,
+        recordedBy: dbRecord.recorded_by,
+        createdAt: dbRecord.created_at,
+        updatedAt: dbRecord.updated_at,
+      };
+    }
+
+    if (entityType === 'health_events') {
+      return {
+        id: dbRecord.id,
+        lotId: dbRecord.lot_id,
+        eventType: dbRecord.event_type,
+        eventDate: dbRecord.event_date,
+        productName: dbRecord.product_name,
+        notes: dbRecord.notes,
+        recordedBy: dbRecord.recorded_by,
+        createdAt: dbRecord.created_at,
+        updatedAt: dbRecord.updated_at,
+      };
+    }
+
+    if (entityType === 'biosecurity_events') {
+      return {
+        id: dbRecord.id,
+        eventType: dbRecord.event_type,
+        eventDate: dbRecord.event_date,
+        productName: dbRecord.product_name,
+        notes: dbRecord.notes,
+        recordedBy: dbRecord.recorded_by,
+        createdAt: dbRecord.created_at,
+        updatedAt: dbRecord.updated_at,
+      };
+    }
+
+    // Fallback: return as-is for unknown types
     return dbRecord;
+  }
+
+  /**
+   * Gets the last sync timestamp from local database
+   * Creates sync_metadata table if it doesn't exist (lazy initialization)
+   */
+  private async getLastSyncTimestamp(): Promise<string> {
+    try {
+      // Ensure sync_metadata table exists (lazy initialization for migration compatibility)
+      await this.db.execAsync(`
+        CREATE TABLE IF NOT EXISTS sync_metadata (
+          key TEXT PRIMARY KEY,
+          value TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+      `);
+
+      const result = await this.db.getFirstAsync<{ value: string }>(
+        `SELECT value FROM sync_metadata WHERE key = 'lastSyncTimestamp'`
+      );
+      return result?.value || '1970-01-01T00:00:00.000Z';
+    } catch (error) {
+      console.error('[SyncService] Error getting last sync timestamp:', error);
+      return '1970-01-01T00:00:00.000Z';
+    }
+  }
+
+  /**
+   * Updates the last sync timestamp in local database
+   * Creates sync_metadata table if it doesn't exist (lazy initialization)
+   */
+  private async updateLastSyncTimestamp(timestamp: string): Promise<void> {
+    try {
+      // Ensure sync_metadata table exists (lazy initialization for migration compatibility)
+      await this.db.execAsync(`
+        CREATE TABLE IF NOT EXISTS sync_metadata (
+          key TEXT PRIMARY KEY,
+          value TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+      `);
+
+      await this.db.runAsync(
+        `INSERT OR REPLACE INTO sync_metadata (key, value, updated_at)
+         VALUES ('lastSyncTimestamp', ?, ?)`,
+        [timestamp, new Date().toISOString()]
+      );
+    } catch (error) {
+      console.error('[SyncService] Error updating last sync timestamp:', error);
+      throw error;
+    }
   }
 
   /**
@@ -354,6 +481,7 @@ export class SyncService {
    *    - Check if exists locally
    *    - If exists, apply conflict resolution
    *    - If not exists or remote wins, update local DB
+   * 3. Update last sync timestamp
    *
    * @returns Number of documents downloaded
    */
@@ -361,24 +489,32 @@ export class SyncService {
     let downloadCount = 0;
     let conflictCount = 0;
 
-    // For now, download production_records only
-    // In full implementation, iterate over all collection types
+    // Get last sync timestamp for incremental download
+    const lastSyncTimestamp = await this.getLastSyncTimestamp();
+    const currentSyncTimestamp = new Date().toISOString();
+
+    // All collection types for comprehensive sync
     const collections = [
       'production_records',
+      'mortality_records',
       'users',
-      'audit_logs',
+      'invitations',
       'chicken_houses',
       'chicken_lots',
+      'feed_batches',
+      'feeding_records',
+      'health_events',
+      'biosecurity_events',
+      'audit_logs',
     ];
 
     for (const collectionName of collections) {
       const collectionRef = collection(this.firestore, collectionName);
 
-      // TODO: Add timestamp filtering: where('updatedAt', '>', lastSyncTimestamp)
-      // For now, get all documents (will implement timestamp tracking later)
+      // Incremental download: only get documents updated since last sync
       const q = query(
         collectionRef,
-        where('updatedAt', '>', '1970-01-01T00:00:00.000Z')
+        where('updatedAt', '>', lastSyncTimestamp)
       );
       const snapshot = await getDocs(q);
 
@@ -419,6 +555,9 @@ export class SyncService {
         downloadCount++;
       }
     }
+
+    // Update last sync timestamp after successful download
+    await this.updateLastSyncTimestamp(currentSyncTimestamp);
 
     return { downloaded: downloadCount, conflicts: conflictCount };
   }
@@ -529,15 +668,129 @@ export class SyncService {
       return;
     }
 
+    if (entityType === 'mortality_records') {
+      await this.db.runAsync(
+        `INSERT OR REPLACE INTO mortality_records
+         (id, lot_id, date, hens_died, recorded_by, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [
+          remoteData.id,
+          remoteData.lotId,
+          remoteData.date,
+          remoteData.hensDied,
+          remoteData.recordedBy,
+          remoteData.createdAt,
+          remoteData.updatedAt,
+        ]
+      );
+      return;
+    }
+
+    if (entityType === 'invitations') {
+      await this.db.runAsync(
+        `INSERT OR REPLACE INTO invitations
+         (id, user_id, token, status, expires_at, created_by, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          remoteData.id,
+          remoteData.userId,
+          remoteData.token,
+          remoteData.status,
+          remoteData.expiresAt,
+          remoteData.createdBy,
+          remoteData.createdAt,
+          remoteData.updatedAt,
+        ]
+      );
+      return;
+    }
+
+    if (entityType === 'feed_batches') {
+      await this.db.runAsync(
+        `INSERT OR REPLACE INTO feed_batches
+         (id, name, preparation_date, quantity_kg, created_by, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [
+          remoteData.id,
+          remoteData.name,
+          remoteData.preparationDate,
+          remoteData.quantityKg,
+          remoteData.createdBy,
+          remoteData.createdAt,
+          remoteData.updatedAt,
+        ]
+      );
+      return;
+    }
+
+    if (entityType === 'feeding_records') {
+      await this.db.runAsync(
+        `INSERT OR REPLACE INTO feeding_records
+         (id, lot_id, feed_batch_id, date, quantity_fed_kg, recorded_by, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          remoteData.id,
+          remoteData.lotId,
+          remoteData.feedBatchId,
+          remoteData.date,
+          remoteData.quantityFedKg,
+          remoteData.recordedBy,
+          remoteData.createdAt,
+          remoteData.updatedAt,
+        ]
+      );
+      return;
+    }
+
+    if (entityType === 'health_events') {
+      await this.db.runAsync(
+        `INSERT OR REPLACE INTO health_events
+         (id, lot_id, event_type, event_date, product_name, notes, recorded_by, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          remoteData.id,
+          remoteData.lotId,
+          remoteData.eventType,
+          remoteData.eventDate,
+          remoteData.productName,
+          remoteData.notes ?? null,
+          remoteData.recordedBy,
+          remoteData.createdAt,
+          remoteData.updatedAt,
+        ]
+      );
+      return;
+    }
+
+    if (entityType === 'biosecurity_events') {
+      await this.db.runAsync(
+        `INSERT OR REPLACE INTO biosecurity_events
+         (id, event_type, event_date, product_name, notes, recorded_by, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          remoteData.id,
+          remoteData.eventType,
+          remoteData.eventDate,
+          remoteData.productName,
+          remoteData.notes ?? null,
+          remoteData.recordedBy,
+          remoteData.createdAt,
+          remoteData.updatedAt,
+        ]
+      );
+      return;
+    }
+
     throw new Error(`Unknown entity type: ${entityType}`);
   }
 
   /**
-   * Executes full sync cycle (upload then download)
+   * Executes full sync cycle (upload then download) with retry logic
    *
+   * @param retryCount Current retry attempt (0 = first attempt)
    * @returns Sync statistics
    */
-  async sync(): Promise<SyncResult> {
+  async sync(retryCount = 0): Promise<SyncResult> {
     const errors: string[] = [];
     let uploaded = 0;
     let downloaded = 0;
@@ -547,8 +800,20 @@ export class SyncService {
       // Phase 1: Upload pending changes (batch)
       uploaded = await this.batchSync();
     } catch (error) {
-      errors.push(`Upload failed: ${(error as Error).message}`);
-      throw error; // Stop sync on upload failure
+      const errorMessage = `Upload failed: ${(error as Error).message}`;
+      errors.push(errorMessage);
+
+      // Retry with exponential backoff (max 3 retries)
+      if (retryCount < 3) {
+        const delayMs = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s
+        console.log(`[SyncService] Retry ${retryCount + 1}/3 after ${delayMs}ms...`);
+
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+        return this.sync(retryCount + 1);
+      }
+
+      // Max retries exceeded
+      throw error;
     }
 
     try {
@@ -557,7 +822,28 @@ export class SyncService {
       downloaded = downloadResult.downloaded;
       conflicts = downloadResult.conflicts;
     } catch (error) {
-      errors.push(`Download failed: ${(error as Error).message}`);
+      const errorMessage = `Download failed: ${(error as Error).message}`;
+      errors.push(errorMessage);
+
+      // Retry download with exponential backoff (max 3 retries)
+      if (retryCount < 3) {
+        const delayMs = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s
+        console.log(`[SyncService] Download retry ${retryCount + 1}/3 after ${delayMs}ms...`);
+
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+
+        // Retry only download phase
+        try {
+          const retryDownload = await this.downloadUpdates();
+          downloaded = retryDownload.downloaded;
+          conflicts = retryDownload.conflicts;
+          // Clear download error if retry succeeds
+          errors.pop();
+        } catch (retryError) {
+          // Download failed even after retry
+          errors.push(`Download retry failed: ${(retryError as Error).message}`);
+        }
+      }
     }
 
     return {
