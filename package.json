@@ -27,6 +27,7 @@
     "@react-native-community/datetimepicker": "^8.4.4",
     "@react-native-community/netinfo": "11.4.1",
     "@react-navigation/drawer": "^7.8.0",
+    "eventemitter3": "^5.0.4",
     "expo": "~54.0.32",
     "expo-constants": "~18.0.13",
     "expo-dev-client": "~6.0.20",

@@ -14,6 +14,7 @@ import { FacilityServiceProvider } from '@/features/facilities/services/Facility
 import { LotCard } from '@/features/facilities/components/LotCard';
 import { LotCardSkeleton } from '@/features/facilities/components/LotCardSkeleton';
 import { useToastContext } from '@/shared/contexts/ToastContext';
+import { useSyncRefresh } from '@/shared/contexts/SyncContext';
 import { theme } from '@/core/theme';
 import { Button } from '@/shared/components/Button';
 
@@ -54,11 +55,15 @@ export default function LotsScreen() {
     }
   }, [activeOnly, error]);
 
+  // Load data when screen gains focus
   useFocusEffect(
     useCallback(() => {
       loadData();
     }, [loadData])
   );
+
+  // Auto-refresh when sync completes (from any screen)
+  useSyncRefresh(loadData);
 
   const getHouseName = (houseId: string) => {
     return houses.find((h) => h.id === houseId)?.name || 'Galpón desconocido';

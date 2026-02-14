@@ -224,6 +224,74 @@ async function runMigrations(
 
         console.log('✅ sync_metadata table created successfully');
       }
+
+      // Migration v4 -> v5: Split lot_events into health_events and biosecurity_events
+      if (currentVersion < 5 && targetVersion >= 5) {
+        console.log('📦 Splitting lot_events into health_events and biosecurity_events...');
+
+        await db.execAsync('PRAGMA foreign_keys = OFF');
+
+        // Rename lot_events to health_events
+        await db.execAsync(`
+          ALTER TABLE lot_events RENAME TO health_events;
+        `);
+
+        // Create biosecurity_events table (farm-level, no lot_id)
+        await db.execAsync(`
+          CREATE TABLE IF NOT EXISTS biosecurity_events (
+            id TEXT PRIMARY KEY,
+            event_type TEXT NOT NULL,
+            event_date TEXT NOT NULL,
+            product_name TEXT NOT NULL,
+            notes TEXT,
+            recorded_by TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            FOREIGN KEY (recorded_by) REFERENCES users(id)
+          );
+        `);
+
+        // Create indexes for biosecurity_events
+        await db.execAsync(`
+          CREATE INDEX IF NOT EXISTS idx_biosecurity_events_event_date
+          ON biosecurity_events(event_date);
+        `);
+        await db.execAsync(`
+          CREATE INDEX IF NOT EXISTS idx_biosecurity_events_event_type
+          ON biosecurity_events(event_type);
+        `);
+        await db.execAsync(`
+          CREATE INDEX IF NOT EXISTS idx_biosecurity_events_recorded_by
+          ON biosecurity_events(recorded_by);
+        `);
+
+        // Rename health_events indexes (from lot_events)
+        await db.execAsync('DROP INDEX IF EXISTS idx_lot_events_lot_id');
+        await db.execAsync('DROP INDEX IF EXISTS idx_lot_events_event_date');
+        await db.execAsync('DROP INDEX IF EXISTS idx_lot_events_event_type');
+        await db.execAsync('DROP INDEX IF EXISTS idx_lot_events_recorded_by');
+
+        await db.execAsync(`
+          CREATE INDEX IF NOT EXISTS idx_health_events_lot_id
+          ON health_events(lot_id);
+        `);
+        await db.execAsync(`
+          CREATE INDEX IF NOT EXISTS idx_health_events_event_date
+          ON health_events(event_date);
+        `);
+        await db.execAsync(`
+          CREATE INDEX IF NOT EXISTS idx_health_events_event_type
+          ON health_events(event_type);
+        `);
+        await db.execAsync(`
+          CREATE INDEX IF NOT EXISTS idx_health_events_recorded_by
+          ON health_events(recorded_by);
+        `);
+
+        await db.execAsync('PRAGMA foreign_keys = ON');
+
+        console.log('✅ health_events and biosecurity_events tables created successfully');
+      }
     } else {
       console.log('✅ Database schema is up to date');
     }

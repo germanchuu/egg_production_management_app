@@ -18,6 +18,7 @@ import { MortalityHistoryList } from '@/features/mortality/components/MortalityH
 import { MortalityRecordFormData } from '@/features/mortality/utils/validation';
 import { useAuth } from '@/features/auth/contexts/AuthContext';
 import { useToastContext } from '@/shared/contexts/ToastContext';
+import { useSyncRefresh } from '@/shared/contexts/SyncContext';
 import { theme } from '@/core/theme';
 
 export default function MortalityScreen() {
@@ -55,11 +56,15 @@ export default function MortalityScreen() {
     }
   }, [error]);
 
+  // Load data when screen gains focus
   useFocusEffect(
     useCallback(() => {
       loadData();
     }, [loadData])
   );
+
+  // Auto-refresh when sync completes (from any screen)
+  useSyncRefresh(loadData);
 
   const handleRecordMortality = async (data: MortalityRecordFormData) => {
     if (!user) {

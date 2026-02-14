@@ -16,6 +16,7 @@ import { HouseCardSkeleton } from '@/features/facilities/components/HouseCardSke
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
 import { useAuth } from '@/features/auth/contexts/AuthContext';
 import { useToastContext } from '@/shared/contexts/ToastContext';
+import { useSyncRefresh } from '@/shared/contexts/SyncContext';
 import { theme } from '@/core/theme';
 import { Button } from '@/shared/components/Button';
 
@@ -47,11 +48,15 @@ export default function HousesScreen() {
     }
   }, [error]);
 
+  // Load data when screen gains focus
   useFocusEffect(
     useCallback(() => {
       loadHouses();
     }, [loadHouses])
   );
+
+  // Auto-refresh when sync completes (from any screen)
+  useSyncRefresh(loadHouses);
 
   // Delete handler
   const handleDeleteRequest = (houseId: string) => {

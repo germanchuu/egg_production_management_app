@@ -23,6 +23,7 @@ import { ProductionFormSkeleton } from '@/features/production/components/Product
 import { ProductionRecordFormData } from '@/features/production/utils/validation';
 import { useAuth } from '@/features/auth/contexts/AuthContext';
 import { useToastContext } from '@/shared/contexts/ToastContext';
+import { useSyncRefresh } from '@/shared/contexts/SyncContext';
 import { theme } from '@/core/theme';
 
 export default function ProductionScreen() {
@@ -65,11 +66,15 @@ export default function ProductionScreen() {
     }
   }, [error]);
 
+  // Load data when screen gains focus
   useFocusEffect(
     useCallback(() => {
       loadData();
     }, [loadData])
   );
+
+  // Auto-refresh when sync completes (from any screen)
+  useSyncRefresh(loadData);
 
   const handleRecordProduction = async (data: ProductionRecordFormData) => {
     if (!user) {

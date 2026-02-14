@@ -14,7 +14,7 @@
  * - Indexes for query optimization
  */
 
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 
 /**
  * Core Tables Schema
@@ -130,11 +130,11 @@ export const CREATE_TABLES_SQL = [
     FOREIGN KEY (recorded_by) REFERENCES users(id)
   );`,
 
-  // ==================== LOT EVENTS (Health & Biosecurity) ====================
-  `CREATE TABLE IF NOT EXISTS lot_events (
+  // ==================== HEALTH EVENTS (Lot-level) ====================
+  `CREATE TABLE IF NOT EXISTS health_events (
     id TEXT PRIMARY KEY,
     lot_id TEXT NOT NULL,
-    event_type TEXT NOT NULL CHECK(event_type IN ('vaccination', 'disinfection')),
+    event_type TEXT NOT NULL,
     event_date TEXT NOT NULL,
     product_name TEXT NOT NULL,
     notes TEXT,
@@ -142,6 +142,19 @@ export const CREATE_TABLES_SQL = [
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
     FOREIGN KEY (lot_id) REFERENCES chicken_lots(id),
+    FOREIGN KEY (recorded_by) REFERENCES users(id)
+  );`,
+
+  // ==================== BIOSECURITY EVENTS (Farm-level) ====================
+  `CREATE TABLE IF NOT EXISTS biosecurity_events (
+    id TEXT PRIMARY KEY,
+    event_type TEXT NOT NULL,
+    event_date TEXT NOT NULL,
+    product_name TEXT NOT NULL,
+    notes TEXT,
+    recorded_by TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
     FOREIGN KEY (recorded_by) REFERENCES users(id)
   );`,
 
@@ -226,11 +239,16 @@ export const CREATE_INDEXES_SQL = [
   'CREATE INDEX IF NOT EXISTS idx_feeding_records_date ON feeding_records(date);',
   'CREATE INDEX IF NOT EXISTS idx_feeding_records_recorded_by ON feeding_records(recorded_by);',
 
-  // ==================== LOT EVENTS (Health & Biosecurity) ====================
-  'CREATE INDEX IF NOT EXISTS idx_lot_events_lot_id ON lot_events(lot_id);',
-  'CREATE INDEX IF NOT EXISTS idx_lot_events_event_date ON lot_events(event_date);',
-  'CREATE INDEX IF NOT EXISTS idx_lot_events_event_type ON lot_events(event_type);',
-  'CREATE INDEX IF NOT EXISTS idx_lot_events_recorded_by ON lot_events(recorded_by);',
+  // ==================== HEALTH EVENTS ====================
+  'CREATE INDEX IF NOT EXISTS idx_health_events_lot_id ON health_events(lot_id);',
+  'CREATE INDEX IF NOT EXISTS idx_health_events_event_date ON health_events(event_date);',
+  'CREATE INDEX IF NOT EXISTS idx_health_events_event_type ON health_events(event_type);',
+  'CREATE INDEX IF NOT EXISTS idx_health_events_recorded_by ON health_events(recorded_by);',
+
+  // ==================== BIOSECURITY EVENTS ====================
+  'CREATE INDEX IF NOT EXISTS idx_biosecurity_events_event_date ON biosecurity_events(event_date);',
+  'CREATE INDEX IF NOT EXISTS idx_biosecurity_events_event_type ON biosecurity_events(event_type);',
+  'CREATE INDEX IF NOT EXISTS idx_biosecurity_events_recorded_by ON biosecurity_events(recorded_by);',
 
   // ==================== SYNC QUEUE ====================
   // Partial index for pending sync items (most frequent query)

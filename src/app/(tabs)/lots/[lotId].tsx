@@ -27,6 +27,7 @@ import { MortalityHistoryList } from '@/features/mortality/components/MortalityH
 import { ProductionHistoryList } from '@/features/production/components/ProductionHistoryList';
 import { ProductionMetricsCard, ProductionMetrics } from '@/features/production/components/ProductionMetricsCard';
 import { useToastContext } from '@/shared/contexts/ToastContext';
+import { useSyncRefresh } from '@/shared/contexts/SyncContext';
 import { theme } from '@/core/theme';
 
 export default function LotDetailsScreen() {
@@ -95,11 +96,15 @@ export default function LotDetailsScreen() {
     }
   }, [lotId, router, error]);
 
+  // Load data when screen gains focus
   useFocusEffect(
     useCallback(() => {
       loadLotDetails();
     }, [loadLotDetails])
   );
+
+  // Auto-refresh when sync completes (from any screen)
+  useSyncRefresh(loadLotDetails);
 
   const getHouseName = (houseId: string) => {
     return houses.find((h) => h.id === houseId)?.name || 'Galpón desconocido';

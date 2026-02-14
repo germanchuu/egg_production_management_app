@@ -14,8 +14,12 @@ export default function HomeScreen() {
 
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
-    // Use listeners for pull-to-refresh to detect deletions
-    await sync(true);
+    // Small delay to let Firestore sync with server before reading
+    // This ensures we read fresh data instead of stale cache
+    await new Promise(resolve => setTimeout(resolve, 500));
+    // Fast sync: Uses listeners to detect inserts/updates from other users (5-10s)
+    // Deletion detection happens automatically every 7 days in deep refresh
+    await sync(false);
     setRefreshing(false);
   }, [sync]);
 

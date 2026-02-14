@@ -34,6 +34,7 @@ import {
 } from '@/features/auth/hooks';
 import { UserCardSkeleton } from '@/features/auth/components/user/UserCardSkeleton';
 import { useToastContext } from '@/shared/contexts';
+import { useSyncRefresh } from '@/shared/contexts/SyncContext';
 
 export default function UsersListScreen() {
   const router = useRouter();
@@ -96,6 +97,9 @@ export default function UsersListScreen() {
       loadUsers();
     }, [loadUsers])
   );
+
+  // Auto-refresh when sync completes (from any screen)
+  useSyncRefresh(loadUsers);
 
   return (
     <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-background">

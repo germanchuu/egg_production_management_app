@@ -34,6 +34,7 @@ import { ConflictResolver } from '@/shared/sync/ConflictResolver';
 import { getDatabase } from '@/shared/database';
 import { firestore } from '@/core/config/firebase';
 import { syncWithListeners } from '@/shared/sync/listeners/syncWithListeners';
+import EventEmitter from 'eventemitter3';
 
 export type SyncStatus = 'synced' | 'pending' | 'syncing' | 'failed';
 
@@ -43,12 +44,17 @@ interface SyncContextValue {
   lastSyncAt: Date | null;
   error: Error | null;
   isOnline: boolean;
-  sync: () => Promise<void>;
+  sync: (useListeners?: boolean) => Promise<void>;
   refreshPendingCount: () => Promise<void>;
   getPendingEntityIds: (entityType: string) => Promise<Set<string>>;
+  onSyncCompleted: (callback: () => void) => void;
+  offSyncCompleted: (callback: () => void) => void;
 }
 
 const SyncContext = createContext<SyncContextValue | undefined>(undefined);
+
+// Global event emitter for sync events
+const syncEventEmitter = new EventEmitter();
 
 export function SyncProvider({ children }: { children: React.ReactNode }) {
   const { isConnected, isInternetReachable } = useNetInfo();
@@ -144,12 +150,57 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
       setStatus('syncing');
       setError(null);
 
+      const db = getDatabase();
+
+      // Auto deep refresh: Check if we need a full sync (every 7 days)
+      if (!useListeners) {
+        const lastFullSync = await db.getFirstAsync<{ value: string }>(
+          `SELECT value FROM sync_metadata WHERE key = 'lastFullSyncAt'`
+        );
+
+        const lastFullSyncDate = lastFullSync?.value
+          ? new Date(lastFullSync.value)
+          : null;
+
+        const daysSinceLastFullSync = lastFullSyncDate
+          ? (Date.now() - lastFullSyncDate.getTime()) / (1000 * 60 * 60 * 24)
+          : Infinity;
+
+        // If more than 7 days, force full sync to detect deletions
+        if (daysSinceLastFullSync > 7) {
+          console.log(
+            `[SyncContext] Last full sync was ${daysSinceLastFullSync.toFixed(1)} days ago, running deep refresh...`
+          );
+          useListeners = true;
+        }
+      }
+
       console.log('[SyncContext] Starting sync...');
 
       if (useListeners) {
-        // Use one-shot listeners for full sync (includes deletions)
-        console.log('[SyncContext] Using one-shot listeners for full sync...');
-        await syncWithListeners();
+        // Deep refresh mode: Full sync with deletion detection
+        console.log('[SyncContext] Deep refresh: Full sync with deletion detection...');
+        await syncWithListeners(true); // detectDeletions = true
+
+        // Upload pending local changes
+        const uploaded = await syncServiceRef.current.batchSync();
+        console.log('[SyncContext] Uploaded', uploaded, 'pending changes');
+
+        // Save full sync timestamp
+        const now = new Date().toISOString();
+        await db.runAsync(
+          `INSERT OR REPLACE INTO sync_metadata (key, value, updated_at) VALUES (?, ?, ?)`,
+          ['lastFullSyncAt', now, now]
+        );
+
+        setStatus('synced');
+        setLastSyncAt(new Date());
+      } else {
+        // Fast refresh mode: Listeners without deletion detection
+        // This allows users to see insertions/updates from other users immediately
+        // while being much faster than deep refresh
+        console.log('[SyncContext] Fast refresh: Syncing inserts/updates (no deletion detection)...');
+        await syncWithListeners(false); // detectDeletions = false
 
         // Upload pending local changes
         const uploaded = await syncServiceRef.current.batchSync();
@@ -157,19 +208,6 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
 
         setStatus('synced');
         setLastSyncAt(new Date());
-      } else {
-        // Use regular incremental sync
-        const result = await syncServiceRef.current.sync();
-        console.log('[SyncContext] Sync completed:', result);
-
-        // Update state based on result
-        if (result.errors.length > 0) {
-          setStatus('failed');
-          setError(new Error(result.errors.join(', ')));
-        } else {
-          setStatus('synced');
-          setLastSyncAt(new Date());
-        }
       }
 
       // IMPORTANT: Wait a bit before querying pending count to avoid lock
@@ -180,6 +218,9 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
         const count = await syncQueueRef.current.getPendingCount();
         setPendingCount(count);
       }
+
+      // Emit sync completed event so all screens can refresh their data
+      syncEventEmitter.emit('sync-completed');
     } catch (err) {
       console.error('[SyncContext] Sync error:', err);
       setStatus('failed');
@@ -242,6 +283,15 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty deps = run only once on mount
 
+  // Event subscription functions
+  const onSyncCompleted = useCallback((callback: () => void) => {
+    syncEventEmitter.on('sync-completed', callback);
+  }, []);
+
+  const offSyncCompleted = useCallback((callback: () => void) => {
+    syncEventEmitter.off('sync-completed', callback);
+  }, []);
+
   return (
     <SyncContext.Provider
       value={{
@@ -253,6 +303,8 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
         sync,
         refreshPendingCount,
         getPendingEntityIds,
+        onSyncCompleted,
+        offSyncCompleted,
       }}
     >
       {children}
@@ -266,4 +318,45 @@ export function useSyncContext(): SyncContextValue {
     throw new Error('useSyncContext must be used within SyncProvider');
   }
   return context;
+}
+
+/**
+ * Hook to automatically refresh data when sync completes
+ *
+ * Use this hook in any screen that displays data from the database
+ * to ensure it refreshes automatically after a sync (from any screen).
+ *
+ * @param callback Function to call when sync completes (usually your loadData function)
+ *
+ * @example
+ * ```typescript
+ * const loadData = useCallback(async () => {
+ *   // Load data from database
+ * }, []);
+ *
+ * useSyncRefresh(loadData); // Auto-refresh when sync completes
+ * ```
+ */
+export function useSyncRefresh(callback: () => void) {
+  const { onSyncCompleted, offSyncCompleted } = useSyncContext();
+  const callbackRef = useRef(callback);
+
+  // Update ref when callback changes (without re-subscribing)
+  useEffect(() => {
+    callbackRef.current = callback;
+  }, [callback]);
+
+  // Subscribe once on mount
+  useEffect(() => {
+    const handler = () => {
+      callbackRef.current();
+    };
+
+    onSyncCompleted(handler);
+
+    // Cleanup: unsubscribe on unmount
+    return () => {
+      offSyncCompleted(handler);
+    };
+  }, [onSyncCompleted, offSyncCompleted]);
 }

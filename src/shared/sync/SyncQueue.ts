@@ -41,7 +41,7 @@
 
 import * as SQLite from 'expo-sqlite';
 import { generateId } from '@/shared/utils/id';
-import { EventEmitter } from 'events';
+import EventEmitter from 'eventemitter3';
 
 /**
  * Sync operation types
