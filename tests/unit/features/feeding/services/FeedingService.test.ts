@@ -40,8 +40,9 @@ describe('FeedingService', () => {
     name: 'Lote A',
     initialHenCount: 100,
     liveHenCount: 95,
-    startDate: '2025-01-01',
-    status: 'active',
+    purchaseDate: '2025-01-01',
+    ageWeeks: 20,
+    createdBy: 'user1',
     createdAt: '2025-01-01T00:00:00Z',
     updatedAt: '2025-01-01T00:00:00Z',
   };

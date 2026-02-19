@@ -302,12 +302,12 @@ All 10 collections handled by syncWithListeners() in src/shared/sync/listeners/s
 
 ### UI Components & Screens
 
-- [ ] T124 [P] [US4] Create FeedBatchForm component in src/features/feeding/components/FeedBatchForm.tsx with batch name, date picker, quantity input (decimal, 2 places)
-- [ ] T125 [P] [US4] Create FeedingForm component in src/features/feeding/components/FeedingForm.tsx with lot selector, feed batch selector, date picker, quantity fed input
-- [ ] T126 [P] [US4] Create FeedingHistoryList component in src/features/feeding/components/FeedingHistoryList.tsx showing feeding records with dates, batches, quantities
-- [ ] T127 [US4] Create feed batches screen in src/app/(tabs)/feeding/batches.tsx with create batch button and batch list
-- [ ] T128 [US4] Create feeding entry screen in src/app/(tabs)/feeding/index.tsx with form and recent entries
-- [ ] T129 [US4] Add feeding metrics to lot details screen: total feed consumed, average feed/hen
+- [X] T124 [P] [US4] Create FeedBatchForm component in src/features/feeding/components/FeedBatchForm.tsx with batch name, date picker, quantity input (decimal, 2 places)
+- [X] T125 [P] [US4] Create FeedingForm component in src/features/feeding/components/FeedingForm.tsx with lot selector, feed batch selector, date picker, quantity fed input
+- [X] T126 [P] [US4] Create FeedingHistoryList component in src/features/feeding/components/FeedingHistoryList.tsx showing feeding records with dates, batches, quantities
+- [X] T127 [US4] Create feed batches screen in src/app/(tabs)/feeding/batches.tsx with create batch button and batch list
+- [X] T128 [US4] Create feeding entry screen in src/app/(tabs)/feeding/index.tsx with form and recent entries
+- [X] T129 [US4] Add feeding metrics to lot details screen: total feed consumed, average feed/hen
 
 ### Integration & Validation
 

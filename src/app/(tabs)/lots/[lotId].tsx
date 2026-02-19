@@ -17,15 +17,18 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { AlertTriangle, ArrowLeft, BarChart3 } from 'lucide-react-native';
+import { AlertTriangle, ArrowLeft, BarChart3, Wheat, Scale } from 'lucide-react-native';
 import { ChickenLot, ChickenHouse, MortalityRecord, ProductionRecord } from '@/shared/types/entities';
 import { FacilityServiceProvider } from '@/features/facilities/services/FacilityServiceProvider';
 import { MortalityServiceProvider } from '@/features/mortality/services/MortalityServiceProvider';
 import { ProductionServiceProvider } from '@/features/production/services/ProductionServiceProvider';
+import { FeedingServiceProvider } from '@/features/feeding/services/FeedingServiceProvider';
 import { ChickenLotCompute } from '@/features/facilities/models/ChickenLot';
 import { MortalityHistoryList } from '@/features/mortality/components/MortalityHistoryList';
 import { ProductionHistoryList } from '@/features/production/components/ProductionHistoryList';
 import { ProductionMetricsCard, ProductionMetrics } from '@/features/production/components/ProductionMetricsCard';
+import { FeedingHistoryList } from '@/features/feeding/components/FeedingHistoryList';
+import { FeedBatchWithRemaining, FeedingRecordWithMetrics } from '@/features/feeding/services/FeedingService';
 import { useToastContext } from '@/shared/contexts/ToastContext';
 import { useSyncRefresh } from '@/shared/contexts/SyncContext';
 import { theme } from '@/core/theme';
@@ -45,6 +48,10 @@ export default function LotDetailsScreen() {
   const [productionMetrics, setProductionMetrics] = useState<ProductionMetrics | null>(
     null
   );
+  const [feedingHistory, setFeedingHistory] = useState<FeedingRecordWithMetrics[]>([]);
+  const [feedBatches, setFeedBatches] = useState<FeedBatchWithRemaining[]>([]);
+  const [totalFeedConsumed, setTotalFeedConsumed] = useState<number>(0);
+  const [avgFeedPerHen, setAvgFeedPerHen] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
   const loadLotDetails = useCallback(async () => {
@@ -82,6 +89,28 @@ export default function LotDetailsScreen() {
       const metricsResult = await productionService.calculateMetrics(lotId);
       if (metricsResult.success && metricsResult.data) {
         setProductionMetrics(metricsResult.data);
+      }
+
+      // Load feeding history and metrics
+      const feedingService = await FeedingServiceProvider.getFeedingService();
+      const feedingResult = await feedingService.getFeedingHistory(lotId);
+      if (feedingResult.success && feedingResult.data) {
+        setFeedingHistory(feedingResult.data);
+      }
+
+      const totalFeedResult = await feedingService.calculateTotalFeedConsumed(lotId);
+      if (totalFeedResult.success && totalFeedResult.data !== undefined) {
+        setTotalFeedConsumed(totalFeedResult.data);
+      }
+
+      const avgFeedResult = await feedingService.calculateAverageFeedPerHen(lotId);
+      if (avgFeedResult.success && avgFeedResult.data !== undefined) {
+        setAvgFeedPerHen(avgFeedResult.data);
+      }
+
+      const batchesResult = await feedingService.listFeedBatches();
+      if (batchesResult.success && batchesResult.data) {
+        setFeedBatches(batchesResult.data);
       }
 
       // Load houses for house names
@@ -274,6 +303,58 @@ export default function LotDetailsScreen() {
               </ScrollView>
             </View>
           )}
+        </View>
+
+        {/* ALIMENTACIÓN - MÉTRICAS */}
+        {totalFeedConsumed > 0 && (
+          <View className="px-lg py-md">
+            <Text className="text-lg font-bold text-textPrimary mb-md">
+              Métricas de Alimentación
+            </Text>
+            <View className="flex-row gap-md">
+              <View className="flex-1 bg-white rounded-md border border-gray-100 shadow-sm p-md">
+                <View className="flex-row items-center gap-sm mb-xs">
+                  <View className="w-8 h-8 rounded-full bg-primary-50 items-center justify-center">
+                    <Scale size={16} color={theme.colors.primary['600']} />
+                  </View>
+                  <Text className="text-xs text-textSecondary">Total consumido</Text>
+                </View>
+                <Text className="text-2xl font-bold text-textPrimary">
+                  {totalFeedConsumed.toFixed(2)}
+                </Text>
+                <Text className="text-xs text-textTertiary mt-xs">kg</Text>
+              </View>
+              <View className="flex-1 bg-white rounded-md border border-gray-100 shadow-sm p-md">
+                <View className="flex-row items-center gap-sm mb-xs">
+                  <View className="w-8 h-8 rounded-full bg-primary-50 items-center justify-center">
+                    <Wheat size={16} color={theme.colors.primary['600']} />
+                  </View>
+                  <Text className="text-xs text-textSecondary">Promedio/gallina</Text>
+                </View>
+                <Text className="text-2xl font-bold text-textPrimary">
+                  {avgFeedPerHen.toFixed(4)}
+                </Text>
+                <Text className="text-xs text-textTertiary mt-xs">kg/gallina</Text>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* ALIMENTACIÓN - HISTORIAL */}
+        <View className="px-lg py-md">
+          <Text className="text-lg font-bold text-textPrimary mb-md">
+            Historial de Alimentación
+          </Text>
+          <View style={{ maxHeight: 400 }}>
+            <ScrollView>
+              <FeedingHistoryList
+                records={feedingHistory.slice(0, 10)}
+                feedBatches={feedBatches}
+                liveHenCount={lot.liveHenCount}
+                emptyMessage="No hay registros de alimentación para este lote"
+              />
+            </ScrollView>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>

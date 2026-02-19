@@ -21,6 +21,7 @@ import {
   Warehouse,
   Bird,
   BarChart3,
+  Wheat,
 } from 'lucide-react-native';
 import { theme } from '@/core/theme';
 import { useAuth } from '@/features/auth/contexts';
@@ -127,6 +128,24 @@ export default function AppLayout() {
           drawerIcon: ({ color, size }) => (
             <ClipboardList size={size} color={color} />
           ),
+        }}
+      />
+
+      <Drawer.Screen
+        name="feeding/index"
+        options={{
+          title: 'Alimentación',
+          drawerIcon: ({ color, size }) => (
+            <Wheat size={size} color={color} />
+          ),
+        }}
+      />
+
+      <Drawer.Screen
+        name="feeding/batches"
+        options={{
+          title: 'Lotes de Alimento',
+          drawerItemStyle: { display: 'none' },
         }}
       />
 
