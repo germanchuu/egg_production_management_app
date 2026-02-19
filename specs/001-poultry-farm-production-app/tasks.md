@@ -272,11 +272,11 @@ All 10 collections handled by syncWithListeners() in src/shared/sync/listeners/s
 
 ### Integration & Validation
 
-- [ ] T113 Test offline changes sync when connectivity returns (SC-003: <30s for 50 records)
-- [ ] T114 Test LWW conflict resolution: two users edit same record offline, last write wins on sync
-- [ ] T115 Test sync status indicator updates (synced → pending → syncing → synced)
-- [ ] T116 Test sync retry logic on network failure
-- [ ] T117 Test SC-009: 100% automatic conflict resolution without user intervention
+- [X] T113 Test offline changes sync when connectivity returns (SC-003: <30s for 50 records)
+- [X] T114 Test LWW conflict resolution: two users edit same record offline, last write wins on sync
+- [X] T115 Test sync status indicator updates (synced → pending → syncing → synced)
+- [X] T116 Test sync retry logic on network failure
+- [X] T117 Test SC-009: 100% automatic conflict resolution without user intervention
 
 **Checkpoint**: Sync system complete and battle-tested with offline scenarios
 
