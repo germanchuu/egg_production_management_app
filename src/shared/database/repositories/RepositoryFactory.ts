@@ -5,6 +5,8 @@ import { ChickenHouseRepository } from './ChickenHouseRepository';
 import { ChickenLotRepository } from './ChickenLotRepository';
 import { MortalityRecordRepository } from './MortalityRecordRepository';
 import { ProductionRecordRepository } from './ProductionRecordRepository';
+import { FeedBatchRepository } from './FeedBatchRepository';
+import { FeedingRecordRepository } from './FeedingRecordRepository';
 
 export class RepositoryFactory {
   constructor(private db: SQLiteDatabase) {}
@@ -31,5 +33,13 @@ export class RepositoryFactory {
 
   getProductionRecordRepository(): ProductionRecordRepository {
     return new ProductionRecordRepository(this.db);
+  }
+
+  getFeedBatchRepository(): FeedBatchRepository {
+    return new FeedBatchRepository(this.db);
+  }
+
+  getFeedingRecordRepository(): FeedingRecordRepository {
+    return new FeedingRecordRepository(this.db);
   }
 }

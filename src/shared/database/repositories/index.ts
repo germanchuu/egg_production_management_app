@@ -6,4 +6,6 @@ export * from './ChickenHouseRepository';
 export * from './ChickenLotRepository';
 export * from './MortalityRecordRepository';
 export * from './ProductionRecordRepository';
+export * from './FeedBatchRepository';
+export * from './FeedingRecordRepository';
 export * from './RepositoryFactory';

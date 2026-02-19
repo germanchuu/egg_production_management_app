@@ -290,15 +290,15 @@ All 10 collections handled by syncWithListeners() in src/shared/sync/listeners/s
 
 ### Models & Services
 
-- [ ] T118 [P] [US4] Create FeedBatch model in src/features/feeding/models/FeedBatch.ts with computed field remainingQuantityKg
-- [ ] T119 [P] [US4] Create FeedingRecord model in src/features/feeding/models/FeedingRecord.ts with computed field feedPerHen
-- [ ] T120 [US4] Create FeedingService in src/features/feeding/services/FeedingService.ts with methods: createFeedBatch(), listFeedBatches(), recordFeeding(), getFeedingHistory(), calculateTotalFeedConsumed(), calculateAverageFeedPerHen()
-- [ ] T121 [US4] Add sync queue integration in FeedingService
+- [X] T118 [P] [US4] Create FeedBatch model in src/features/feeding/models/FeedBatch.ts with computed field remainingQuantityKg
+- [X] T119 [P] [US4] Create FeedingRecord model in src/features/feeding/models/FeedingRecord.ts with computed field feedPerHen
+- [X] T120 [US4] Create FeedingService in src/features/feeding/services/FeedingService.ts with methods: createFeedBatch(), listFeedBatches(), recordFeeding(), getFeedingHistory(), calculateTotalFeedConsumed(), calculateAverageFeedPerHen()
+- [X] T121 [US4] Add sync queue integration in FeedingService
 
 ### Validation & Business Logic
 
-- [ ] T122 [P] [US4] Create validation schema in src/features/feeding/utils/validation.ts (preparationDate not future, quantityKg > 0, quantityFedKg > 0)
-- [ ] T123 [US4] Implement edge case handling: warn if quantityFedKg > batch.remainingQuantityKg (not blocking, just warning)
+- [X] T122 [P] [US4] Create validation schema in src/features/feeding/utils/validation.ts (preparationDate not future, quantityKg > 0, quantityFedKg > 0)
+- [X] T123 [US4] Implement edge case handling: warn if quantityFedKg > batch.remainingQuantityKg (not blocking, just warning)
 
 ### UI Components & Screens
 
