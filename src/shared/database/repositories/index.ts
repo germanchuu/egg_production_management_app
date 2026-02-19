@@ -8,4 +8,6 @@ export * from './MortalityRecordRepository';
 export * from './ProductionRecordRepository';
 export * from './FeedBatchRepository';
 export * from './FeedingRecordRepository';
+export * from './HealthEventRepository';
+export * from './BiosecurityEventRepository';
 export * from './RepositoryFactory';

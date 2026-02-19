@@ -22,6 +22,7 @@ import {
   Bird,
   BarChart3,
   Wheat,
+  ShieldCheck,
 } from 'lucide-react-native';
 import { theme } from '@/core/theme';
 import { useAuth } from '@/features/auth/contexts';
@@ -137,6 +138,16 @@ export default function AppLayout() {
           title: 'Alimentación',
           drawerIcon: ({ color, size }) => (
             <Wheat size={size} color={color} />
+          ),
+        }}
+      />
+
+      <Drawer.Screen
+        name="health/index"
+        options={{
+          title: 'Salud & Bioseguridad',
+          drawerIcon: ({ color, size }) => (
+            <ShieldCheck size={size} color={color} />
           ),
         }}
       />

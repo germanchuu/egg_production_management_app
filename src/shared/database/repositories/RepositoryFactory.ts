@@ -7,6 +7,8 @@ import { MortalityRecordRepository } from './MortalityRecordRepository';
 import { ProductionRecordRepository } from './ProductionRecordRepository';
 import { FeedBatchRepository } from './FeedBatchRepository';
 import { FeedingRecordRepository } from './FeedingRecordRepository';
+import { HealthEventRepository } from './HealthEventRepository';
+import { BiosecurityEventRepository } from './BiosecurityEventRepository';
 
 export class RepositoryFactory {
   constructor(private db: SQLiteDatabase) {}
@@ -41,5 +43,13 @@ export class RepositoryFactory {
 
   getFeedingRecordRepository(): FeedingRecordRepository {
     return new FeedingRecordRepository(this.db);
+  }
+
+  getHealthEventRepository(): HealthEventRepository {
+    return new HealthEventRepository(this.db);
+  }
+
+  getBiosecurityEventRepository(): BiosecurityEventRepository {
+    return new BiosecurityEventRepository(this.db);
   }
 }
