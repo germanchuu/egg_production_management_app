@@ -1,9 +1,5 @@
 /**
  * Feeding Screen
- *
- * Unified screen for feed management with two tabs:
- * - "Registrar": record daily feeding events + recent history
- * - "Lotes": manage feed batches (create / view remaining)
  */
 
 import React, { useState, useCallback } from 'react';
@@ -18,32 +14,52 @@ import {
   FeedBatchWithRemaining,
   FeedingRecordWithMetrics,
 } from '@/features/feeding/services/FeedingService';
-import { FeedingTabBar, FeedingTab } from '@/features/feeding/components/FeedingTabBar';
-import { FeedingRecordTab } from '@/features/feeding/components/FeedingRecordTab';
-import { FeedingBatchesTab } from '@/features/feeding/components/FeedingBatchesTab';
-import { FeedingRecordFormData, FeedBatchFormData } from '@/features/feeding/utils/validation';
+import {
+  FeedingRecordFormData,
+  FeedBatchFormData,
+} from '@/features/feeding/utils/validation';
+import { FeedingScreenProvider } from '@/features/feeding/contexts/FeedingScreenContext';
+import { FeedingTabNavigator } from '@/features/feeding/components/FeedingTabBar';
 import { useAuth } from '@/features/auth/contexts/AuthContext';
 import { useToastContext } from '@/shared/contexts/ToastContext';
 import { useSyncRefresh } from '@/shared/contexts/SyncContext';
 import { theme } from '@/core/theme';
 
+// ─── Screen header ───────────────────────────────────────────────────────────
+
+const FeedingHeader: React.FC = () => (
+  <View className="px-lg pt-xl pb-md bg-white border-b border-gray-200">
+    <View className="flex-row items-center">
+      <Wheat size={28} color={theme.colors.primary['500']} />
+      <Text className="text-2xl font-bold text-textPrimary ml-md">
+        Alimentación
+      </Text>
+    </View>
+    <Text className="text-sm text-textSecondary mt-xs ml-12">
+      Gestiona la alimentación y lotes de alimentos
+    </Text>
+  </View>
+);
+
+// ─── FeedingScreen ───────────────────────────────────────────────────────────
+
 export default function FeedingScreen() {
   const { user } = useAuth();
   const { success, error, warning } = useToastContext();
 
-  const [activeTab, setActiveTab] = useState<FeedingTab>('record');
   const [lots, setLots] = useState<ChickenLot[]>([]);
   const [feedBatches, setFeedBatches] = useState<FeedBatchWithRemaining[]>([]);
-  const [recentRecords, setRecentRecords] = useState<FeedingRecordWithMetrics[]>([]);
+  const [recentRecords, setRecentRecords] = useState<
+    FeedingRecordWithMetrics[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // ─── Data loading ──────────────────────────────────────────────────────────
 
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const facilityService = await FacilityServiceProvider.getFacilityService();
+      const facilityService =
+        await FacilityServiceProvider.getFacilityService();
       const feedingService = await FeedingServiceProvider.getFeedingService();
 
       const [lotsResult, batchesResult] = await Promise.all([
@@ -53,9 +69,9 @@ export default function FeedingScreen() {
 
       const lotsList = lotsResult.data ?? [];
       if (lotsResult.success) setLots(lotsList);
-      if (batchesResult.success && batchesResult.data) setFeedBatches(batchesResult.data);
+      if (batchesResult.success && batchesResult.data)
+        setFeedBatches(batchesResult.data);
 
-      // Aggregate recent records from first 5 lots
       const allRecords: FeedingRecordWithMetrics[] = [];
       for (const lot of lotsList.slice(0, 5)) {
         const result = await feedingService.getFeedingHistory(lot.id);
@@ -63,7 +79,10 @@ export default function FeedingScreen() {
       }
       setRecentRecords(
         allRecords
-          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          .sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          )
           .slice(0, 10)
       );
     } catch {
@@ -73,13 +92,18 @@ export default function FeedingScreen() {
     }
   }, [error]);
 
-  useFocusEffect(useCallback(() => { loadData(); }, [loadData]));
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
   useSyncRefresh(loadData);
 
-  // ─── Handlers ─────────────────────────────────────────────────────────────
-
   const handleRecordFeeding = async (data: FeedingRecordFormData) => {
-    if (!user) { error('Debes estar autenticado'); return; }
+    if (!user) {
+      error('Debes estar autenticado');
+      return;
+    }
     try {
       setIsSubmitting(true);
       const service = await FeedingServiceProvider.getFeedingService();
@@ -105,7 +129,10 @@ export default function FeedingScreen() {
   };
 
   const handleCreateBatch = async (data: FeedBatchFormData) => {
-    if (!user) { error('Debes estar autenticado'); return; }
+    if (!user) {
+      error('Debes estar autenticado');
+      return;
+    }
     try {
       setIsSubmitting(true);
       const service = await FeedingServiceProvider.getFeedingService();
@@ -116,7 +143,9 @@ export default function FeedingScreen() {
         preparedBy: user.id,
       });
       if (result.success) {
-        success(`Lote registrado: ${data.batchName} (${data.quantityKg.toFixed(2)} kg)`);
+        success(
+          `Lote registrado: ${data.batchName} (${data.quantityKg.toFixed(2)} kg)`
+        );
         await loadData();
       } else {
         error(result.error || 'Error al registrar el lote de alimento');
@@ -128,56 +157,22 @@ export default function FeedingScreen() {
     }
   };
 
-  // ─── Render ───────────────────────────────────────────────────────────────
-
-  const availableBatches = feedBatches.filter((b) => b.remainingQuantityKg > 0);
-
   return (
     <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-background">
-      {/* Header + tab bar */}
-      <View className="px-lg pt-xl pb-md bg-white border-b border-gray-200">
-        <View className="flex-row items-center">
-          <Wheat size={28} color={theme.colors.primary['500']} />
-          <Text className="text-2xl font-bold text-textPrimary ml-md">Alimentación</Text>
-        </View>
-        <FeedingTabBar
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          availableBatchCount={availableBatches.length}
-        />
-      </View>
-
-      {/* Skeleton while loading */}
-      {loading ? (
-        <View className="px-lg py-md gap-md">
-          {[1, 2, 3].map((i) => (
-            <View key={i} className="bg-white rounded-md border border-gray-100 p-md">
-              <View className="h-4 bg-gray-200 rounded w-3/4 mb-sm" />
-              <View className="h-4 bg-gray-200 rounded w-1/2" />
-            </View>
-          ))}
-        </View>
-      ) : (
-        <>
-          {activeTab === 'record' && (
-            <FeedingRecordTab
-              lots={lots}
-              feedBatches={feedBatches}
-              recentRecords={recentRecords}
-              isSubmitting={isSubmitting}
-              onSubmit={handleRecordFeeding}
-              onGoToBatches={() => setActiveTab('batches')}
-            />
-          )}
-          {activeTab === 'batches' && (
-            <FeedingBatchesTab
-              batches={feedBatches}
-              isSubmitting={isSubmitting}
-              onCreateBatch={handleCreateBatch}
-            />
-          )}
-        </>
-      )}
+      <FeedingScreenProvider
+        value={{
+          lots,
+          feedBatches,
+          recentRecords,
+          loading,
+          isSubmitting,
+          onRecordFeeding: handleRecordFeeding,
+          onCreateBatch: handleCreateBatch,
+        }}
+      >
+        <FeedingHeader />
+        <FeedingTabNavigator />
+      </FeedingScreenProvider>
     </SafeAreaView>
   );
 }
