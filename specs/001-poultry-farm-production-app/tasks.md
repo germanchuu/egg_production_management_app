@@ -268,7 +268,7 @@ All 10 collections handled by syncWithListeners() in src/shared/sync/listeners/s
 
 - [X] T110 Create onMortalityRecordCreated Firestore trigger in functions/src/mortality/onMortalityRecordCreated.ts to update lot liveHenCount atomically on server
 - [X] T111 [P] Create batchSync Firebase Function in functions/src/sync/batchSync.ts to handle batch uploads from clients
-- [ ] T112 Add audit logging in Cloud Functions for critical operations (lot creation, mortality >10%)
+- [X] T112 Add audit logging in Cloud Functions for critical operations (lot creation, mortality >10%)
 
 ### Integration & Validation
 

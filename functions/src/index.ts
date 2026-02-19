@@ -21,5 +21,8 @@ export {
 // Export mortality functions
 export { onMortalityRecordCreated } from "./mortality";
 
+// Export facilities functions
+export { onChickenLotCreated } from "./facilities";
+
 // Export sync functions
 export { batchSync } from "./sync";

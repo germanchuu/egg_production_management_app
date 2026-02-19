@@ -7,6 +7,7 @@
 import * as admin from "firebase-admin";
 import {Result, ok, fail} from "../../common/types/result";
 import {checkUserNotRevoked, createInvitationData} from "../helpers";
+import {writeAuditLog} from "../../common/helpers/auditHelper";
 
 export interface InvitationResult {
   invitationId: string;
@@ -62,6 +63,15 @@ export async function generateInvitation(
         invitationId,
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
+
+    // Audit log: invitation generated
+    await writeAuditLog({
+      action: "invitation_generated",
+      entityType: "invitations",
+      entityId: invitationId,
+      performedBy: adminUserId,
+      details: {targetUserId, invitationId},
+    });
 
     return ok({
       invitationId,

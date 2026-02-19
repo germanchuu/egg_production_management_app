@@ -6,6 +6,7 @@
 
 import * as admin from "firebase-admin";
 import {Result, ok, fail} from "../../common/types/result";
+import {writeAuditLog, writeAuditLogInTransaction} from "../../common/helpers/auditHelper";
 
 export interface RevokeUserResult {
   success: true;
@@ -57,18 +58,12 @@ export async function revokeUser(
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
-      // Create audit log
-      const auditLogRef = admin
-        .firestore()
-        .collection("audit_log")
-        .doc();
-
-      transaction.set(auditLogRef, {
+      // Create audit log via shared helper (inside transaction)
+      writeAuditLogInTransaction(transaction, {
         action: "user_revoked",
-        entityType: "user",
+        entityType: "users",
         entityId: userId,
         performedBy: adminUserId,
-        timestamp: admin.firestore.FieldValue.serverTimestamp(),
         details: {
           userId,
           revokedBy: adminUserId,
@@ -137,6 +132,19 @@ export async function acceptInvitation(
         status: "accepted",
         acceptedAt: admin.firestore.FieldValue.serverTimestamp(),
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      // Audit log: invitation accepted
+      writeAuditLogInTransaction(transaction, {
+        action: "invitation_accepted",
+        entityType: "invitations",
+        entityId: invitationDoc.id,
+        performedBy: userDoc.id,
+        details: {
+          userId: userDoc.id,
+          deviceId,
+          deviceName,
+        },
       });
     });
 
@@ -229,6 +237,15 @@ export async function createUser(
       isActive: true,
       createdAt: now,
       updatedAt: now,
+    });
+
+    // Audit log: user created
+    await writeAuditLog({
+      action: "user_created",
+      entityType: "users",
+      entityId: userId,
+      performedBy: adminUserId,
+      details: {displayName, role},
     });
 
     return ok({userId});
