@@ -368,10 +368,10 @@ export class SyncService {
     if (entityType === 'feed_batches') {
       return {
         id: dbRecord.id,
-        name: dbRecord.name,
+        batchName: dbRecord.batch_name,
         preparationDate: dbRecord.preparation_date,
         quantityKg: dbRecord.quantity_kg,
-        createdBy: dbRecord.created_by,
+        preparedBy: dbRecord.prepared_by,
         createdAt: dbRecord.created_at,
         updatedAt: dbRecord.updated_at,
       };
