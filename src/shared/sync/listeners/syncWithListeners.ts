@@ -140,15 +140,15 @@ const COLLECTIONS = [
     tableName: 'feed_batches',
     mapData: (data: any, docId: string) => [
       docId,
-      data.name,
+      data.batchName ?? data.batch_name,
       data.preparationDate ?? data.preparation_date,
       data.quantityKg ?? data.quantity_kg,
-      data.createdBy ?? data.created_by,
+      data.preparedBy ?? data.prepared_by,
       data.createdAt ?? data.created_at,
       data.updatedAt ?? data.updated_at,
     ],
     insertSQL: `INSERT OR REPLACE INTO feed_batches
-      (id, name, preparation_date, quantity_kg, created_by, created_at, updated_at)
+      (id, batch_name, preparation_date, quantity_kg, prepared_by, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, ?)`,
   },
   {
