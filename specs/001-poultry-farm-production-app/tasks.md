@@ -311,9 +311,9 @@ All 10 collections handled by syncWithListeners() in src/shared/sync/listeners/s
 
 ### Integration & Validation
 
-- [ ] T130 [US4] Test offline feed batch registration and feeding recording with sync
-- [ ] T131 [US4] Test metrics calculation (total consumed, average per hen)
-- [ ] T132 [US4] Test edge case: feeding quantity exceeds batch remaining (should warn)
+- [X] T130 [US4] Test offline feed batch registration and feeding recording with sync
+- [X] T131 [US4] Test metrics calculation (total consumed, average per hen)
+- [X] T132 [US4] Test edge case: feeding quantity exceeds batch remaining (should warn)
 
 **Checkpoint**: Feed management complete and independently testable
 
