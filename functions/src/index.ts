@@ -17,3 +17,9 @@ export {
   regenerateInvitation,
   revokeUser,
 } from "./auth";
+
+// Export mortality functions
+export { onMortalityRecordCreated } from "./mortality";
+
+// Export sync functions
+export { batchSync } from "./sync";
