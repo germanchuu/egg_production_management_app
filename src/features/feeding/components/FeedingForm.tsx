@@ -131,7 +131,7 @@ export const FeedingForm: React.FC<FeedingFormProps> = ({
       : null;
 
   return (
-    <View className="gap-lg">
+    <View className="gap-sm">
       {/* No active lots warning */}
       {activeLots.length === 0 && (
         <View className="bg-amber-50 border border-amber-200 rounded-md p-lg">

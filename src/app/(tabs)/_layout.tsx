@@ -141,13 +141,6 @@ export default function AppLayout() {
         }}
       />
 
-      <Drawer.Screen
-        name="feeding/batches"
-        options={{
-          title: 'Lotes de Alimento',
-          drawerItemStyle: { display: 'none' },
-        }}
-      />
 
       <Drawer.Screen
         name="profile"

@@ -708,14 +708,14 @@ export class SyncService {
     if (entityType === 'feed_batches') {
       await this.db.runAsync(
         `INSERT OR REPLACE INTO feed_batches
-         (id, name, preparation_date, quantity_kg, created_by, created_at, updated_at)
+         (id, batch_name, preparation_date, quantity_kg, prepared_by, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
           remoteData.id,
-          remoteData.name,
+          remoteData.batchName,
           remoteData.preparationDate,
           remoteData.quantityKg,
-          remoteData.createdBy,
+          remoteData.preparedBy,
           remoteData.createdAt,
           remoteData.updatedAt,
         ]
