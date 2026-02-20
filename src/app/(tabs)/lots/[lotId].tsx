@@ -1,23 +1,24 @@
 /**
- * Lot Details Screen (Improved UI)
+ * Lot Details Screen
  *
- * - Header con botón back + ícono
- * - Layout más analítico
- * - Historial con scroll interno
+ * Header fijo con datos generales del lote (gallinas vivas, edad, mortalidad).
+ * Debajo, un Material Top Tab Navigator con 4 secciones:
+ *   - Mortalidad: historial de bajas
+ *   - Producción: métricas + historial
+ *   - Alimentación: métricas + historial
+ *   - Salud & Bio: vacunaciones y desinfecciones
  */
 
 import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
-  ScrollView,
   ActivityIndicator,
-  TouchableOpacity,
   Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { AlertTriangle, ArrowLeft, BarChart3, Wheat, Scale, ShieldCheck } from 'lucide-react-native';
+import { AlertTriangle, ArrowLeft, Bird } from 'lucide-react-native';
 import { ChickenLot, ChickenHouse, MortalityRecord, ProductionRecord } from '@/shared/types/entities';
 import { FacilityServiceProvider } from '@/features/facilities/services/FacilityServiceProvider';
 import { MortalityServiceProvider } from '@/features/mortality/services/MortalityServiceProvider';
@@ -27,12 +28,10 @@ import { EventServiceProvider } from '@/features/health-biosecurity/services/Eve
 import { HealthEvent } from '@/features/health-biosecurity/models/HealthEvent';
 import { BiosecurityEvent } from '@/features/health-biosecurity/models/BiosecurityEvent';
 import { ChickenLotCompute } from '@/features/facilities/models/ChickenLot';
-import { MortalityHistoryList } from '@/features/mortality/components/MortalityHistoryList';
-import { ProductionHistoryList } from '@/features/production/components/ProductionHistoryList';
-import { ProductionMetricsCard, ProductionMetrics } from '@/features/production/components/ProductionMetricsCard';
-import { FeedingHistoryList } from '@/features/feeding/components/FeedingHistoryList';
-import { EventHistoryList } from '@/features/health-biosecurity/components/EventHistoryList';
+import { ProductionMetrics } from '@/features/production/components/ProductionMetricsCard';
 import { FeedBatchWithRemaining, FeedingRecordWithMetrics } from '@/features/feeding/services/FeedingService';
+import { LotDetailsProvider } from '@/features/facilities/contexts/LotDetailsContext';
+import { LotDetailsTabNavigator } from '@/features/facilities/components/lot-details/LotDetailsTabNavigator';
 import { useToastContext } from '@/shared/contexts/ToastContext';
 import { useSyncRefresh } from '@/shared/contexts/SyncContext';
 import { theme } from '@/core/theme';
@@ -41,120 +40,90 @@ export default function LotDetailsScreen() {
   const { lotId } = useLocalSearchParams<{ lotId: string }>();
   const router = useRouter();
   const { error } = useToastContext();
+
   const [lot, setLot] = useState<ChickenLot | null>(null);
   const [houses, setHouses] = useState<ChickenHouse[]>([]);
-  const [mortalityHistory, setMortalityHistory] = useState<MortalityRecord[]>(
-    []
-  );
-  const [productionHistory, setProductionHistory] = useState<ProductionRecord[]>(
-    []
-  );
-  const [productionMetrics, setProductionMetrics] = useState<ProductionMetrics | null>(
-    null
-  );
+  const [mortalityHistory, setMortalityHistory] = useState<MortalityRecord[]>([]);
+  const [productionHistory, setProductionHistory] = useState<ProductionRecord[]>([]);
+  const [productionMetrics, setProductionMetrics] = useState<ProductionMetrics | null>(null);
   const [feedingHistory, setFeedingHistory] = useState<FeedingRecordWithMetrics[]>([]);
   const [feedBatches, setFeedBatches] = useState<FeedBatchWithRemaining[]>([]);
-  const [totalFeedConsumed, setTotalFeedConsumed] = useState<number>(0);
-  const [avgFeedPerHen, setAvgFeedPerHen] = useState<number>(0);
+  const [totalFeedConsumed, setTotalFeedConsumed] = useState(0);
+  const [avgFeedPerHen, setAvgFeedPerHen] = useState(0);
   const [healthEvents, setHealthEvents] = useState<HealthEvent[]>([]);
   const [biosecurityEvents, setBiosecurityEvents] = useState<BiosecurityEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadLotDetails = useCallback(async () => {
     if (!lotId) return;
-
     try {
       setLoading(true);
-      const facilityService =
-        await FacilityServiceProvider.getFacilityService();
-      const mortalityService =
-        await MortalityServiceProvider.getMortalityService();
+
+      const [facilityService, mortalityService, productionService, feedingService, eventService] =
+        await Promise.all([
+          FacilityServiceProvider.getFacilityService(),
+          MortalityServiceProvider.getMortalityService(),
+          ProductionServiceProvider.getProductionService(),
+          FeedingServiceProvider.getFeedingService(),
+          EventServiceProvider.getEventService(),
+        ]);
 
       const lotResult = await facilityService.getLotDetails(lotId);
-      if (lotResult.success && lotResult.data) {
-        setLot(lotResult.data);
-      } else {
+      if (!lotResult.success || !lotResult.data) {
         error('No se pudo cargar el lote');
         router.back();
         return;
       }
+      setLot(lotResult.data);
 
-      const mortalityResult = await mortalityService.getMortalityHistory(lotId);
-      if (mortalityResult.success && mortalityResult.data) {
-        setMortalityHistory(mortalityResult.data);
-      }
+      const [
+        housesResult,
+        mortalityResult,
+        productionResult,
+        metricsResult,
+        feedingResult,
+        totalFeedResult,
+        avgFeedResult,
+        batchesResult,
+        healthResult,
+        biosecurityResult,
+      ] = await Promise.all([
+        facilityService.listHouses(),
+        mortalityService.getMortalityHistory(lotId),
+        productionService.getProductionHistory(lotId),
+        productionService.calculateMetrics(lotId),
+        feedingService.getFeedingHistory(lotId),
+        feedingService.calculateTotalFeedConsumed(lotId),
+        feedingService.calculateAverageFeedPerHen(lotId),
+        feedingService.listFeedBatches(),
+        eventService.getHealthEventsByLot(lotId),
+        eventService.listBiosecurityEvents(),
+      ]);
 
-      // Load production history and metrics
-      const productionService =
-        await ProductionServiceProvider.getProductionService();
-      const productionResult = await productionService.getProductionHistory(lotId);
-      if (productionResult.success && productionResult.data) {
-        setProductionHistory(productionResult.data);
-      }
-
-      const metricsResult = await productionService.calculateMetrics(lotId);
-      if (metricsResult.success && metricsResult.data) {
-        setProductionMetrics(metricsResult.data);
-      }
-
-      // Load feeding history and metrics
-      const feedingService = await FeedingServiceProvider.getFeedingService();
-      const feedingResult = await feedingService.getFeedingHistory(lotId);
-      if (feedingResult.success && feedingResult.data) {
-        setFeedingHistory(feedingResult.data);
-      }
-
-      const totalFeedResult = await feedingService.calculateTotalFeedConsumed(lotId);
-      if (totalFeedResult.success && totalFeedResult.data !== undefined) {
-        setTotalFeedConsumed(totalFeedResult.data);
-      }
-
-      const avgFeedResult = await feedingService.calculateAverageFeedPerHen(lotId);
-      if (avgFeedResult.success && avgFeedResult.data !== undefined) {
-        setAvgFeedPerHen(avgFeedResult.data);
-      }
-
-      const batchesResult = await feedingService.listFeedBatches();
-      if (batchesResult.success && batchesResult.data) {
-        setFeedBatches(batchesResult.data);
-      }
-
-      // Load health & biosecurity events
-      const eventService = await EventServiceProvider.getEventService();
-      const healthResult = await eventService.getHealthEventsByLot(lotId);
-      if (healthResult.success && healthResult.data) {
-        setHealthEvents(healthResult.data);
-      }
-      const biosecurityResult = await eventService.listBiosecurityEvents();
-      if (biosecurityResult.success && biosecurityResult.data) {
-        setBiosecurityEvents(biosecurityResult.data);
-      }
-
-      // Load houses for house names
-      const housesResult = await facilityService.listHouses();
-      if (housesResult.success && housesResult.data) {
-        setHouses(housesResult.data);
-      }
-    } catch (err) {
+      if (housesResult.success && housesResult.data) setHouses(housesResult.data);
+      if (mortalityResult.success && mortalityResult.data) setMortalityHistory(mortalityResult.data);
+      if (productionResult.success && productionResult.data) setProductionHistory(productionResult.data);
+      if (metricsResult.success && metricsResult.data) setProductionMetrics(metricsResult.data);
+      if (feedingResult.success && feedingResult.data) setFeedingHistory(feedingResult.data);
+      if (totalFeedResult.success && totalFeedResult.data !== undefined) setTotalFeedConsumed(totalFeedResult.data);
+      if (avgFeedResult.success && avgFeedResult.data !== undefined) setAvgFeedPerHen(avgFeedResult.data);
+      if (batchesResult.success && batchesResult.data) setFeedBatches(batchesResult.data);
+      if (healthResult.success && healthResult.data) setHealthEvents(healthResult.data);
+      if (biosecurityResult.success && biosecurityResult.data) setBiosecurityEvents(biosecurityResult.data);
+    } catch {
       error('Error al cargar detalles del lote');
     } finally {
       setLoading(false);
     }
   }, [lotId, router, error]);
 
-  // Load data when screen gains focus
-  useFocusEffect(
-    useCallback(() => {
-      loadLotDetails();
-    }, [loadLotDetails])
-  );
-
-  // Auto-refresh when sync completes (from any screen)
+  useFocusEffect(useCallback(() => { loadLotDetails(); }, [loadLotDetails]));
   useSyncRefresh(loadLotDetails);
 
-  const getHouseName = (houseId: string) => {
-    return houses.find((h) => h.id === houseId)?.name || 'Galpón desconocido';
-  };
+  const getHouseName = (houseId: string) =>
+    houses.find((h) => h.id === houseId)?.name ?? 'Galpón desconocido';
+
+  // ── Loading state ──────────────────────────────────────────────────────────
 
   if (loading || !lot) {
     return (
@@ -170,226 +139,99 @@ export default function LotDetailsScreen() {
   const currentAge = ChickenLotCompute.calculateCurrentAgeWeeks(lot);
   const totalMortality = ChickenLotCompute.calculateTotalMortality(lot);
   const mortalityRate = ChickenLotCompute.calculateMortalityRate(lot);
+  const isHighMortality = mortalityRate > 10;
+
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-background">
-      <ScrollView className="flex-1">
-        {/* HEADER */}
-        <View className="bg-white border-b border-gray-200 px-lg pt-xl pb-md">
-          <View className="flex-row items-center gap-md">
-            <Pressable
-              onPress={() => router.push('/lots')}
-              hitSlop={8}
-              style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
-            >
-              <ArrowLeft size={24} color={theme.colors.primary['500']} />
-            </Pressable>
 
-            <View className="flex-1 flex-row items-center">
-              <BarChart3 size={28} color={theme.colors.primary['500']} />
-              <Text className="text-2xl font-bold text-textPrimary ml-md">
-                {lot.name}
-              </Text>
-            </View>
-          </View>
+      {/* ── HEADER ─────────────────────────────────────────────────────────── */}
+      <View className="bg-white border-b border-gray-200 px-lg pt-lg pb-md">
+        <View className="flex-row items-center gap-md mb-xs">
+          <Pressable
+            onPress={() => router.push('/lots')}
+            hitSlop={8}
+            style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+            accessibilityRole="button"
+            accessibilityLabel="Volver a lotes"
+          >
+            <ArrowLeft size={24} color={theme.colors.primary['500']} />
+          </Pressable>
 
-          <Text className="text-sm text-textSecondary mt-xs ml-10">
-            Fecha de compra:{' '}
-            {new Date(lot.purchaseDate).toLocaleDateString('es-ES')}
-          </Text>
-          <Text className="text-sm text-textSecondary mt-xs ml-10">
-            Galpón: {getHouseName(lot.chickenHouseId)}
-          </Text>
-        </View>
-
-        {/* DASHBOARD ANALÍTICO */}
-        <View className="px-lg py-md gap-md">
-          {/* MÉTRICA PRINCIPAL */}
-          <View className="bg-white rounded-2xl p-xl border border-gray-200 shadow-sm">
-            <Text className="text-xs text-textTertiary mb-xs">
-              Gallinas vivas
-            </Text>
-
-            <View className="flex-row items-end justify-between">
-              <Text className="text-4xl font-bold text-textPrimary">
-                {lot.liveHenCount}
-              </Text>
-
-              <View className="items-end">
-                <Text className="text-xs text-textTertiary">Inicial</Text>
-                <Text className="text-lg font-semibold text-textSecondary">
-                  {lot.initialHenCount}
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          {/* GRID SECUNDARIO */}
-          <View className="flex-row gap-md">
-            {/* EDAD */}
-            <View className="flex-1 bg-white rounded-2xl p-lg border border-gray-200 shadow-sm">
-              <Text className="text-xs text-textTertiary mb-xs">
-                Edad actual
-              </Text>
-
-              <Text className="text-2xl font-bold text-textPrimary">
-                {currentAge} semanas
-              </Text>
-
-              <Text className="text-xs text-textTertiary mt-sm">
-                Inicial: {lot.ageWeeks}{' '}
-                {lot.ageWeeks === 1 ? 'semana' : 'semanas'}
-              </Text>
-            </View>
-
-            {/* MORTALIDAD */}
-            <View className="flex-1 bg-white rounded-2xl p-lg border border-gray-200 shadow-sm">
-              <Text className="text-xs text-textTertiary mb-xs">
-                Mortalidad
-              </Text>
-
-              <Text
-                className={`text-2xl font-bold ${
-                  mortalityRate > 10 ? 'text-error' : 'text-textPrimary'
-                }`}
-              >
-                {mortalityRate.toFixed(1)}%
-              </Text>
-
-              <Text className="text-xs text-textSecondary mt-xs">
-                {totalMortality} {totalMortality === 1 ? 'gallina' : 'gallinas'}
-              </Text>
-
-              {mortalityRate > 10 && (
-                <View className="flex-row items-center gap-xs mt-sm bg-error/10 px-sm py-xs rounded-md self-start">
-                  <AlertTriangle size={12} color={theme.colors.error.DEFAULT} />
-                  <Text className="text-[11px] font-medium text-error">
-                    Alta
-                  </Text>
-                </View>
-              )}
-            </View>
-          </View>
-        </View>
-
-        {/* HISTORIAL MORTALIDAD*/}
-        <View className="px-lg py-md">
-          <Text className="text-lg font-bold text-textPrimary mb-md">
-            Historial de Mortalidad
-          </Text>
-
-          <MortalityHistoryList
-            records={mortalityHistory}
-            lots={lot ? [lot] : []}
-            emptyMessage="No hay registros de mortalidad"
-          />
-        </View>
-
-        {/* PRODUCCIÓN - MÉTRICAS */}
-        {productionMetrics && (
-          <View className="px-lg py-md">
-            <Text className="text-lg font-bold text-textPrimary mb-md">
-              Métricas de Producción
-            </Text>
-            <ProductionMetricsCard
-              metrics={productionMetrics}
-              lotName={lot.name}
-            />
-          </View>
-        )}
-
-        {/* PRODUCCIÓN - HISTORIAL */}
-        <View className="px-lg py-md">
-          <Text className="text-lg font-bold text-textPrimary mb-md">
-            Historial de Producción
-          </Text>
-          {productionHistory.length === 0 ? (
-            <View className="bg-white rounded-xl px-xl py-2xl items-center border border-gray-200">
-              <Text className="text-textTertiary text-center">
-                No hay registros de producción
-              </Text>
-            </View>
-          ) : (
-            <View style={{ maxHeight: 400 }}>
-              <ScrollView>
-                <ProductionHistoryList
-                  records={productionHistory.slice(0, 10)}
-                  lots={[lot]}
-                  emptyMessage="No hay registros de producción para este lote"
-                />
-              </ScrollView>
-            </View>
-          )}
-        </View>
-
-        {/* ALIMENTACIÓN - MÉTRICAS */}
-        {totalFeedConsumed > 0 && (
-          <View className="px-lg py-md">
-            <Text className="text-lg font-bold text-textPrimary mb-md">
-              Métricas de Alimentación
-            </Text>
-            <View className="flex-row gap-md">
-              <View className="flex-1 bg-white rounded-md border border-gray-100 shadow-sm p-md">
-                <View className="flex-row items-center gap-sm mb-xs">
-                  <View className="w-8 h-8 rounded-full bg-primary-50 items-center justify-center">
-                    <Scale size={16} color={theme.colors.primary['600']} />
-                  </View>
-                  <Text className="text-xs text-textSecondary">Total consumido</Text>
-                </View>
-                <Text className="text-2xl font-bold text-textPrimary">
-                  {totalFeedConsumed.toFixed(2)}
-                </Text>
-                <Text className="text-xs text-textTertiary mt-xs">kg</Text>
-              </View>
-              <View className="flex-1 bg-white rounded-md border border-gray-100 shadow-sm p-md">
-                <View className="flex-row items-center gap-sm mb-xs">
-                  <View className="w-8 h-8 rounded-full bg-primary-50 items-center justify-center">
-                    <Wheat size={16} color={theme.colors.primary['600']} />
-                  </View>
-                  <Text className="text-xs text-textSecondary">Promedio/gallina</Text>
-                </View>
-                <Text className="text-2xl font-bold text-textPrimary">
-                  {avgFeedPerHen.toFixed(4)}
-                </Text>
-                <Text className="text-xs text-textTertiary mt-xs">kg/gallina</Text>
-              </View>
-            </View>
-          </View>
-        )}
-
-        {/* ALIMENTACIÓN - HISTORIAL */}
-        <View className="px-lg py-md">
-          <Text className="text-lg font-bold text-textPrimary mb-md">
-            Historial de Alimentación
-          </Text>
-          <View style={{ maxHeight: 400 }}>
-            <ScrollView>
-              <FeedingHistoryList
-                records={feedingHistory.slice(0, 10)}
-                feedBatches={feedBatches}
-                liveHenCount={lot.liveHenCount}
-                emptyMessage="No hay registros de alimentación para este lote"
-              />
-            </ScrollView>
-          </View>
-        </View>
-
-        {/* SALUD & BIOSEGURIDAD */}
-        <View className="px-lg py-md">
-          <View className="flex-row items-center gap-sm mb-md">
-            <ShieldCheck size={20} color={theme.colors.primary['500']} />
-            <Text className="text-lg font-bold text-textPrimary">
-              Salud & Bioseguridad
+          <View className="flex-1 flex-row items-center gap-sm">
+            <Bird size={24} color={theme.colors.primary['500']} />
+            <Text className="text-xl font-bold text-textPrimary flex-1" numberOfLines={1}>
+              {lot.name}
             </Text>
           </View>
-          <EventHistoryList
-            events={[...healthEvents, ...biosecurityEvents]}
-            lots={lot ? [lot] : []}
-            emptyMessage="No hay eventos de salud registrados"
-            emptyIcon="health"
-          />
         </View>
-      </ScrollView>
+
+        <Text className="text-xs text-textSecondary ml-10">
+          {getHouseName(lot.chickenHouseId)} · Compra:{' '}
+          {new Date(lot.purchaseDate + 'T12:00:00').toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+          })}
+        </Text>
+      </View>
+
+      {/* ── MÉTRICAS GENERALES (siempre visibles) ──────────────────────────── */}
+      <View className="bg-white border-b border-gray-200 px-lg py-md flex-row gap-md">
+
+        {/* Gallinas vivas */}
+        <View className="flex-1 items-center py-sm">
+          <Text className="text-2xl font-bold text-textPrimary">{lot.liveHenCount}</Text>
+          <Text className="text-xs text-textSecondary mt-xs">Gallinas vivas</Text>
+          <Text className="text-[11px] text-textTertiary">/ {lot.initialHenCount} iniciales</Text>
+        </View>
+
+        <View className="w-px bg-gray-200" />
+
+        {/* Edad actual */}
+        <View className="flex-1 items-center py-sm">
+          <Text className="text-2xl font-bold text-textPrimary">{currentAge}</Text>
+          <Text className="text-xs text-textSecondary mt-xs">Semanas de edad</Text>
+          <Text className="text-[11px] text-textTertiary">Compra: {lot.ageWeeks} sem.</Text>
+        </View>
+
+        <View className="w-px bg-gray-200" />
+
+        {/* Mortalidad */}
+        <View className="flex-1 items-center py-sm">
+          <View className="flex-row items-center gap-xs">
+            <Text className={`text-2xl font-bold ${isHighMortality ? 'text-error' : 'text-textPrimary'}`}>
+              {mortalityRate.toFixed(1)}%
+            </Text>
+            {isHighMortality && (
+              <AlertTriangle size={14} color={theme.colors.error.DEFAULT} />
+            )}
+          </View>
+          <Text className="text-xs text-textSecondary mt-xs">Mortalidad</Text>
+          <Text className="text-[11px] text-textTertiary">{totalMortality} bajas</Text>
+        </View>
+      </View>
+
+      {/* ── TABS ───────────────────────────────────────────────────────────── */}
+      <LotDetailsProvider
+        value={{
+          lot,
+          loading: false,
+          mortalityHistory,
+          productionHistory,
+          productionMetrics,
+          feedingHistory,
+          feedBatches,
+          totalFeedConsumed,
+          avgFeedPerHen,
+          healthEvents,
+          biosecurityEvents,
+        }}
+      >
+        <LotDetailsTabNavigator />
+      </LotDetailsProvider>
+
     </SafeAreaView>
   );
 }

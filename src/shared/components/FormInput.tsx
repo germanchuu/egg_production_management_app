@@ -92,7 +92,6 @@ export function FormInput({
         editable={!disabled}
         accessibilityLabel={label}
         accessibilityHint={helpText}
-        accessibilityRequired={required}
         accessibilityState={{ disabled }}
         className={`
           px-lg py-md
