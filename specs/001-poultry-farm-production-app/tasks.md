@@ -361,8 +361,8 @@ All 10 collections handled by syncWithListeners() in src/shared/sync/listeners/s
 
 ### Performance Optimization
 
-- [ ] T147 [P] Profile production entry screen with React DevTools Profiler to verify <100ms UI response (SC-001, FR-UX-003)
-- [ ] T148 [P] Profile sync service with 50 records to verify <5s sync time (SC-003)
+- [X] T147 [P] Profile production entry screen with React DevTools Profiler to verify <100ms UI response (SC-001, FR-UX-003)
+- [X] T148 [P] Profile sync service with 50 records to verify <5s sync time (SC-003)
 - [ ] T149 [P] Profile app launch time to verify <2s cold start (Constitution performance goal)
 - [ ] T150 Optimize SQLite queries with proper indexes (verified via EXPLAIN QUERY PLAN)
 - [ ] T151 [P] Test app on physical device with 2GB RAM for responsiveness
