@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, Text } from 'react-native';
 import { ScrollView } from 'react-native';
 import { useLotDetails } from '../../contexts/LotDetailsContext';
 import { MortalityHistoryList } from '@/features/mortality/components/MortalityHistoryList';
@@ -22,6 +22,9 @@ export const MortalityTab: React.FC = () => {
 
   return (
     <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+      <Text className="text-base font-semibold text-textPrimary mb-md">
+        Historial de Mortalidad
+      </Text>
       <MortalityHistoryList
         records={mortalityHistory}
         lots={[lot]}
