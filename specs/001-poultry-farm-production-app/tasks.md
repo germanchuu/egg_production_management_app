@@ -378,7 +378,7 @@ All 10 collections handled by syncWithListeners() in src/shared/sync/listeners/s
 - [X] T155 [P] Add plain language error messages throughout the app (Constitution III)
 - [X] T156 [P] Add loading states and skeleton screens for all async operations
 - [X] T157 [P] Add haptic feedback on button presses (Constitution III: optimized for field use)
-- [ ] T158 Implement error boundary component in src/shared/components/ErrorBoundary.tsx to catch React errors gracefully
+- [X] T158 Implement error boundary component in src/shared/components/ErrorBoundary.tsx to catch React errors gracefully
 
 ### Accessibility & Localization
 

@@ -22,7 +22,7 @@ import { View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Slot, SplashScreen as ExpoSplashScreen } from 'expo-router';
 import { initDatabase } from '@/shared/database';
-import { SplashScreen } from '@/shared/components';
+import { SplashScreen, ErrorBoundary } from '@/shared/components';
 import { AuthProvider } from '@/features/auth/contexts';
 import { ToastProvider, SyncProvider } from '@/shared/contexts';
 // Prevent the splash screen from auto-hiding
@@ -87,12 +87,14 @@ export default function RootLayout() {
   }
 
   return (
-    <AuthProvider>
-      <SyncProvider>
-        <ToastProvider>
-          <Slot />
-        </ToastProvider>
-      </SyncProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <SyncProvider>
+          <ToastProvider>
+            <Slot />
+          </ToastProvider>
+        </SyncProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
