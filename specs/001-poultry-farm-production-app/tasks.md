@@ -414,32 +414,6 @@ All 10 collections handled by syncWithListeners() in src/shared/sync/listeners/s
 
 ---
 
-## Phase 10: Future Enhancements (Post-MVP)
-
-**Goal**: Enhance offline-first capabilities with true background synchronization
-
-**Context**: Current `useSync` hook only works while app is open. This phase adds background sync for automatic synchronization even when app is closed or in background, completing the offline-first experience.
-
-### Background Synchronization
-
-- [ ] T177 Install expo-background-fetch dependency for background task management
-- [ ] T178 Create BackgroundSyncService in src/shared/sync/BackgroundSyncService.ts implementing background sync logic
-- [ ] T179 Create registerBackgroundSync in src/shared/sync/registerBackgroundSync.ts to register and configure background task
-- [ ] T180 Configure iOS background permissions in app.json and Info.plist
-- [ ] T181 Configure Android background permissions and behavior in app.json and AndroidManifest.xml
-- [ ] T182 Implement WiFi-only sync preference to conserve mobile data
-- [ ] T183 Add optional push notifications for sync completion status
-- [ ] T184 Create tests for background sync scenarios (app closed, background, poor connectivity)
-- [ ] T185 Update documentation with background sync setup and configuration guide
-
-**Dependencies**: Requires Phase 2 (Sync infrastructure) and Phase 6 (Sync completion) fully implemented
-
-**Estimated Effort**: 1-2 days
-
-**Checkpoint**: Background sync works reliably with app closed, minimizes battery/data usage
-
----
-
 ## Dependencies & Execution Order
 
 ### Phase Dependencies
@@ -587,6 +561,8 @@ Each increment adds value without breaking previous functionality.
 **MVP Scope**: Phases 1-6 (134 tasks) deliver fully functional offline-first production tracking system
 
 **Format Validation**: ✅ All 176 tasks follow checklist format: `- [ ] [ID] [P?] [Story?] Description with file path`
+
+> **Nota**: La Phase 10 (Background Sync) fue eliminada del plan. No se implementará.
 
 ---
 
