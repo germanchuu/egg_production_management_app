@@ -382,7 +382,7 @@ All 10 collections handled by syncWithListeners() in src/shared/sync/listeners/s
 
 ### Accessibility & Localization
 
-- [ ] T159 [P] Add Spanish language strings in src/shared/i18n/es.ts (app primary language per assumption 5)
+- [X] T159 [P] Add Spanish language strings in src/shared/i18n/es.ts (app primary language per assumption 5)
 - [ ] T160 [P] Ensure all interactive elements have accessible labels for screen readers
 - [ ] T161 [P] Test font scaling support for users with vision impairments
 
