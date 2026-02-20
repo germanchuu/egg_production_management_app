@@ -21,6 +21,7 @@ import { View, Text, TouchableOpacity, Platform } from 'react-native';
 import DateTimePicker, {
   DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
+import * as Haptics from 'expo-haptics';
 import { formatDate } from '@/shared/utils/date';
 
 export interface DatePickerProps {
@@ -88,6 +89,7 @@ export function DatePicker({
 
   const handlePress = () => {
     if (!disabled) {
+      Haptics.selectionAsync();
       setShowPicker(true);
     }
   };

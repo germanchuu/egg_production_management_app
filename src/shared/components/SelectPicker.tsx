@@ -31,6 +31,7 @@ import {
   FlatList,
   Pressable,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 
 export interface SelectOption<T = string> {
   label: string;
@@ -82,7 +83,15 @@ export function SelectPicker<T = string>({
 
   const selectedOption = options.find((opt) => opt.value === value);
 
+  const handleOpen = () => {
+    if (!disabled) {
+      Haptics.selectionAsync();
+      setOpen(true);
+    }
+  };
+
   const handleSelect = (val: T) => {
+    Haptics.selectionAsync();
     onChange(val);
     setOpen(false);
   };
@@ -99,7 +108,7 @@ export function SelectPicker<T = string>({
 
       {/* Touch Area */}
       <TouchableOpacity
-        onPress={() => !disabled && setOpen(true)}
+        onPress={handleOpen}
         disabled={disabled}
         activeOpacity={0.7}
         className={`
