@@ -292,6 +292,26 @@ async function runMigrations(
 
         console.log('✅ health_events and biosecurity_events tables created successfully');
       }
+
+      // Migration v5 -> v6: Add composite indexes for common query patterns
+      if (currentVersion < 6 && targetVersion >= 6) {
+        console.log('📦 Adding composite indexes for performance...');
+
+        await db.execAsync(
+          'CREATE INDEX IF NOT EXISTS idx_production_records_lot_date ON production_records(lot_id, date DESC);'
+        );
+        await db.execAsync(
+          'CREATE INDEX IF NOT EXISTS idx_mortality_records_lot_date ON mortality_records(lot_id, date DESC);'
+        );
+        await db.execAsync(
+          'CREATE INDEX IF NOT EXISTS idx_feeding_records_lot_date ON feeding_records(lot_id, date DESC);'
+        );
+        await db.execAsync(
+          'CREATE INDEX IF NOT EXISTS idx_health_events_lot_event_date ON health_events(lot_id, event_date DESC);'
+        );
+
+        console.log('✅ Composite indexes created successfully');
+      }
     } else {
       console.log('✅ Database schema is up to date');
     }

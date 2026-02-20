@@ -14,7 +14,7 @@
  * - Indexes for query optimization
  */
 
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 6;
 
 /**
  * Core Tables Schema
@@ -223,11 +223,15 @@ export const CREATE_INDEXES_SQL = [
   'CREATE INDEX IF NOT EXISTS idx_production_records_lot_id ON production_records(lot_id);',
   'CREATE INDEX IF NOT EXISTS idx_production_records_date ON production_records(date);',
   'CREATE INDEX IF NOT EXISTS idx_production_records_recorded_by ON production_records(recorded_by);',
+  // Composite: covers findByLot (ORDER BY date DESC) and findByLotAndDate queries
+  'CREATE INDEX IF NOT EXISTS idx_production_records_lot_date ON production_records(lot_id, date DESC);',
 
   // ==================== MORTALITY RECORDS ====================
   'CREATE INDEX IF NOT EXISTS idx_mortality_records_lot_id ON mortality_records(lot_id);',
   'CREATE INDEX IF NOT EXISTS idx_mortality_records_date ON mortality_records(date);',
   'CREATE INDEX IF NOT EXISTS idx_mortality_records_recorded_by ON mortality_records(recorded_by);',
+  // Composite: covers getMortalityHistory(lotId) ORDER BY date DESC
+  'CREATE INDEX IF NOT EXISTS idx_mortality_records_lot_date ON mortality_records(lot_id, date DESC);',
 
   // ==================== FEED BATCHES ====================
   'CREATE INDEX IF NOT EXISTS idx_feed_batches_preparation_date ON feed_batches(preparation_date);',
@@ -238,12 +242,16 @@ export const CREATE_INDEXES_SQL = [
   'CREATE INDEX IF NOT EXISTS idx_feeding_records_feed_batch_id ON feeding_records(feed_batch_id);',
   'CREATE INDEX IF NOT EXISTS idx_feeding_records_date ON feeding_records(date);',
   'CREATE INDEX IF NOT EXISTS idx_feeding_records_recorded_by ON feeding_records(recorded_by);',
+  // Composite: covers getFeedingHistory(lotId) ORDER BY date DESC
+  'CREATE INDEX IF NOT EXISTS idx_feeding_records_lot_date ON feeding_records(lot_id, date DESC);',
 
   // ==================== HEALTH EVENTS ====================
   'CREATE INDEX IF NOT EXISTS idx_health_events_lot_id ON health_events(lot_id);',
   'CREATE INDEX IF NOT EXISTS idx_health_events_event_date ON health_events(event_date);',
   'CREATE INDEX IF NOT EXISTS idx_health_events_event_type ON health_events(event_type);',
   'CREATE INDEX IF NOT EXISTS idx_health_events_recorded_by ON health_events(recorded_by);',
+  // Composite: covers getEventHistory(lotId) ORDER BY event_date DESC
+  'CREATE INDEX IF NOT EXISTS idx_health_events_lot_event_date ON health_events(lot_id, event_date DESC);',
 
   // ==================== BIOSECURITY EVENTS ====================
   'CREATE INDEX IF NOT EXISTS idx_biosecurity_events_event_date ON biosecurity_events(event_date);',
