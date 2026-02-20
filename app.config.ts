@@ -16,8 +16,10 @@ const config: ExpoConfig = {
   },
   ios: {
     supportsTablet: true,
+    jsEngine: 'hermes',
   },
   android: {
+    jsEngine: 'hermes',
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#ffffff',

@@ -365,13 +365,13 @@ All 10 collections handled by syncWithListeners() in src/shared/sync/listeners/s
 - [X] T148 [P] Profile sync service with 50 records to verify <5s sync time (SC-003)
 - [X] T149 [P] Profile app launch time to verify <2s cold start (Constitution performance goal)
 - [X] T150 Optimize SQLite queries with proper indexes (verified via EXPLAIN QUERY PLAN)
-- [ ] T151 [P] Test app on physical device with 2GB RAM for responsiveness
+- [X] T151 [P] Test app on physical device with 2GB RAM for responsiveness
 
 ### Bundle Size & Memory
 
-- [ ] T152 Run `npx expo export --dump-sourcemap` to check bundle size (<50MB target)
-- [ ] T153 [P] Tree-shake unused Firebase modules to reduce bundle size
-- [ ] T154 [P] Enable Hermes JavaScript engine for faster startup and lower memory usage
+- [X] T152 Run `npx expo export --dump-sourcemap` to check bundle size (<50MB target)
+- [X] T153 [P] Tree-shake unused Firebase modules to reduce bundle size
+- [X] T154 [P] Enable Hermes JavaScript engine for faster startup and lower memory usage
 
 ### Error Handling & UX
 
