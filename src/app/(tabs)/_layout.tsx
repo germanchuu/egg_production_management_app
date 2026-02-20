@@ -49,6 +49,16 @@ function AdminDrawerContent(props: any) {
             </View>
 
             <DrawerItem
+              label="Gestión de usuarios"
+              onPress={() => props.navigation.navigate('admin/users/index')}
+              icon={({ color, size }) => <Users size={size} color={color} />}
+              labelStyle={{
+                fontWeight: theme.fontWeight.medium,
+                color: theme.colors.textSecondary.DEFAULT,
+              }}
+            />
+
+            <DrawerItem
               label="Galpones"
               onPress={() => props.navigation.navigate('admin/houses/index')}
               icon={({ color, size }) => (
@@ -64,16 +74,6 @@ function AdminDrawerContent(props: any) {
               label="Lotes"
               onPress={() => props.navigation.navigate('lots/index')}
               icon={({ color, size }) => <Bird size={size} color={color} />}
-              labelStyle={{
-                fontWeight: theme.fontWeight.medium,
-                color: theme.colors.textSecondary.DEFAULT,
-              }}
-            />
-
-            <DrawerItem
-              label="Gestión de usuarios"
-              onPress={() => props.navigation.navigate('admin/users/index')}
-              icon={({ color, size }) => <Users size={size} color={color} />}
               labelStyle={{
                 fontWeight: theme.fontWeight.medium,
                 color: theme.colors.textSecondary.DEFAULT,
@@ -136,9 +136,7 @@ export default function AppLayout() {
         name="feeding/index"
         options={{
           title: 'Alimentación',
-          drawerIcon: ({ color, size }) => (
-            <Wheat size={size} color={color} />
-          ),
+          drawerIcon: ({ color, size }) => <Wheat size={size} color={color} />,
         }}
       />
 
@@ -151,7 +149,6 @@ export default function AppLayout() {
           ),
         }}
       />
-
 
       <Drawer.Screen
         name="profile"

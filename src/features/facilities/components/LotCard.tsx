@@ -37,6 +37,16 @@ export const LotCard: React.FC<LotCardProps> = ({
           {lot.name}
         </Text>
         <View className="flex-row items-center gap-xs">
+          {/* Status Badge */}
+          <View
+            className={`px-sm py-xs rounded-sm ${lot.liveHenCount > 0 ? 'bg-success/10' : 'bg-gray-100'}`}
+          >
+            <Text
+              className={`text-xs font-medium ${lot.liveHenCount > 0 ? 'text-success' : 'text-textSecondary'}`}
+            >
+              {lot.liveHenCount > 0 ? 'Activo' : 'Inactivo'}
+            </Text>
+          </View>
           {/* Edit Button */}
           {onEdit && (
             <Pressable
@@ -49,16 +59,6 @@ export const LotCard: React.FC<LotCardProps> = ({
               <Edit3 size={18} color={theme.colors.gray['700']} />
             </Pressable>
           )}
-          {/* Status Badge */}
-          <View
-            className={`px-sm py-xs rounded-sm ${lot.liveHenCount > 0 ? 'bg-success/10' : 'bg-gray-100'}`}
-          >
-            <Text
-              className={`text-xs font-medium ${lot.liveHenCount > 0 ? 'text-success' : 'text-textSecondary'}`}
-            >
-              {lot.liveHenCount > 0 ? 'Activo' : 'Inactivo'}
-            </Text>
-          </View>
         </View>
       </View>
 
@@ -74,7 +74,9 @@ export const LotCard: React.FC<LotCardProps> = ({
       <View className="flex-row justify-between">
         {/* Live Hens */}
         <View className="flex-1">
-          <Text className="text-xs text-textTertiary mb-xs">Gallinas Vivas</Text>
+          <Text className="text-xs text-textTertiary mb-xs">
+            Gallinas Vivas
+          </Text>
           <Text className="text-2xl font-bold text-textPrimary">
             {lot.liveHenCount}
           </Text>
@@ -113,10 +115,7 @@ export const LotCard: React.FC<LotCardProps> = ({
 
   if (onPress) {
     return (
-      <Pressable
-        onPress={onPress}
-        className="active:opacity-70"
-      >
+      <Pressable onPress={onPress} className="active:opacity-70">
         {content}
       </Pressable>
     );

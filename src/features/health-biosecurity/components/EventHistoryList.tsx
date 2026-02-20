@@ -33,7 +33,9 @@ interface EventCardProps {
 
 const EventCard: React.FC<EventCardProps> = ({ event, index, isLast }) => {
   const isHealth = event.eventType === 'vaccination';
-  const lotName = isHealth ? (event as HealthEvent & { lotName?: string }).lotName : undefined;
+  const lotName = isHealth
+    ? (event as HealthEvent & { lotName?: string }).lotName
+    : undefined;
 
   return (
     <View
@@ -52,14 +54,25 @@ const EventCard: React.FC<EventCardProps> = ({ event, index, isLast }) => {
       </View>
 
       <View className="flex-1">
-        <Text className="text-sm font-semibold text-textPrimary">{event.productName}</Text>
+        <Text className="text-sm font-semibold text-textPrimary">
+          {event.productName}
+        </Text>
+
         {lotName && (
-          <Text className="text-xs text-primary-600 mt-xs">Lote: {lotName}</Text>
+          <Text className="text-xs text-primary-600 mt-xs">
+            Lote: {lotName}
+          </Text>
         )}
+
         {event.notes ? (
           <View className="flex-row items-start gap-xs mt-xs">
-            <FileText size={12} color={theme.colors.gray['400']} />
-            <Text className="text-xs text-textSecondary flex-1" numberOfLines={2}>
+            <View className="translate-y-0.5">
+              <FileText size={12} color={theme.colors.gray['400']} />
+            </View>
+            <Text
+              className="text-xs text-textSecondary flex-1"
+              numberOfLines={2}
+            >
               {event.notes}
             </Text>
           </View>
@@ -102,7 +115,9 @@ export const EventHistoryList: React.FC<EventHistoryListProps> = ({
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(ev);
     });
-    return new Map(Array.from(map.entries()).sort((a, b) => b[0].localeCompare(a[0])));
+    return new Map(
+      Array.from(map.entries()).sort((a, b) => b[0].localeCompare(a[0]))
+    );
   }, [enrichedEvents]);
 
   if (events.length === 0) {
@@ -136,15 +151,20 @@ export const EventHistoryList: React.FC<EventHistoryListProps> = ({
                 <View className="flex-row items-center gap-sm flex-1">
                   <Calendar size={16} color={theme.colors.primary['600']} />
                   <Text className="text-sm font-semibold text-primary-700">
-                    {new Date(dateKey + 'T12:00:00').toLocaleDateString('es-ES', {
-                      day: '2-digit',
-                      month: 'long',
-                      year: 'numeric',
-                    })}
+                    {new Date(dateKey + 'T12:00:00').toLocaleDateString(
+                      'es-ES',
+                      {
+                        day: '2-digit',
+                        month: 'long',
+                        year: 'numeric',
+                      }
+                    )}
                   </Text>
                 </View>
                 {dayEvents.length > 1 && (
-                  <Text className="text-xs text-primary-500">{dayEvents.length} eventos</Text>
+                  <Text className="text-xs text-primary-500">
+                    {dayEvents.length} eventos
+                  </Text>
                 )}
               </View>
             </View>

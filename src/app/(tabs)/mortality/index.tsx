@@ -147,7 +147,7 @@ export default function MortalityScreen() {
               Registro de Mortalidad
             </Text>
           </View>
-          <Text className="text-sm text-textSecondary mt-xs">
+          <Text className="text-sm text-textSecondary mt-xs ml-12">
             {lots.length} {lots.length === 1 ? 'lote activo' : 'lotes activos'}
           </Text>
         </View>

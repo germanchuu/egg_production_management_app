@@ -327,29 +327,29 @@ All 10 collections handled by syncWithListeners() in src/shared/sync/listeners/s
 
 ### Models & Services
 
-- [ ] T133 [P] [US5] Create HealthEvent model in src/features/health-biosecurity/models/HealthEvent.ts with eventType enum (vaccination)
-- [ ] T134 [P] [US5] Create BiosecurityEvent model in src/features/health-biosecurity/models/BiosecurityEvent.ts with eventType enum (disinfection)
-- [ ] T135 [US5] Create EventService in src/features/health-biosecurity/services/EventService.ts with methods: recordHealthEvent(), recordBiosecurityEvent(), getEventHistory()
-- [ ] T136 [US5] Add sync queue integration in EventService
+- [X] T133 [P] [US5] Create HealthEvent model in src/features/health-biosecurity/models/HealthEvent.ts with eventType enum (vaccination)
+- [X] T134 [P] [US5] Create BiosecurityEvent model in src/features/health-biosecurity/models/BiosecurityEvent.ts with eventType enum (disinfection)
+- [X] T135 [US5] Create EventService in src/features/health-biosecurity/services/EventService.ts with methods: recordHealthEvent(), recordBiosecurityEvent(), getEventHistory()
+- [X] T136 [US5] Add sync queue integration in EventService
 
 ### Validation & Business Logic
 
-- [ ] T137 [P] [US5] Create validation schema in src/features/health-biosecurity/utils/validation.ts (eventDate not future, productName required, notes max 2000 chars)
+- [X] T137 [P] [US5] Create validation schema in src/features/health-biosecurity/utils/validation.ts (eventDate not future, productName required, notes max 2000 chars)
 
 ### UI Components & Screens
 
-- [ ] T138 [P] [US5] Create HealthEventForm component in src/features/health-biosecurity/components/HealthEventForm.tsx with lot selector, date picker, product name input, notes textarea (multi-line)
-- [ ] T139 [P] [US5] Create BiosecurityEventForm component in src/features/health-biosecurity/components/BiosecurityEventForm.tsx (same fields as health event)
-- [ ] T140 [P] [US5] Create EventHistoryList component in src/features/health-biosecurity/components/EventHistoryList.tsx showing chronological events with type, date, product, notes
-- [ ] T141 [US5] Create health events screen in src/app/(tabs)/health/index.tsx with vaccination form and event history
-- [ ] T142 [US5] Create biosecurity events screen in src/app/(tabs)/biosecurity/index.tsx with disinfection form and event history
-- [ ] T143 [US5] Add event history to lot details screen showing all health and biosecurity events
+- [X] T138 [P] [US5] Create HealthEventForm component in src/features/health-biosecurity/components/HealthEventForm.tsx with lot selector, date picker, product name input, notes textarea (multi-line)
+- [X] T139 [P] [US5] Create BiosecurityEventForm component in src/features/health-biosecurity/components/BiosecurityEventForm.tsx (same fields as health event)
+- [X] T140 [P] [US5] Create EventHistoryList component in src/features/health-biosecurity/components/EventHistoryList.tsx showing chronological events with type, date, product, notes
+- [X] T141 [US5] Create health events screen in src/app/(tabs)/health/index.tsx with vaccination form and event history
+- [X] T142 [US5] Create biosecurity events screen in src/app/(tabs)/biosecurity/index.tsx with disinfection form and event history (merged into health/index.tsx as Bioseguridad tab)
+- [X] T143 [US5] Add event history to lot details screen showing all health and biosecurity events
 
 ### Integration & Validation
 
-- [ ] T144 [US5] Test offline event recording with sync
-- [ ] T145 [US5] Test multi-line notes support
-- [ ] T146 [US5] Test event history display in chronological order
+- [X] T144 [US5] Test offline event recording with sync
+- [X] T145 [US5] Test multi-line notes support
+- [X] T146 [US5] Test event history display in chronological order
 
 **Checkpoint**: Health and biosecurity tracking complete and independently testable
 

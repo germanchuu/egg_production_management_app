@@ -28,7 +28,10 @@ export const HealthEventForm: React.FC<HealthEventFormProps> = ({
   onSubmit,
   isSubmitting = false,
 }) => {
-  const activeLots = useMemo(() => lots.filter((l) => l.liveHenCount > 0), [lots]);
+  const activeLots = useMemo(
+    () => lots.filter((l) => l.liveHenCount > 0),
+    [lots]
+  );
 
   const {
     control,
@@ -121,7 +124,7 @@ export const HealthEventForm: React.FC<HealthEventFormProps> = ({
             value={value}
             onChangeText={onChange}
             onBlur={onBlur}
-            placeholder="Ej. Newcastle, Marek, Gumboro..."
+            placeholder="Ej. Viruela aviar, Marek, Gumboro..."
             error={errors.productName?.message}
             disabled={isSubmitting}
             required

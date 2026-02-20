@@ -10,7 +10,10 @@ import { View } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Shield } from 'lucide-react-native';
-import { biosecurityEventSchema, BiosecurityEventFormData } from '../utils/validation';
+import {
+  biosecurityEventSchema,
+  BiosecurityEventFormData,
+} from '../utils/validation';
 import { FormInput } from '@/shared/components/FormInput';
 import { DatePicker } from '@/shared/components/DatePicker';
 import { Button } from '@/shared/components/Button';
@@ -75,7 +78,7 @@ export const BiosecurityEventForm: React.FC<BiosecurityEventFormProps> = ({
             value={value}
             onChangeText={onChange}
             onBlur={onBlur}
-            placeholder="Ej. Glutaraldehído, Formol, Amonio cuaternario..."
+            placeholder="Ej. Formol, Amonio cuaternario..."
             error={errors.productName?.message}
             disabled={isSubmitting}
             required

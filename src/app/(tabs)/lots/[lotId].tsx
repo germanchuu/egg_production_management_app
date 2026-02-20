@@ -17,17 +17,21 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { AlertTriangle, ArrowLeft, BarChart3, Wheat, Scale } from 'lucide-react-native';
+import { AlertTriangle, ArrowLeft, BarChart3, Wheat, Scale, ShieldCheck } from 'lucide-react-native';
 import { ChickenLot, ChickenHouse, MortalityRecord, ProductionRecord } from '@/shared/types/entities';
 import { FacilityServiceProvider } from '@/features/facilities/services/FacilityServiceProvider';
 import { MortalityServiceProvider } from '@/features/mortality/services/MortalityServiceProvider';
 import { ProductionServiceProvider } from '@/features/production/services/ProductionServiceProvider';
 import { FeedingServiceProvider } from '@/features/feeding/services/FeedingServiceProvider';
+import { EventServiceProvider } from '@/features/health-biosecurity/services/EventServiceProvider';
+import { HealthEvent } from '@/features/health-biosecurity/models/HealthEvent';
+import { BiosecurityEvent } from '@/features/health-biosecurity/models/BiosecurityEvent';
 import { ChickenLotCompute } from '@/features/facilities/models/ChickenLot';
 import { MortalityHistoryList } from '@/features/mortality/components/MortalityHistoryList';
 import { ProductionHistoryList } from '@/features/production/components/ProductionHistoryList';
 import { ProductionMetricsCard, ProductionMetrics } from '@/features/production/components/ProductionMetricsCard';
 import { FeedingHistoryList } from '@/features/feeding/components/FeedingHistoryList';
+import { EventHistoryList } from '@/features/health-biosecurity/components/EventHistoryList';
 import { FeedBatchWithRemaining, FeedingRecordWithMetrics } from '@/features/feeding/services/FeedingService';
 import { useToastContext } from '@/shared/contexts/ToastContext';
 import { useSyncRefresh } from '@/shared/contexts/SyncContext';
@@ -52,6 +56,8 @@ export default function LotDetailsScreen() {
   const [feedBatches, setFeedBatches] = useState<FeedBatchWithRemaining[]>([]);
   const [totalFeedConsumed, setTotalFeedConsumed] = useState<number>(0);
   const [avgFeedPerHen, setAvgFeedPerHen] = useState<number>(0);
+  const [healthEvents, setHealthEvents] = useState<HealthEvent[]>([]);
+  const [biosecurityEvents, setBiosecurityEvents] = useState<BiosecurityEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadLotDetails = useCallback(async () => {
@@ -111,6 +117,17 @@ export default function LotDetailsScreen() {
       const batchesResult = await feedingService.listFeedBatches();
       if (batchesResult.success && batchesResult.data) {
         setFeedBatches(batchesResult.data);
+      }
+
+      // Load health & biosecurity events
+      const eventService = await EventServiceProvider.getEventService();
+      const healthResult = await eventService.getHealthEventsByLot(lotId);
+      if (healthResult.success && healthResult.data) {
+        setHealthEvents(healthResult.data);
+      }
+      const biosecurityResult = await eventService.listBiosecurityEvents();
+      if (biosecurityResult.success && biosecurityResult.data) {
+        setBiosecurityEvents(biosecurityResult.data);
       }
 
       // Load houses for house names
@@ -355,6 +372,22 @@ export default function LotDetailsScreen() {
               />
             </ScrollView>
           </View>
+        </View>
+
+        {/* SALUD & BIOSEGURIDAD */}
+        <View className="px-lg py-md">
+          <View className="flex-row items-center gap-sm mb-md">
+            <ShieldCheck size={20} color={theme.colors.primary['500']} />
+            <Text className="text-lg font-bold text-textPrimary">
+              Salud & Bioseguridad
+            </Text>
+          </View>
+          <EventHistoryList
+            events={[...healthEvents, ...biosecurityEvents]}
+            lots={lot ? [lot] : []}
+            emptyMessage="No hay eventos de salud registrados"
+            emptyIcon="health"
+          />
         </View>
       </ScrollView>
     </SafeAreaView>

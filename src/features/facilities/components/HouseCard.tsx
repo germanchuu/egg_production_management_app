@@ -56,18 +56,6 @@ export const HouseCard: React.FC<HouseCardProps> = ({
           year: 'numeric',
         })}
       </Text>
-
-      {/* Delete Button */}
-      {onDelete && (
-        <Pressable
-          onPress={onDelete}
-          className="mt-md p-sm rounded-md bg-error/10 active:bg-error/20"
-        >
-          <Text className="text-sm font-medium text-error text-center">
-            Eliminar Galpón
-          </Text>
-        </Pressable>
-      )}
     </View>
   );
 };
