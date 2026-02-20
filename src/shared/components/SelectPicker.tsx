@@ -111,6 +111,11 @@ export function SelectPicker<T = string>({
         onPress={handleOpen}
         disabled={disabled}
         activeOpacity={0.7}
+        accessibilityRole="combobox"
+        accessibilityLabel={label}
+        accessibilityHint={helpText ?? `Seleccionar ${label}`}
+        accessibilityState={{ disabled, expanded: open }}
+        accessibilityValue={{ text: selectedOption?.label ?? placeholder }}
         className={`
           px-lg py-md
           min-h-[48px]

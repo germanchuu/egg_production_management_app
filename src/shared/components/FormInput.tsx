@@ -90,6 +90,10 @@ export function FormInput({
         placeholder={placeholder}
         placeholderTextColor="#9E9E9E"
         editable={!disabled}
+        accessibilityLabel={label}
+        accessibilityHint={helpText}
+        accessibilityRequired={required}
+        accessibilityState={{ disabled }}
         className={`
           px-lg py-md
           min-h-[48px]

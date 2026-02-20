@@ -111,6 +111,11 @@ export function DatePicker({
         onPress={handlePress}
         disabled={disabled}
         activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityHint={helpText ?? `Seleccionar ${label}`}
+        accessibilityState={{ disabled }}
+        accessibilityValue={{ text: displayDate }}
         className={`
           px-lg py-md
           min-h-[48px]

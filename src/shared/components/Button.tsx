@@ -27,6 +27,10 @@ export interface ButtonProps extends Omit<PressableProps, 'children'> {
   icon?: LucideIcon;
   iconPosition?: IconPosition;
   onPress?: () => void;
+  /** Accessible label override (defaults to children text) */
+  accessibilityLabel?: string;
+  /** Accessible hint describing what the button does */
+  accessibilityHint?: string;
 }
 
 function getVariantBackgroundClass(variant: ButtonVariant): string {
@@ -54,6 +58,8 @@ export function Button({
   icon: Icon,
   iconPosition = 'left',
   onPress,
+  accessibilityLabel,
+  accessibilityHint,
   ...rest
 }: ButtonProps) {
   const isDisabled = disabled || loading;
@@ -72,6 +78,10 @@ export function Button({
     <Pressable
       onPress={handlePress}
       disabled={isDisabled}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? children}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={{ disabled: isDisabled, busy: loading }}
       className={`
         px-xl py-md
         min-h-[48px]
