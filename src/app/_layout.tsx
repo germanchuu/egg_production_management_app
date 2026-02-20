@@ -46,9 +46,6 @@ export default function RootLayout() {
         // Initialize SQLite database with schema
         await initDatabase();
 
-        // Add a small delay to ensure splash screen shows briefly
-        await new Promise((resolve) => setTimeout(resolve, 5000));
-
         setInitState('ready');
       } catch (err) {
         setError(err as Error);
