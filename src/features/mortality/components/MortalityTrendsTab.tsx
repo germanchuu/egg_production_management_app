@@ -4,6 +4,7 @@ import { BarChart, LineChart } from 'react-native-gifted-charts';
 import { Skull, TrendingDown, Calendar, Activity } from 'lucide-react-native';
 import { theme } from '@/core/theme';
 import { MortalityRecord, ChickenLot } from '@/shared/types/entities';
+import { ChartTooltip } from '@/shared/components/ChartTooltip';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CHART_WIDTH = SCREEN_WIDTH - 48;
@@ -168,6 +169,11 @@ export const MortalityTrendsTab: React.FC<MortalityTrendsTabProps> = ({ records,
             xAxisLabelTextStyle={{ fontSize: 9, color: theme.colors.gray['500'] }}
             yAxisTextStyle={{ fontSize: 10, color: theme.colors.gray['500'] }}
             isAnimated
+            focusBarOnPress
+            autoCenterTooltip
+            renderTooltip={(item: { label?: string; value?: number }) => (
+              <ChartTooltip label={item.label ?? ''} value={`${item.value ?? 0} bajas`} />
+            )}
           />
         </View>
       ) : (
@@ -192,6 +198,17 @@ export const MortalityTrendsTab: React.FC<MortalityTrendsTabProps> = ({ records,
             yAxisTextStyle={{ fontSize: 10, color: theme.colors.gray['500'] }}
             hideDataPoints={cumulativeData.length > 30}
             isAnimated
+            pointerConfig={{
+              activatePointersInstantlyOnTouch: true,
+              autoAdjustPointerLabelPosition: true,
+              persistPointer: false,
+              pointerLabelComponent: (items: Array<{ label?: string; value?: number }>) => (
+                <ChartTooltip label={items[0]?.label ?? ''} value={`${items[0]?.value ?? 0} acumuladas`} />
+              ),
+              pointerStripColor: '#9CA3AF',
+              pointerStripWidth: 1,
+              showPointerStrip: true,
+            }}
           />
         </View>
       ) : (
@@ -215,6 +232,11 @@ export const MortalityTrendsTab: React.FC<MortalityTrendsTabProps> = ({ records,
               xAxisLabelTextStyle={{ fontSize: 9, color: theme.colors.gray['500'] }}
               yAxisTextStyle={{ fontSize: 10, color: theme.colors.gray['500'] }}
               isAnimated
+              focusBarOnPress
+              autoCenterTooltip
+              renderTooltip={(item: { label?: string; value?: number }) => (
+                <ChartTooltip label={item.label ?? ''} value={`${item.value ?? 0}%`} />
+              )}
             />
           </View>
         </>

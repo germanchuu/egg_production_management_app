@@ -1,9 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, ScrollView, Dimensions } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
 import { Star, TrendingDown, BarChart3, Egg, Percent } from 'lucide-react-native';
 import { theme } from '@/core/theme';
 import { ProductionRecord, ChickenLot } from '@/shared/types/entities';
+import { ChartTooltip } from '@/shared/components/ChartTooltip';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -49,6 +50,7 @@ function aggregateByDay(records: ProductionRecord[]): { date: string; total: num
 
 export const ProductionSummaryTab: React.FC<ProductionSummaryTabProps> = ({ records, lot }) => {
   const henCount = lot.liveHenCount || lot.initialHenCount || 1;
+  const [selectedSlice, setSelectedSlice] = useState<{ label: string; value: number } | null>(null);
 
   /** One entry per unique day */
   const dailyTotals = useMemo(() => aggregateByDay(records), [records]);
@@ -158,13 +160,19 @@ export const ProductionSummaryTab: React.FC<ProductionSummaryTabProps> = ({ reco
       {pieData.length > 0 ? (
         <View className="bg-white rounded-md border border-gray-100 shadow-sm p-md mb-lg items-center">
           <PieChart
-            data={pieData}
+            data={pieData.map((d) => ({
+              ...d,
+              onPress: () => setSelectedSlice((prev) => (prev?.label === d.label ? null : d)),
+            }))}
             radius={Math.min(100, (SCREEN_WIDTH - 96) / 2)}
             textSize={11}
             textColor="#ffffff"
             showText
             isAnimated
           />
+          {selectedSlice && (
+            <ChartTooltip label={selectedSlice.label} value={`${selectedSlice.value}%`} />
+          )}
           <View className="flex-row flex-wrap gap-md mt-md justify-center">
             {pieData.map((d) => (
               <View key={d.label} className="flex-row items-center gap-xs">

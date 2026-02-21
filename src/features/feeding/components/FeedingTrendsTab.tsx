@@ -5,6 +5,7 @@ import { Scale, Wheat, Calendar } from 'lucide-react-native';
 import { theme } from '@/core/theme';
 import { ChickenLot } from '@/shared/types/entities';
 import { FeedingRecordWithMetrics } from '@/features/feeding/services/FeedingService';
+import { ChartTooltip } from '@/shared/components/ChartTooltip';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CHART_WIDTH = SCREEN_WIDTH - 48;
@@ -166,6 +167,17 @@ export const FeedingTrendsTab: React.FC<FeedingTrendsTabProps> = ({ records, lot
             yAxisTextStyle={{ fontSize: 10, color: theme.colors.gray['500'] }}
             hideDataPoints={consumoData.length > 30}
             isAnimated
+            pointerConfig={{
+              activatePointersInstantlyOnTouch: true,
+              autoAdjustPointerLabelPosition: true,
+              persistPointer: false,
+              pointerLabelComponent: (items: Array<{ label?: string; value?: number }>) => (
+                <ChartTooltip label={items[0]?.label ?? ''} value={`${items[0]?.value ?? 0} kg`} />
+              ),
+              pointerStripColor: '#9CA3AF',
+              pointerStripWidth: 1,
+              showPointerStrip: true,
+            }}
           />
         </View>
       ) : (
@@ -187,6 +199,17 @@ export const FeedingTrendsTab: React.FC<FeedingTrendsTabProps> = ({ records, lot
             yAxisTextStyle={{ fontSize: 10, color: theme.colors.gray['500'] }}
             hideDataPoints={feedPerHenData.length > 30}
             isAnimated
+            pointerConfig={{
+              activatePointersInstantlyOnTouch: true,
+              autoAdjustPointerLabelPosition: true,
+              persistPointer: false,
+              pointerLabelComponent: (items: Array<{ label?: string; value?: number }>) => (
+                <ChartTooltip label={items[0]?.label ?? ''} value={`${items[0]?.value ?? 0} kg/gal`} />
+              ),
+              pointerStripColor: '#9CA3AF',
+              pointerStripWidth: 1,
+              showPointerStrip: true,
+            }}
           />
         </View>
       ) : (

@@ -1,9 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, ScrollView, Dimensions } from 'react-native';
 import { BarChart, PieChart } from 'react-native-gifted-charts';
 import { Wheat, Package } from 'lucide-react-native';
 import { theme } from '@/core/theme';
 import { FeedBatchWithRemaining, FeedingRecordWithMetrics } from '@/features/feeding/services/FeedingService';
+import { ChartTooltip } from '@/shared/components/ChartTooltip';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CHART_WIDTH = SCREEN_WIDTH - 48;
@@ -36,6 +37,7 @@ export const FeedBatchAnalyticsTab: React.FC<FeedBatchAnalyticsTabProps> = ({
   feedingHistory,
   feedBatches,
 }) => {
+  const [selectedSlice, setSelectedSlice] = useState<{ label: string; value: number } | null>(null);
   const batchSummaries = useMemo<BatchSummary[]>(() => {
     const usageMap = new Map<string, number>();
     feedingHistory.forEach((r) => {
@@ -112,6 +114,11 @@ export const FeedBatchAnalyticsTab: React.FC<FeedBatchAnalyticsTabProps> = ({
           xAxisLabelTextStyle={{ fontSize: 9, color: theme.colors.gray['500'] }}
           yAxisTextStyle={{ fontSize: 10, color: theme.colors.gray['500'] }}
           isAnimated
+          focusBarOnPress
+          autoCenterTooltip
+          renderTooltip={(item: { label?: string; value?: number }) => (
+            <ChartTooltip label={item.label ?? ''} value={`${item.value ?? 0} kg`} />
+          )}
         />
       </View>
 
@@ -121,13 +128,19 @@ export const FeedBatchAnalyticsTab: React.FC<FeedBatchAnalyticsTabProps> = ({
           <Text className="text-sm font-semibold text-textPrimary mb-sm">Distribución de uso</Text>
           <View className="bg-white rounded-md border border-gray-100 p-md mb-lg items-center">
             <PieChart
-              data={pieData}
+              data={pieData.map((d) => ({
+                ...d,
+                onPress: () => setSelectedSlice((prev) => (prev?.label === d.label ? null : d)),
+              }))}
               radius={Math.min(90, (SCREEN_WIDTH - 96) / 2)}
               textSize={11}
               textColor="#ffffff"
               showText
               isAnimated
             />
+            {selectedSlice && (
+              <ChartTooltip label={selectedSlice.label} value={`${selectedSlice.value}%`} />
+            )}
             <View className="flex-row flex-wrap gap-md mt-md justify-center">
               {pieData.map((d, i) => (
                 <View key={i} className="flex-row items-center gap-xs">
