@@ -65,7 +65,7 @@ export async function shareInvitationByToken(
     const deepLink = InvitationFactory.generateDeepLink(token);
 
     // Simple message without full invitation object
-    const message = `Has sido invitado a la aplicación de Gestión de Producción de Huevos.
+    const message = `Has sido invitado a la aplicación de Granja Avícola San Vicente de Paúl.
 
 Usuario: ${userName}
 

@@ -133,9 +133,9 @@ Per Constitution II (Feature-Based Organization):
 - [x] T051 [US3] Add validation for 7-day invitation expiry in InvitationService
 - [x] T052 [US3] Add audit logging for user creation and invitation acceptance in src/shared/sync/AuditService.ts
 - [x] T053 [US3] Test offline app access with cached session (SC-010: <3s app launch offline)
-- [ ] T054 [US3] Test background session validation when online BEFORE any sync operations
-- [ ] T054a [US3] Test user revocation flow: admin revokes user → user goes online → session validation fails → "Access Denied" shown → user cannot access app
-- [ ] T054b [US3] Test revocation is permanent: revoked user cannot be re-enabled, cannot accept new invitations
+- [X] T054 [US3] Test background session validation when online BEFORE any sync operations
+- [X] T054a [US3] Test user revocation flow: admin revokes user → user goes online → session validation fails → "Access Denied" shown → user cannot access app
+- [X] T054b [US3] Test revocation is permanent: revoked user cannot be re-enabled, cannot accept new invitations
 
 **Checkpoint**: Authentication system complete and independently testable
 
@@ -388,26 +388,26 @@ All 10 collections handled by syncWithListeners() in src/shared/sync/listeners/s
 
 ### Testing & Documentation
 
-- [ ] T162 [P] Create integration test for User Story 1 acceptance scenarios in src/features/production/tests/production.integration.test.ts using React Native Testing Library
-- [ ] T163 [P] Create integration test for User Story 2 acceptance scenarios in src/features/facilities/tests/facilities.integration.test.ts
-- [ ] T164 [P] Create integration test for User Story 3 acceptance scenarios in src/features/auth/tests/auth.integration.test.ts
-- [ ] T165 [P] Create E2E test for offline workflow using Detox: record production offline → go online → verify sync in e2e/offlineSync.test.ts
-- [ ] T166 [P] Create E2E test for invitation acceptance flow using Detox in e2e/invitation.test.ts
-- [ ] T167 Run quickstart.md validation: verify all setup steps work on fresh clone
-- [ ] T168 [P] Update README.md with project overview, setup instructions, and run commands
+- [X] T162 [P] Create integration test for User Story 1 acceptance scenarios in src/features/production/tests/production.integration.test.ts using React Native Testing Library
+- [X] T163 [P] Create integration test for User Story 2 acceptance scenarios in src/features/facilities/tests/facilities.integration.test.ts
+- [X] T164 [P] Create integration test for User Story 3 acceptance scenarios in src/features/auth/tests/auth.integration.test.ts
+- [X] T165 [P] Create E2E test for offline workflow using Detox: record production offline → go online → verify sync in e2e/offlineSync.test.ts
+- [X] T166 [P] Create E2E test for invitation acceptance flow using Detox in e2e/invitation.test.ts
+- [X] T167 Run quickstart.md validation: verify all setup steps work on fresh clone
+- [X] T168 [P] Update README.md with project overview, setup instructions, and run commands
 
 ### Security & Audit
 
-- [ ] T169 [P] Review Firestore security rules to ensure proper access control (admin vs user permissions)
-- [ ] T170 [P] Audit expo-secure-store implementation to verify auth tokens are encrypted at rest
-- [ ] T171 Test audit logging for critical operations (invitation creation, lot creation/deletion, mortality >10%)
+- [X] T169 [P] Review Firestore security rules to ensure proper access control (admin vs user permissions)
+- [X] T170 [P] Audit expo-secure-store implementation to verify auth tokens are encrypted at rest
+- [X] T171 Test audit logging for critical operations (invitation creation, lot creation/deletion, mortality >10%)
 
 ### Deployment Preparation
 
-- [ ] T172 Configure EAS Build for iOS in eas.json with production profile
-- [ ] T173 Configure EAS Build for Android in eas.json with production profile
-- [ ] T174 [P] Configure EAS Update for OTA updates in eas.json
-- [ ] T175 Create app.json with correct bundle identifier, version, splash screen, and icon
+- [X] T172 Configure EAS Build for iOS in eas.json with production profile
+- [X] T173 Configure EAS Build for Android in eas.json with production profile
+- [X] T174 [P] Configure EAS Update for OTA updates in eas.json
+- [X] T175 Create app.json with correct bundle identifier, version, splash screen, and icon
 - [ ] T176 [P] Generate app icons and splash screens using Expo asset tools
 
 **Checkpoint**: App polished, tested, and ready for production deployment

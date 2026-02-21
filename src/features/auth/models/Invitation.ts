@@ -193,7 +193,7 @@ export class InvitationFactory {
    *
    * Automatically generates the correct format:
    * - Expo Go: exp://[host]:[port]/--/invite/[token]
-   * - Dev/Prod: gestionproduccionhuevos://invite/[token]
+   * - Dev/Prod: granjaavicola://invite/[token]
    */
   static generateDeepLink(token: string): string {
     return generateDeepLink(`invite/${token}`);
@@ -223,7 +223,7 @@ export class InvitationFactory {
     const deepLink = InvitationFactory.generateDeepLink(invitation.token);
     const expirationDays = InvitationStatusHelper.getRemainingDays(invitation);
 
-    return `Has sido invitado a la aplicación de Gestión de Producción de Huevos.
+    return `Has sido invitado a la aplicación de Granja Avícola San Vicente de Paúl.
 
 Usuario: ${userName}
 

@@ -8,7 +8,12 @@
 import React, { useMemo } from 'react';
 import { View, Text } from 'react-native';
 import { MotiView } from 'moti';
-import { Calendar, Syringe, Shield, FileText } from 'lucide-react-native';
+import {
+  Calendar,
+  Syringe,
+  FileText,
+  BrushCleaning,
+} from 'lucide-react-native';
 import { theme } from '@/core/theme';
 import { HealthEvent } from '../models/HealthEvent';
 import { BiosecurityEvent } from '../models/BiosecurityEvent';
@@ -49,7 +54,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, index, isLast }) => {
         {isHealth ? (
           <Syringe size={16} color={theme.colors.primary['600']} />
         ) : (
-          <Shield size={16} color="#0D9488" />
+          <BrushCleaning size={16} color="#0D9488" />
         )}
       </View>
 
@@ -127,7 +132,7 @@ export const EventHistoryList: React.FC<EventHistoryListProps> = ({
           {emptyIcon === 'health' ? (
             <Syringe size={32} color={theme.colors.gray['400']} />
           ) : (
-            <Shield size={32} color={theme.colors.gray['400']} />
+            <BrushCleaning size={32} color={theme.colors.gray['400']} />
           )}
         </View>
         <Text className="text-textTertiary text-center">{emptyMessage}</Text>

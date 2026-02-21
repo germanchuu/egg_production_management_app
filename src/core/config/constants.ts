@@ -64,7 +64,7 @@ export const PRODUCTION_DOMAIN = 'gestion-huevos-app.vercel.app';
  * ```typescript
  * generateDeepLink('invite/token123')
  * // Expo Go: exp://192.168.1.10:8081/--/invite/token123
- * // Dev Build: gestionproduccionhuevos://invite/token123
+ * // Dev Build: granjaavicola://invite/token123
  * // Production: https://gestion-huevos-app.vercel.app/invite/token123
  * ```
  */

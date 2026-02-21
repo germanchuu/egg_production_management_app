@@ -30,6 +30,7 @@ module.exports = {
   testMatch: [
     '<rootDir>/tests/unit/**/*.test.{ts,tsx}',
     '<rootDir>/tests/integration/**/*.test.{ts,tsx}',
+    '<rootDir>/src/features/**/tests/**/*.test.{ts,tsx}',
   ],
   testPathIgnorePatterns: ['/node_modules/', '/e2e/'],
   transformIgnorePatterns: [

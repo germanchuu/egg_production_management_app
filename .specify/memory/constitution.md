@@ -36,7 +36,7 @@
   - Create examples for common CRUD operation toast messages
 -->
 
-# Gestión de Producción de Huevos - Constitution
+# Granja Avícola San Vicente de Paúl - Constitution
 
 ## Core Principles
 

@@ -1,15 +1,17 @@
 import { ExpoConfig } from '@expo/config-types';
 
 const config: ExpoConfig = {
-  name: 'gestion_produccion_huevos_app',
-  slug: 'gestion_produccion_huevos_app',
-  scheme: 'gestionproduccionhuevos',
+  name: 'Granja Avícola San Vicente de Paúl',
+  slug: 'granja-avicola-svp',
+  scheme: 'granjaavicola',
   version: '1.0.0',
   orientation: 'portrait',
+  // TODO (T176): Replace with SVG-derived PNG icon once assets/logo.svg is added
   icon: './assets/icon.png',
   userInterfaceStyle: 'light',
   newArchEnabled: true,
   splash: {
+    // TODO (T176): Replace with SVG-derived splash image once assets/logo.svg is added
     image: './assets/splash-icon.png',
     resizeMode: 'contain',
     backgroundColor: '#ffffff',
@@ -17,10 +19,12 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     jsEngine: 'hermes',
+    bundleIdentifier: 'com.germanchuu.granja-avicola-svp',
   },
   android: {
     jsEngine: 'hermes',
     adaptiveIcon: {
+      // TODO (T176): Replace with SVG-derived foreground image once assets/logo.svg is added
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#ffffff',
     },
@@ -30,7 +34,7 @@ const config: ExpoConfig = {
     intentFilters: [
       {
         action: 'VIEW',
-        data: [{ scheme: 'gestionproduccionhuevos' }],
+        data: [{ scheme: 'granjaavicola' }],
         category: ['BROWSABLE', 'DEFAULT'],
       },
       {
@@ -46,7 +50,7 @@ const config: ExpoConfig = {
         category: ['BROWSABLE', 'DEFAULT'],
       },
     ],
-    package: 'com.germanchuu.gestion_produccion_huevos_app',
+    package: 'com.germanchuu.granja_avicola_svp',
   },
   web: {
     bundler: 'metro',

@@ -1,6 +1,6 @@
 # Frontend UI/UX Guidelines
 
-**Proyecto:** Gestión de Producción de Huevos
+**Proyecto:** Granja Avícola San Vicente de Paúl
 **Última actualización:** 2026-02-01
 **Versión:** 1.0.0
 

@@ -42,7 +42,7 @@ This guide provides step-by-step instructions to set up the development environm
 
 ```bash
 git clone <repository-url>
-cd gestion_produccion_huevos_app
+cd gestion_produccion_huevos_app  # nombre del directorio en disco
 git checkout 001-poultry-farm-production-app
 ```
 
@@ -64,8 +64,7 @@ npm install
   "@hookform/resolvers": "^3.0.0",
   "zod": "^3.24.0",
   "nativewind": "^4.0.0",
-  "firebase": "^11.0.0",
-  "react-native-firebase": "^21.0.0"
+  "firebase": "^11.0.0"
 }
 ```
 
@@ -74,8 +73,10 @@ npm install
 **Install Firebase dependencies**:
 ```bash
 npx expo install firebase
-npm install @react-native-firebase/app @react-native-firebase/auth @react-native-firebase/firestore
 ```
+
+> The project uses the Firebase JS SDK (`firebase` package), **not** `@react-native-firebase`.
+> The JS SDK works with Expo managed workflow without native code changes.
 
 **Create `src/core/config/firebase.ts`**:
 ```typescript
@@ -530,8 +531,8 @@ eas update --branch production --republish
 ### Authentication Issues
 
 1. Verify Firebase credentials in `.env`
-2. Check expo-secure-store: `SecureStore.getItemAsync('authToken')`
-3. Test invitation link: `app://invite?token=test123`
+2. Check expo-secure-store: `SecureStore.getItemAsync('auth_session')`
+3. Test invitation link: `granjaavicola://invite/test123`
 4. Check Firebase Auth console for user status
 
 ### Performance Issues

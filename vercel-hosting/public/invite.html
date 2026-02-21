@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Invitación - Gestión Producción Huevos</title>
+  <title>Invitación - Granja Avícola San Vicente de Paúl</title>
   <style>
     * {
       margin: 0;
@@ -144,14 +144,14 @@
   <div class="container">
     <div class="icon">🥚</div>
     <h1>Has sido invitado</h1>
-    <p>Se te ha enviado una invitación para unirte a la aplicación de Gestión de Producción de Huevos.</p>
+    <p>Se te ha enviado una invitación para unirte a la aplicación de Granja Avícola San Vicente de Paúl.</p>
 
     <div class="info-box">
       <p>Para aceptar esta invitación, necesitas tener la app instalada en tu dispositivo.</p>
     </div>
 
     <a href="#" class="button" id="openApp">Abrir App</a>
-    <a href="https://expo.dev/accounts/germanchuu/projects/gestion_produccion_huevos_app/builds" class="button button-secondary">Descargar App</a>
+    <a href="https://expo.dev/accounts/germanchuu/projects/granja-avicola-svp/builds" class="button button-secondary">Descargar App</a>
 
     <div class="steps">
       <h3>¿Cómo funciona?</h3>
@@ -178,7 +178,7 @@
       // Fallback to custom scheme after a delay
       openAppButton.addEventListener('click', function(e) {
         setTimeout(() => {
-          window.location.href = `gestionproduccionhuevos://invite/${token}`;
+          window.location.href = `granjaavicola://invite/${token}`;
         }, 500);
       });
     }
@@ -187,7 +187,7 @@
     window.addEventListener('load', function() {
       if (token) {
         // Try custom scheme
-        window.location.href = `gestionproduccionhuevos://invite/${token}`;
+        window.location.href = `granjaavicola://invite/${token}`;
       }
     });
   </script>

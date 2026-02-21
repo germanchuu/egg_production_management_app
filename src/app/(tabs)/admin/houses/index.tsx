@@ -8,7 +8,7 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Home, Plus } from 'lucide-react-native';
+import { Home, Plus, Warehouse } from 'lucide-react-native';
 import { ChickenHouse } from '@/shared/types/entities';
 import { FacilityServiceProvider } from '@/features/facilities/services/FacilityServiceProvider';
 import { HouseCard } from '@/features/facilities/components/HouseCard';
@@ -90,7 +90,7 @@ export default function HousesScreen() {
       {/* Header with Icon */}
       <View className="bg-white border-b border-gray-200 px-lg py-md">
         <View className="flex-row items-center gap-md mb-xs">
-          <Home size={28} color={theme.colors.primary.DEFAULT} />
+          <Warehouse size={28} color={theme.colors.primary.DEFAULT} />
           <Text className="text-2xl font-bold text-textPrimary">Galpones</Text>
         </View>
         <Text className="text-sm text-textSecondary">

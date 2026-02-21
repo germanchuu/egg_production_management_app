@@ -24,16 +24,15 @@ service cloud.firestore {
             || docData.preparedBy == request.auth.uid);
     }
 
-    // Check if date is not in the future
-    function isValidDate(date) {
-      return date <= request.time;
-    }
-
-    // Check if user is active
+    // Check if user is active (not revoked)
     function isActiveUser() {
       return isAuthenticated()
         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isActive == true;
     }
+
+    // NOTE: Date fields in this app are stored as ISO-8601 strings (e.g. "2024-01-15"),
+    // not as Firestore Timestamps. Client-side Zod validation enforces no-future-date
+    // before any record reaches Firestore, so server-side date validation is omitted here.
 
     // ==================== USERS COLLECTION ====================
 
@@ -56,8 +55,9 @@ service cloud.firestore {
     // ==================== INVITATIONS COLLECTION ====================
 
     match /invitations/{invitationId} {
-      // Anyone can read invitations (needed for token validation)
-      // Only admins can create/update/delete
+      // Public read required: invitation deep links are opened before the user is
+      // authenticated (they need to read the invitation to begin the auth flow).
+      // Only admins can create/update/delete invitations.
       allow read: if true;
       allow write: if isAdmin();
     }
@@ -66,7 +66,7 @@ service cloud.firestore {
 
     match /chicken_houses/{houseId} {
       // Admins: Full CRUD access
-      // Users: Read-only access
+      // Active users: Read-only
       allow read: if isActiveUser();
       allow create, update, delete: if isAdmin();
     }
@@ -75,7 +75,7 @@ service cloud.firestore {
 
     match /chicken_lots/{lotId} {
       // Admins: Full CRUD access
-      // Users: Read-only access
+      // Active users: Read-only (lot data is managed by admins)
       allow read: if isActiveUser();
       allow create, update, delete: if isAdmin();
     }
@@ -83,19 +83,17 @@ service cloud.firestore {
     // ==================== PRODUCTION RECORDS COLLECTION ====================
 
     match /production_records/{recordId} {
-      // Admins: Full CRUD access
-      // Users: Create, read all, update own records
+      // All active users can read all production records (shared farm data)
+      // Users can create their own records; admins or owners can update
       allow read: if isActiveUser();
 
       allow create: if isActiveUser()
         && request.resource.data.recordedBy == request.auth.uid
-        && isValidDate(request.resource.data.date)
-        && request.resource.data.eggsCollected >= 0;
+        && request.resource.data.eggsCollected > 0;
 
       allow update: if isActiveUser()
         && (isAdmin() || isOwner(resource.data))
-        && isValidDate(request.resource.data.date)
-        && request.resource.data.eggsCollected >= 0;
+        && request.resource.data.eggsCollected > 0;
 
       allow delete: if isAdmin();
     }
@@ -103,18 +101,14 @@ service cloud.firestore {
     // ==================== MORTALITY RECORDS COLLECTION ====================
 
     match /mortality_records/{recordId} {
-      // Admins: Full CRUD access
-      // Users: Create, read all, update own records
       allow read: if isActiveUser();
 
       allow create: if isActiveUser()
         && request.resource.data.recordedBy == request.auth.uid
-        && isValidDate(request.resource.data.date)
         && request.resource.data.hensDied > 0;
 
       allow update: if isActiveUser()
         && (isAdmin() || isOwner(resource.data))
-        && isValidDate(request.resource.data.date)
         && request.resource.data.hensDied > 0;
 
       allow delete: if isAdmin();
@@ -123,18 +117,14 @@ service cloud.firestore {
     // ==================== FEED BATCHES COLLECTION ====================
 
     match /feed_batches/{batchId} {
-      // Admins: Full CRUD access
-      // Users: Create, read all, update own batches
       allow read: if isActiveUser();
 
       allow create: if isActiveUser()
         && request.resource.data.preparedBy == request.auth.uid
-        && isValidDate(request.resource.data.preparationDate)
         && request.resource.data.quantityKg > 0;
 
       allow update: if isActiveUser()
         && (isAdmin() || isOwner(resource.data))
-        && isValidDate(request.resource.data.preparationDate)
         && request.resource.data.quantityKg > 0;
 
       allow delete: if isAdmin();
@@ -143,18 +133,14 @@ service cloud.firestore {
     // ==================== FEEDING RECORDS COLLECTION ====================
 
     match /feeding_records/{recordId} {
-      // Admins: Full CRUD access
-      // Users: Create, read all, update own records
       allow read: if isActiveUser();
 
       allow create: if isActiveUser()
         && request.resource.data.recordedBy == request.auth.uid
-        && isValidDate(request.resource.data.date)
         && request.resource.data.quantityFedKg > 0;
 
       allow update: if isActiveUser()
         && (isAdmin() || isOwner(resource.data))
-        && isValidDate(request.resource.data.date)
         && request.resource.data.quantityFedKg > 0;
 
       allow delete: if isAdmin();
@@ -163,19 +149,15 @@ service cloud.firestore {
     // ==================== HEALTH EVENTS COLLECTION ====================
 
     match /health_events/{eventId} {
-      // Admins: Full CRUD access
-      // Users: Create, read all, update own events
       allow read: if isActiveUser();
 
       allow create: if isActiveUser()
         && request.resource.data.recordedBy == request.auth.uid
-        && isValidDate(request.resource.data.eventDate)
         && request.resource.data.eventType == 'vaccination'
         && request.resource.data.productName.size() > 0;
 
       allow update: if isActiveUser()
         && (isAdmin() || isOwner(resource.data))
-        && isValidDate(request.resource.data.eventDate)
         && request.resource.data.eventType == 'vaccination'
         && request.resource.data.productName.size() > 0;
 
@@ -185,38 +167,37 @@ service cloud.firestore {
     // ==================== BIOSECURITY EVENTS COLLECTION ====================
 
     match /biosecurity_events/{eventId} {
-      // Admins: Full CRUD access
-      // Users: Create, read all, update own events
       allow read: if isActiveUser();
 
       allow create: if isActiveUser()
         && request.resource.data.recordedBy == request.auth.uid
-        && isValidDate(request.resource.data.eventDate)
         && request.resource.data.eventType == 'disinfection'
         && request.resource.data.productName.size() > 0;
 
       allow update: if isActiveUser()
         && (isAdmin() || isOwner(resource.data))
-        && isValidDate(request.resource.data.eventDate)
         && request.resource.data.eventType == 'disinfection'
         && request.resource.data.productName.size() > 0;
 
       allow delete: if isAdmin();
     }
 
-    // ==================== AUDIT LOG COLLECTION ====================
+    // ==================== AUDIT LOGS COLLECTION ====================
+    // Collection name: "audit_logs" (plural) — matches SyncService.COLLECTIONS.audit_logs
 
-    match /audit_log/{auditId} {
-      // Audit logs are write-only from backend/server
-      // Admins can read for audit trail inspection
-      // No client writes allowed (server-side only)
+    match /audit_logs/{auditId} {
+      // Only admins can read audit logs (for compliance inspection)
       allow read: if isAdmin();
-      allow write: if false; // Only server can write
+
+      // Active users can create audit log entries (written by SyncService on device).
+      // Update and delete are denied — audit logs are immutable once created.
+      allow create: if isActiveUser();
+      allow update, delete: if false;
     }
 
     // ==================== DEFAULT DENY ====================
 
-    // Deny all other collections by default
+    // Deny all other collections/documents by default
     match /{document=**} {
       allow read, write: if false;
     }

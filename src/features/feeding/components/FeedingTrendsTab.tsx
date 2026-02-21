@@ -155,7 +155,7 @@ export const FeedingTrendsTab: React.FC<FeedingTrendsTabProps> = ({ records, lot
       {/* Consumo diario */}
       <Text className="text-sm font-semibold text-textPrimary mb-sm">Consumo diario (kg)</Text>
       {consumoData.length > 1 ? (
-        <View className="bg-white rounded-md border border-gray-100 p-md mb-lg overflow-hidden">
+        <View className="bg-white rounded-md border border-gray-100 p-md mb-lg">
           <LineChart
             data={consumoData}
             width={CHART_WIDTH - 32}
@@ -171,6 +171,8 @@ export const FeedingTrendsTab: React.FC<FeedingTrendsTabProps> = ({ records, lot
               activatePointersInstantlyOnTouch: true,
               autoAdjustPointerLabelPosition: true,
               persistPointer: false,
+              pointerLabelHeight: 50,
+              pointerLabelWidth: 120,
               pointerLabelComponent: (items: Array<{ label?: string; value?: number }>) => (
                 <ChartTooltip label={items[0]?.label ?? ''} value={`${items[0]?.value ?? 0} kg`} />
               ),
@@ -187,7 +189,7 @@ export const FeedingTrendsTab: React.FC<FeedingTrendsTabProps> = ({ records, lot
       {/* kg por gallina */}
       <Text className="text-sm font-semibold text-textPrimary mb-sm">kg por gallina / día</Text>
       {feedPerHenData.length > 1 ? (
-        <View className="bg-white rounded-md border border-gray-100 p-md mb-lg overflow-hidden">
+        <View className="bg-white rounded-md border border-gray-100 p-md mb-lg">
           <LineChart
             data={feedPerHenData}
             width={CHART_WIDTH - 32}
@@ -203,6 +205,8 @@ export const FeedingTrendsTab: React.FC<FeedingTrendsTabProps> = ({ records, lot
               activatePointersInstantlyOnTouch: true,
               autoAdjustPointerLabelPosition: true,
               persistPointer: false,
+              pointerLabelHeight: 50,
+              pointerLabelWidth: 120,
               pointerLabelComponent: (items: Array<{ label?: string; value?: number }>) => (
                 <ChartTooltip label={items[0]?.label ?? ''} value={`${items[0]?.value ?? 0} kg/gal`} />
               ),
