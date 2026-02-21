@@ -54,8 +54,8 @@ export function UserHeader() {
         {/* Main content */}
         <View className="relative flex-row items-start gap-4">
           {/* Avatar */}
-          <View className="h-16 w-16 rounded-2xl items-center justify-center shadow-lg bg-white">
-            <AppLogo size={44} />
+          <View className="h-16 rounded-2xl overflow-hidden shadow-lg bg-white">
+            <AppLogo size={64} />
           </View>
 
           {/* Info */}
