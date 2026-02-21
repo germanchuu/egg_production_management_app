@@ -1,7 +1,13 @@
-import React from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View } from 'react-native';
 import { useLotDetails } from '../../contexts/LotDetailsContext';
 import { EventHistoryList } from '@/features/health-biosecurity/components/EventHistoryList';
+import { VaccinationsTab } from '@/features/health-biosecurity/components/VaccinationsTab';
+import { BiosecurityTab } from '@/features/health-biosecurity/components/BiosecurityTab';
+import { SubTabBar } from '@/shared/components/SubTabBar';
+import { ScrollView } from 'react-native';
+
+type HealthSubTab = 'Todos' | 'Vacunaciones' | 'Bioseguridad';
 
 const Skeleton: React.FC = () => (
   <View className="px-lg py-md gap-md">
@@ -16,6 +22,7 @@ const Skeleton: React.FC = () => (
 
 export const HealthTab: React.FC = () => {
   const { lot, healthEvents, biosecurityEvents, loading } = useLotDetails();
+  const [activeTab, setActiveTab] = useState<HealthSubTab>('Todos');
 
   const allEvents = [...healthEvents, ...biosecurityEvents].sort(
     (a, b) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime()
@@ -24,18 +31,29 @@ export const HealthTab: React.FC = () => {
   if (loading) return <Skeleton />;
 
   return (
-    <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
-      {healthEvents.length > 0 && biosecurityEvents.length > 0 && (
-        <Text className="text-base font-semibold text-textPrimary mb-md">
-          Todos los eventos
-        </Text>
-      )}
-      <EventHistoryList
-        events={allEvents}
-        lots={[lot]}
-        emptyMessage="No hay eventos de salud ni bioseguridad registrados"
-        emptyIcon="health"
+    <View style={{ flex: 1 }}>
+      <SubTabBar
+        tabs={['Todos', 'Vacunaciones', 'Bioseguridad'] as HealthSubTab[]}
+        active={activeTab}
+        onChange={setActiveTab}
       />
-    </ScrollView>
+
+      {activeTab === 'Todos' && (
+        <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+          <EventHistoryList
+            events={allEvents}
+            lots={[lot]}
+            emptyMessage="No hay eventos de salud ni bioseguridad registrados"
+            emptyIcon="health"
+          />
+        </ScrollView>
+      )}
+      {activeTab === 'Vacunaciones' && (
+        <VaccinationsTab healthEvents={healthEvents} lot={lot} />
+      )}
+      {activeTab === 'Bioseguridad' && (
+        <BiosecurityTab biosecurityEvents={biosecurityEvents} />
+      )}
+    </View>
   );
 };

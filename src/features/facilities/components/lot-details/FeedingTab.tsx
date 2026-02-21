@@ -1,9 +1,13 @@
-import React from 'react';
-import { View, Text, ScrollView } from 'react-native';
-import { Scale, Wheat } from 'lucide-react-native';
+import React, { useState, useMemo } from 'react';
+import { View, ScrollView } from 'react-native';
 import { useLotDetails } from '../../contexts/LotDetailsContext';
 import { FeedingHistoryList } from '@/features/feeding/components/FeedingHistoryList';
-import { theme } from '@/core/theme';
+import { FeedingTrendsTab } from '@/features/feeding/components/FeedingTrendsTab';
+import { FeedBatchAnalyticsTab } from '@/features/feeding/components/FeedBatchAnalyticsTab';
+import { DateRangeFilter, DateRange, getStartDate } from '@/shared/components/DateRangeFilter';
+import { SubTabBar } from '@/shared/components/SubTabBar';
+
+type FeedingSubTab = 'Historial' | 'Tendencias' | 'Lotes';
 
 const Skeleton: React.FC = () => (
   <View className="px-lg py-md gap-md">
@@ -21,53 +25,43 @@ const Skeleton: React.FC = () => (
 );
 
 export const FeedingTab: React.FC = () => {
-  const { lot, feedingHistory, feedBatches, totalFeedConsumed, avgFeedPerHen, loading } =
-    useLotDetails();
+  const { lot, feedingHistory, feedBatches, loading } = useLotDetails();
+  const [dateRange, setDateRange] = useState<DateRange>('30D');
+  const [activeTab, setActiveTab] = useState<FeedingSubTab>('Historial');
+
+  const filteredRecords = useMemo(() => {
+    const startDate = getStartDate(dateRange, lot.purchaseDate);
+    if (!startDate) return feedingHistory;
+    return feedingHistory.filter((r) => r.date >= startDate);
+  }, [feedingHistory, dateRange, lot.purchaseDate]);
 
   if (loading) return <Skeleton />;
 
   return (
-    <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
-      {/* Métricas de alimentación */}
-      {totalFeedConsumed > 0 && (
-        <View className="flex-row gap-md mb-lg">
-          <View className="flex-1 bg-white rounded-md border border-gray-100 shadow-sm p-md">
-            <View className="flex-row items-center gap-sm mb-xs">
-              <View className="w-8 h-8 rounded-full bg-primary-50 items-center justify-center">
-                <Scale size={16} color={theme.colors.primary['600']} />
-              </View>
-              <Text className="text-xs text-textSecondary">Total consumido</Text>
-            </View>
-            <Text className="text-2xl font-bold text-textPrimary">
-              {totalFeedConsumed.toFixed(2)}
-            </Text>
-            <Text className="text-xs text-textTertiary mt-xs">kg</Text>
-          </View>
-
-          <View className="flex-1 bg-white rounded-md border border-gray-100 shadow-sm p-md">
-            <View className="flex-row items-center gap-sm mb-xs">
-              <View className="w-8 h-8 rounded-full bg-primary-50 items-center justify-center">
-                <Wheat size={16} color={theme.colors.primary['600']} />
-              </View>
-              <Text className="text-xs text-textSecondary">Promedio/gallina</Text>
-            </View>
-            <Text className="text-2xl font-bold text-textPrimary">
-              {avgFeedPerHen.toFixed(3)}
-            </Text>
-            <Text className="text-xs text-textTertiary mt-xs">kg/gallina</Text>
-          </View>
-        </View>
-      )}
-
-      <Text className="text-base font-semibold text-textPrimary mb-md">
-        Historial de Alimentación
-      </Text>
-      <FeedingHistoryList
-        records={feedingHistory}
-        feedBatches={feedBatches}
-        liveHenCount={lot.liveHenCount}
-        emptyMessage="No hay registros de alimentación para este lote"
+    <View style={{ flex: 1 }}>
+      <DateRangeFilter value={dateRange} onChange={setDateRange} />
+      <SubTabBar
+        tabs={['Historial', 'Tendencias', 'Lotes'] as FeedingSubTab[]}
+        active={activeTab}
+        onChange={setActiveTab}
       />
-    </ScrollView>
+
+      {activeTab === 'Historial' && (
+        <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+          <FeedingHistoryList
+            records={filteredRecords}
+            feedBatches={feedBatches}
+            liveHenCount={lot.liveHenCount}
+            emptyMessage="No hay registros de alimentación en este período"
+          />
+        </ScrollView>
+      )}
+      {activeTab === 'Tendencias' && (
+        <FeedingTrendsTab records={filteredRecords} lot={lot} allDates={[]} />
+      )}
+      {activeTab === 'Lotes' && (
+        <FeedBatchAnalyticsTab feedingHistory={filteredRecords} feedBatches={feedBatches} />
+      )}
+    </View>
   );
 };

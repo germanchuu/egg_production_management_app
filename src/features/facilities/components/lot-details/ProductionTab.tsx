@@ -1,8 +1,13 @@
-import React from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import React, { useState, useMemo } from 'react';
+import { View, ScrollView } from 'react-native';
 import { useLotDetails } from '../../contexts/LotDetailsContext';
-import { ProductionMetricsCard } from '@/features/production/components/ProductionMetricsCard';
 import { ProductionHistoryList } from '@/features/production/components/ProductionHistoryList';
+import { ProductionTrendsTab } from '@/features/production/components/ProductionTrendsTab';
+import { ProductionSummaryTab } from '@/features/production/components/ProductionSummaryTab';
+import { DateRangeFilter, DateRange, getStartDate } from '@/shared/components/DateRangeFilter';
+import { SubTabBar } from '@/shared/components/SubTabBar';
+
+type ProductionSubTab = 'Historial' | 'Tendencias' | 'Resumen';
 
 const Skeleton: React.FC = () => (
   <View className="px-lg py-md gap-md">
@@ -17,26 +22,42 @@ const Skeleton: React.FC = () => (
 );
 
 export const ProductionTab: React.FC = () => {
-  const { lot, productionHistory, productionMetrics, loading } = useLotDetails();
+  const { lot, productionHistory, loading } = useLotDetails();
+  const [dateRange, setDateRange] = useState<DateRange>('30D');
+  const [activeTab, setActiveTab] = useState<ProductionSubTab>('Historial');
+
+  const filteredRecords = useMemo(() => {
+    const startDate = getStartDate(dateRange, lot.purchaseDate);
+    if (!startDate) return productionHistory;
+    return productionHistory.filter((r) => r.date >= startDate);
+  }, [productionHistory, dateRange, lot.purchaseDate]);
 
   if (loading) return <Skeleton />;
 
   return (
-    <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
-      {productionMetrics && (
-        <View className="mb-lg">
-          <ProductionMetricsCard metrics={productionMetrics} lotName={lot.name} />
-        </View>
-      )}
-
-      <Text className="text-base font-semibold text-textPrimary mb-md">
-        Historial de Producción
-      </Text>
-      <ProductionHistoryList
-        records={productionHistory}
-        lots={[lot]}
-        emptyMessage="No hay registros de producción para este lote"
+    <View style={{ flex: 1 }}>
+      <DateRangeFilter value={dateRange} onChange={setDateRange} />
+      <SubTabBar
+        tabs={['Historial', 'Tendencias', 'Resumen'] as ProductionSubTab[]}
+        active={activeTab}
+        onChange={setActiveTab}
       />
-    </ScrollView>
+
+      {activeTab === 'Historial' && (
+        <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
+          <ProductionHistoryList
+            records={filteredRecords}
+            lots={[lot]}
+            emptyMessage="No hay registros de producción en este período"
+          />
+        </ScrollView>
+      )}
+      {activeTab === 'Tendencias' && (
+        <ProductionTrendsTab records={filteredRecords} lot={lot} />
+      )}
+      {activeTab === 'Resumen' && (
+        <ProductionSummaryTab records={filteredRecords} lot={lot} />
+      )}
+    </View>
   );
 };
