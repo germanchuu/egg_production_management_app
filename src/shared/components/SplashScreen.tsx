@@ -1,6 +1,7 @@
 import { MotiText, MotiView } from 'moti';
 import React from 'react';
-import { View, Text, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
+import { AppLogo } from './AppLogo';
 
 export interface SplashScreenProps {
   isLoading?: boolean;
@@ -28,7 +29,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
 
       {/* Logo */}
       <MotiView
-        className="w-24 h-24 rounded-3xl items-center justify-center bg-primary shadow-lg"
+        className="rounded-3xl items-center justify-center bg-white shadow-lg p-4"
         from={{ scale: 0, rotate: '-30deg' }}
         animate={{ scale: 1, rotate: '0deg' }}
         transition={{
@@ -36,17 +37,17 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
           duration: 800,
         }}
       >
-        <Text className="text-5xl">🐔</Text>
+        <AppLogo size={96} />
       </MotiView>
 
       {/* App name */}
       <MotiText
-        className="mt-xl text-3xl font-bold text-textPrimary"
+        className="mt-xl text-2xl font-bold text-textPrimary text-center"
         from={{ opacity: 0, translateY: 20 }}
         animate={{ opacity: 1, translateY: 0 }}
         transition={{ delay: 500, duration: 500 }}
       >
-        AviGestión
+        {'Granja Avícola\nSan Vicente de Paúl'}
       </MotiText>
 
       {/* Tagline */}

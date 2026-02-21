@@ -6,12 +6,10 @@ const config: ExpoConfig = {
   scheme: 'granjaavicola',
   version: '1.0.0',
   orientation: 'portrait',
-  // TODO (T176): Replace with SVG-derived PNG icon once assets/logo.svg is added
   icon: './assets/icon.png',
   userInterfaceStyle: 'light',
   newArchEnabled: true,
   splash: {
-    // TODO (T176): Replace with SVG-derived splash image once assets/logo.svg is added
     image: './assets/splash-icon.png',
     resizeMode: 'contain',
     backgroundColor: '#ffffff',
@@ -24,7 +22,6 @@ const config: ExpoConfig = {
   android: {
     jsEngine: 'hermes',
     adaptiveIcon: {
-      // TODO (T176): Replace with SVG-derived foreground image once assets/logo.svg is added
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#ffffff',
     },

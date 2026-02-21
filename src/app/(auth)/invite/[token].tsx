@@ -18,7 +18,7 @@ import {
   InvalidInvitation,
 } from '@/features/auth/components';
 import type { Invitation } from '@/shared/types/entities';
-import { Shield } from 'lucide-react-native';
+import { AppLogo } from '@/shared/components/AppLogo';
 import { useAuth } from '@/features/auth/contexts';
 import { useToast } from '@/shared/hooks/useToast';
 import { Toast } from '@/shared/components/Toast';
@@ -176,8 +176,8 @@ export default function InviteTokenScreen() {
               className="items-center"
             >
               {/* App Icon/Logo */}
-              <View className="w-32 h-32 rounded-3xl bg-white items-center justify-center mb-lg shadow-lg">
-                <Text className="text-7xl">🥚</Text>
+              <View className="bg-white rounded-2xl p-4 mb-lg shadow-lg">
+                <AppLogo size={96} />
               </View>
 
               {/* Welcome Text */}
@@ -185,7 +185,7 @@ export default function InviteTokenScreen() {
                 Bienvenido a
               </Text>
               <Text className="text-3xl font-bold text-white text-center mb-md">
-                Gestión de Huevos
+                {'Granja Avícola\nSan Vicente de Paúl'}
               </Text>
               <Text className="text-base text-white/90 text-center px-md">
                 Sistema profesional de producción avícola

@@ -24,7 +24,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Shield, ArrowLeft, LogIn, Eye, EyeOff } from 'lucide-react-native';
+import { ArrowLeft, LogIn, Eye, EyeOff } from 'lucide-react-native';
+import { AppLogo } from '@/shared/components/AppLogo';
 import { theme } from '@/core/theme';
 import { router } from 'expo-router';
 import { useAdminLogin } from '@/features/auth/hooks/useAdminLogin';
@@ -92,8 +93,8 @@ export default function LoginScreen() {
 
                 {/* Header */}
                 <View className="flex-1 justify-center items-center px-xl">
-                  <View className="bg-white rounded-full p-5 mb-md shadow-lg">
-                    <Shield size={48} color={theme.colors.primary['500']} />
+                  <View className="bg-white rounded-2xl p-4 mb-md shadow-lg">
+                    <AppLogo size={80} />
                   </View>
 
                   <Text className="text-2xl font-bold text-white text-center mb-xs">

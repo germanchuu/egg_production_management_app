@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Mail, Shield } from 'lucide-react-native';
 import { theme } from '@/core/theme';
 import { router } from 'expo-router';
+import { AppLogo } from '@/shared/components/AppLogo';
 
 export function WaitingForInvitation() {
   return (
@@ -21,15 +22,15 @@ export function WaitingForInvitation() {
             className="flex-1 justify-center items-center px-xl"
           >
             <View className="items-center">
-              <View className="bg-white rounded-full p-6 mb-lg shadow-lg">
-                <Mail size={64} color={theme.colors.primary['500']} />
+              <View className="bg-white rounded-2xl p-4 mb-lg shadow-lg">
+                <AppLogo size={96} />
               </View>
 
               <Text className="text-3xl font-bold text-white text-center mb-sm">
                 Bienvenido a
               </Text>
               <Text className="text-2xl font-bold text-white text-center mb-md">
-                Gestión de Huevos
+                {'Granja Avícola\nSan Vicente de Paúl'}
               </Text>
 
               <Text className="text-base text-white/90 text-center px-md">

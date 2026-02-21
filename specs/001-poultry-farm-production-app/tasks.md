@@ -408,7 +408,7 @@ All 10 collections handled by syncWithListeners() in src/shared/sync/listeners/s
 - [X] T173 Configure EAS Build for Android in eas.json with production profile
 - [X] T174 [P] Configure EAS Update for OTA updates in eas.json
 - [X] T175 Create app.json with correct bundle identifier, version, splash screen, and icon
-- [ ] T176 [P] Generate app icons and splash screens using Expo asset tools
+- [X] T176 [P] Generate app icons and splash screens using Expo asset tools
 
 **Checkpoint**: App polished, tested, and ready for production deployment
 
