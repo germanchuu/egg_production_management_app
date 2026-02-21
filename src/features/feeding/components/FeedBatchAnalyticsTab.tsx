@@ -37,6 +37,7 @@ export const FeedBatchAnalyticsTab: React.FC<FeedBatchAnalyticsTabProps> = ({
   feedingHistory,
   feedBatches,
 }) => {
+  const [selectedFeedBar, setSelectedFeedBar] = useState<{ label: string; value: number } | null>(null);
   const [selectedSlice, setSelectedSlice] = useState<{ label: string; value: number } | null>(null);
   const batchSummaries = useMemo<BatchSummary[]>(() => {
     const usageMap = new Map<string, number>();
@@ -102,9 +103,13 @@ export const FeedBatchAnalyticsTab: React.FC<FeedBatchAnalyticsTabProps> = ({
     <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
       {/* Consumo por lote */}
       <Text className="text-sm font-semibold text-textPrimary mb-sm">Consumo por lote (kg)</Text>
-      <View className="bg-white rounded-md border border-gray-100 p-md mb-lg overflow-hidden">
+      <View className="bg-white rounded-md border border-gray-100 p-md mb-lg">
         <BarChart
-          data={barData}
+          data={barData.map((d) => ({
+            ...d,
+            onPress: () =>
+              setSelectedFeedBar((prev) => (prev?.label === d.label ? null : { label: d.label, value: d.value })),
+          }))}
           width={CHART_WIDTH - 32}
           height={180}
           barWidth={Math.max(20, Math.min(40, Math.floor((CHART_WIDTH - 80) / (barData.length || 1))))}
@@ -115,11 +120,12 @@ export const FeedBatchAnalyticsTab: React.FC<FeedBatchAnalyticsTabProps> = ({
           yAxisTextStyle={{ fontSize: 10, color: theme.colors.gray['500'] }}
           isAnimated
           focusBarOnPress
-          autoCenterTooltip
-          renderTooltip={(item: { label?: string; value?: number }) => (
-            <ChartTooltip label={item.label ?? ''} value={`${item.value ?? 0} kg`} />
-          )}
         />
+        {selectedFeedBar && (
+          <View style={{ alignItems: 'center', marginTop: 8 }}>
+            <ChartTooltip label={selectedFeedBar.label} value={`${selectedFeedBar.value} kg`} />
+          </View>
+        )}
       </View>
 
       {/* Distribución */}

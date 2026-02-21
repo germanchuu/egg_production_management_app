@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, ScrollView, Dimensions } from 'react-native';
 import { BarChart, LineChart } from 'react-native-gifted-charts';
 import { theme } from '@/core/theme';
@@ -48,6 +48,8 @@ function aggregateByDay(records: ProductionRecord[]): { date: string; total: num
 
 export const ProductionTrendsTab: React.FC<ProductionTrendsTabProps> = ({ records, lot }) => {
   const henCount = lot.liveHenCount || lot.initialHenCount || 1;
+  const [selectedDailyBar, setSelectedDailyBar] = useState<{ label: string; value: number } | null>(null);
+  const [selectedWeeklyBar, setSelectedWeeklyBar] = useState<{ label: string; value: number } | null>(null);
 
   /** One entry per unique day */
   const dailyTotals = useMemo(() => aggregateByDay(records), [records]);
@@ -97,7 +99,7 @@ export const ProductionTrendsTab: React.FC<ProductionTrendsTabProps> = ({ record
       {/* Huevos/gallina/día */}
       <Text className="text-sm font-semibold text-textPrimary mb-sm">Huevos / gallina / día</Text>
       {eggsPerHenData.length > 1 ? (
-        <View className="bg-white rounded-md border border-gray-100 p-md mb-lg overflow-hidden">
+        <View className="bg-white rounded-md border border-gray-100 p-md mb-lg">
           <LineChart
             data={eggsPerHenData}
             width={CHART_WIDTH - 32}
@@ -113,6 +115,8 @@ export const ProductionTrendsTab: React.FC<ProductionTrendsTabProps> = ({ record
               activatePointersInstantlyOnTouch: true,
               autoAdjustPointerLabelPosition: true,
               persistPointer: false,
+              pointerLabelHeight: 50,
+              pointerLabelWidth: 140,
               pointerLabelComponent: (items: Array<{ label?: string; value?: number }>) => (
                 <ChartTooltip label={items[0]?.label ?? ''} value={`${items[0]?.value ?? 0} huevos/gallina`} />
               ),
@@ -129,9 +133,13 @@ export const ProductionTrendsTab: React.FC<ProductionTrendsTabProps> = ({ record
       {/* Producción total diaria */}
       <Text className="text-sm font-semibold text-textPrimary mb-sm">Producción total diaria (huevos)</Text>
       {dailyTotalData.length > 0 ? (
-        <View className="bg-white rounded-md border border-gray-100 p-md mb-lg overflow-hidden">
+        <View className="bg-white rounded-md border border-gray-100 p-md mb-lg">
           <BarChart
-            data={dailyTotalData}
+            data={dailyTotalData.map((d) => ({
+              ...d,
+              onPress: () =>
+                setSelectedDailyBar((prev) => (prev?.label === d.label ? null : { label: d.label, value: d.value })),
+            }))}
             width={CHART_WIDTH - 32}
             height={180}
             barWidth={Math.max(8, Math.min(24, Math.floor((CHART_WIDTH - 80) / (dailyTotalData.length || 1))))}
@@ -142,11 +150,12 @@ export const ProductionTrendsTab: React.FC<ProductionTrendsTabProps> = ({ record
             yAxisTextStyle={{ fontSize: 10, color: theme.colors.gray['500'] }}
             isAnimated
             focusBarOnPress
-            autoCenterTooltip
-            renderTooltip={(item: { label?: string; value?: number }) => (
-              <ChartTooltip label={item.label ?? ''} value={`${item.value ?? 0} huevos`} />
-            )}
           />
+          {selectedDailyBar && (
+            <View style={{ alignItems: 'center', marginTop: 8 }}>
+              <ChartTooltip label={selectedDailyBar.label} value={`${selectedDailyBar.value} huevos`} />
+            </View>
+          )}
         </View>
       ) : (
         <EmptyChart message="Sin datos en este período" />
@@ -156,9 +165,13 @@ export const ProductionTrendsTab: React.FC<ProductionTrendsTabProps> = ({ record
       {weeklyData.length > 0 && (
         <>
           <Text className="text-sm font-semibold text-textPrimary mb-sm">Producción semanal (huevos)</Text>
-          <View className="bg-white rounded-md border border-gray-100 p-md mb-lg overflow-hidden">
+          <View className="bg-white rounded-md border border-gray-100 p-md mb-lg">
             <BarChart
-              data={weeklyData}
+              data={weeklyData.map((d) => ({
+                ...d,
+                onPress: () =>
+                  setSelectedWeeklyBar((prev) => (prev?.label === d.label ? null : { label: d.label, value: d.value })),
+              }))}
               width={CHART_WIDTH - 32}
               height={160}
               barWidth={Math.max(20, Math.min(40, Math.floor((CHART_WIDTH - 80) / (weeklyData.length || 1))))}
@@ -169,11 +182,12 @@ export const ProductionTrendsTab: React.FC<ProductionTrendsTabProps> = ({ record
               yAxisTextStyle={{ fontSize: 10, color: theme.colors.gray['500'] }}
               isAnimated
               focusBarOnPress
-              autoCenterTooltip
-              renderTooltip={(item: { label?: string; value?: number }) => (
-                <ChartTooltip label={item.label ?? ''} value={`${item.value ?? 0} huevos`} />
-              )}
             />
+            {selectedWeeklyBar && (
+              <View style={{ alignItems: 'center', marginTop: 8 }}>
+                <ChartTooltip label={selectedWeeklyBar.label} value={`${selectedWeeklyBar.value} huevos`} />
+              </View>
+            )}
           </View>
         </>
       )}

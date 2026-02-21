@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, ScrollView, Dimensions } from 'react-native';
 import { BarChart, LineChart } from 'react-native-gifted-charts';
 import { Skull, TrendingDown, Calendar, Activity } from 'lucide-react-native';
@@ -63,6 +63,9 @@ function aggregateByDay(records: MortalityRecord[]): { date: string; total: numb
 }
 
 export const MortalityTrendsTab: React.FC<MortalityTrendsTabProps> = ({ records, lot }) => {
+  const [selectedDailyBar, setSelectedDailyBar] = useState<{ label: string; value: number } | null>(null);
+  const [selectedMonthlyBar, setSelectedMonthlyBar] = useState<{ label: string; value: number } | null>(null);
+
   /** One entry per unique day, summing all records that day */
   const dailyTotals = useMemo(() => aggregateByDay(records), [records]);
 
@@ -156,9 +159,13 @@ export const MortalityTrendsTab: React.FC<MortalityTrendsTabProps> = ({ records,
       {/* Bajas por día */}
       <Text className="text-sm font-semibold text-textPrimary mb-sm">Bajas por día</Text>
       {barData.length > 0 ? (
-        <View className="bg-white rounded-md border border-gray-100 p-md mb-lg overflow-hidden">
+        <View className="bg-white rounded-md border border-gray-100 p-md mb-lg">
           <BarChart
-            data={barData}
+            data={barData.map((d) => ({
+              ...d,
+              onPress: () =>
+                setSelectedDailyBar((prev) => (prev?.label === d.label ? null : { label: d.label, value: d.value })),
+            }))}
             width={CHART_WIDTH - 32}
             height={180}
             barWidth={Math.max(8, Math.min(24, Math.floor((CHART_WIDTH - 80) / (barData.length || 1))))}
@@ -170,11 +177,12 @@ export const MortalityTrendsTab: React.FC<MortalityTrendsTabProps> = ({ records,
             yAxisTextStyle={{ fontSize: 10, color: theme.colors.gray['500'] }}
             isAnimated
             focusBarOnPress
-            autoCenterTooltip
-            renderTooltip={(item: { label?: string; value?: number }) => (
-              <ChartTooltip label={item.label ?? ''} value={`${item.value ?? 0} bajas`} />
-            )}
           />
+          {selectedDailyBar && (
+            <View style={{ alignItems: 'center', marginTop: 8 }}>
+              <ChartTooltip label={selectedDailyBar.label} value={`${selectedDailyBar.value} bajas`} />
+            </View>
+          )}
         </View>
       ) : (
         <EmptyChart message="Sin datos en este período" />
@@ -183,7 +191,7 @@ export const MortalityTrendsTab: React.FC<MortalityTrendsTabProps> = ({ records,
       {/* Mortalidad acumulada */}
       <Text className="text-sm font-semibold text-textPrimary mb-sm">Mortalidad acumulada</Text>
       {cumulativeData.length > 1 ? (
-        <View className="bg-white rounded-md border border-gray-100 p-md mb-lg overflow-hidden">
+        <View className="bg-white rounded-md border border-gray-100 p-md mb-lg">
           <LineChart
             data={cumulativeData}
             width={CHART_WIDTH - 32}
@@ -202,6 +210,8 @@ export const MortalityTrendsTab: React.FC<MortalityTrendsTabProps> = ({ records,
               activatePointersInstantlyOnTouch: true,
               autoAdjustPointerLabelPosition: true,
               persistPointer: false,
+              pointerLabelHeight: 50,
+              pointerLabelWidth: 120,
               pointerLabelComponent: (items: Array<{ label?: string; value?: number }>) => (
                 <ChartTooltip label={items[0]?.label ?? ''} value={`${items[0]?.value ?? 0} acumuladas`} />
               ),
@@ -219,9 +229,13 @@ export const MortalityTrendsTab: React.FC<MortalityTrendsTabProps> = ({ records,
       {monthlyData.length > 0 && (
         <>
           <Text className="text-sm font-semibold text-textPrimary mb-sm">Tasa de mortalidad mensual (%)</Text>
-          <View className="bg-white rounded-md border border-gray-100 p-md mb-lg overflow-hidden">
+          <View className="bg-white rounded-md border border-gray-100 p-md mb-lg">
             <BarChart
-              data={monthlyData}
+              data={monthlyData.map((d) => ({
+                ...d,
+                onPress: () =>
+                  setSelectedMonthlyBar((prev) => (prev?.label === d.label ? null : { label: d.label, value: d.value })),
+              }))}
               width={CHART_WIDTH - 32}
               height={160}
               barWidth={Math.max(20, Math.min(40, Math.floor((CHART_WIDTH - 80) / (monthlyData.length || 1))))}
@@ -233,11 +247,12 @@ export const MortalityTrendsTab: React.FC<MortalityTrendsTabProps> = ({ records,
               yAxisTextStyle={{ fontSize: 10, color: theme.colors.gray['500'] }}
               isAnimated
               focusBarOnPress
-              autoCenterTooltip
-              renderTooltip={(item: { label?: string; value?: number }) => (
-                <ChartTooltip label={item.label ?? ''} value={`${item.value ?? 0}%`} />
-              )}
             />
+            {selectedMonthlyBar && (
+              <View style={{ alignItems: 'center', marginTop: 8 }}>
+                <ChartTooltip label={selectedMonthlyBar.label} value={`${selectedMonthlyBar.value}%`} />
+              </View>
+            )}
           </View>
         </>
       )}
