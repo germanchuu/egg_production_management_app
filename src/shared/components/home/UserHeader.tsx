@@ -1,7 +1,6 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, Image } from 'react-native';
 import { Sun, Moon, Shield } from 'lucide-react-native';
-import { AppLogo } from '@/shared/components/AppLogo';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useAuth } from '@/features/auth/contexts';
@@ -52,10 +51,14 @@ export function UserHeader() {
 
       <View className="p-6">
         {/* Main content */}
-        <View className="relative flex-row items-start gap-4">
+        <View className="relative flex-row items-stretch gap-4">
           {/* Avatar */}
-          <View className="h-16 rounded-2xl overflow-hidden shadow-lg bg-white">
-            <AppLogo size={64} />
+          <View className="rounded-2xl overflow-hidden shadow-lg bg-white">
+            <Image
+              source={require('../../../../assets/adaptive-icon.png')}
+              style={{ flex: 1, aspectRatio: 1000 / 1138 }}
+              resizeMode="contain"
+            />
           </View>
 
           {/* Info */}
