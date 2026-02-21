@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { Sun, Moon, User, Shield } from 'lucide-react-native';
+import { Sun, Moon, Shield } from 'lucide-react-native';
+import { AppLogo } from '@/shared/components/AppLogo';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useAuth } from '@/features/auth/contexts';
@@ -53,8 +54,8 @@ export function UserHeader() {
         {/* Main content */}
         <View className="relative flex-row items-start gap-4">
           {/* Avatar */}
-          <View className="h-16 w-16 rounded-2xl items-center justify-center shadow-lg bg-white/20 border-2 border-white/30">
-            <User size={32} color={theme.colors.background.DEFAULT} />
+          <View className="h-16 w-16 rounded-2xl items-center justify-center shadow-lg bg-white">
+            <AppLogo size={44} />
           </View>
 
           {/* Info */}
