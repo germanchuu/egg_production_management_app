@@ -36,19 +36,11 @@
       }
     }
   },
-  "update": {
-    "url": "https://u.expo.dev/7badc327-5849-46af-be22-9c66af4fe23b"
-  },
   "submit": {
     "production": {
       "android": {
         "serviceAccountKeyPath": "./google-services-key.json",
         "track": "internal"
-      },
-      "ios": {
-        "appleId": "",
-        "ascAppId": "",
-        "appleTeamId": ""
       }
     }
   }

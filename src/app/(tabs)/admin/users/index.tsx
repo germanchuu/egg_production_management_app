@@ -69,7 +69,7 @@ export default function UsersListScreen() {
   );
 
   // Invitation actions
-  const { handleGenerateInvitation, handleRevokeUser } = useInvitationActions({
+  const { handleGenerateInvitation, handleRevokeUser, isGenerating } = useInvitationActions({
     showToast: (message, type) => {
       if (type === 'success') success(message);
       else error(message);
@@ -247,6 +247,7 @@ export default function UsersListScreen() {
                   key={user.id}
                   user={user}
                   animationDelay={index * 50}
+                  isGenerating={isGenerating}
                   onGenerateInvitation={handleGenerateInvitation}
                   onRevokeUser={handleRevokeUser}
                   onEdit={handleEditUser}

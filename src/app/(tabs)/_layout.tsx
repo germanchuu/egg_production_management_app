@@ -13,9 +13,7 @@ import {
 import { View, Text } from 'react-native';
 import {
   Home,
-  Package,
-  User,
-  Bug,
+  RefreshCw,
   Users,
   ClipboardList,
   Warehouse,
@@ -151,19 +149,10 @@ export default function AppLayout() {
       />
 
       <Drawer.Screen
-        name="profile"
-        options={{
-          title: 'Perfil',
-          drawerIcon: ({ color, size }) => <User size={size} color={color} />,
-        }}
-      />
-
-      {/* DEBUG - Solo visible para administradores */}
-      <Drawer.Screen
         name="admin/debug"
         options={{
-          title: '🛠️ Debug / Testing',
-          drawerIcon: ({ color, size }) => <Bug size={size} color={color} />,
+          title: 'Sincronización',
+          drawerIcon: ({ color, size }) => <RefreshCw size={size} color={color} />,
         }}
       />
 

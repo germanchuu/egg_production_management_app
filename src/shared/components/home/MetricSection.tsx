@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, Pressable } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import {
   TrendingUp,
@@ -11,38 +11,141 @@ import {
   Wheat,
 } from 'lucide-react-native';
 import { theme } from '@/core/theme';
+import { formatDate } from '@/shared/utils/date';
+import { FacilityServiceProvider } from '@/features/facilities/services/FacilityServiceProvider';
+import { ProductionServiceProvider } from '@/features/production/services/ProductionServiceProvider';
+import { MortalityServiceProvider } from '@/features/mortality/services/MortalityServiceProvider';
+import { FeedingServiceProvider } from '@/features/feeding/services/FeedingServiceProvider';
+
+// ─── Hook ─────────────────────────────────────────────────────────────────────
+
+interface HomeMetrics {
+  eggs: string;
+  rate: string;
+  deaths: string;
+  feed: string;
+}
+
+function useHomeMetrics() {
+  const [metrics, setMetrics] = useState<HomeMetrics>({
+    eggs: '—',
+    rate: '—',
+    deaths: '—',
+    feed: '—',
+  });
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const today = formatDate(new Date());
+
+        const facilityService =
+          await FacilityServiceProvider.getFacilityService();
+        const lotsResult = await facilityService.listActiveLots();
+        if (!lotsResult.success || !lotsResult.data) {
+          setMetrics({ eggs: 'N/A', rate: 'N/A', deaths: 'N/A', feed: 'N/A' });
+          return;
+        }
+
+        const lots = lotsResult.data;
+
+        const [productionService, mortalityService, feedingService] =
+          await Promise.all([
+            ProductionServiceProvider.getProductionService(),
+            MortalityServiceProvider.getMortalityService(),
+            FeedingServiceProvider.getFeedingService(),
+          ]);
+
+        let totalEggs = 0;
+        let totalHens = 0;
+        let totalDeaths = 0;
+        let totalFeed = 0;
+
+        await Promise.all(
+          lots.map(async (lot) => {
+            totalHens += lot.liveHenCount;
+
+            const [prodResult, mortResult, feedResult] = await Promise.all([
+              productionService.getProductionByDay(lot.id, today),
+              mortalityService.getMortalityByDay(lot.id, today),
+              feedingService.getFeedingHistory(lot.id),
+            ]);
+
+            if (prodResult.success && prodResult.data) {
+              totalEggs += prodResult.data.reduce(
+                (sum, r) => sum + r.eggsCollected,
+                0
+              );
+            }
+
+            if (mortResult.success && mortResult.data) {
+              totalDeaths += mortResult.data.reduce(
+                (sum, r) => sum + r.hensDied,
+                0
+              );
+            }
+
+            if (feedResult.success && feedResult.data) {
+              totalFeed += feedResult.data
+                .filter((r) => r.date === today)
+                .reduce((sum, r) => sum + r.quantityFedKg, 0);
+            }
+          })
+        );
+
+        const rate =
+          totalHens > 0
+            ? `${((totalEggs / totalHens) * 100).toFixed(1)}%`
+            : '0.0%';
+
+        setMetrics({
+          eggs: totalEggs.toLocaleString('es-ES'),
+          rate,
+          deaths: String(totalDeaths),
+          feed: `${totalFeed.toFixed(1)} kg`,
+        });
+      } catch {
+        setMetrics({ eggs: 'N/A', rate: 'N/A', deaths: 'N/A', feed: 'N/A' });
+      }
+    }
+
+    load();
+  }, []);
+
+  return metrics;
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 export function MetricSection() {
-  const metrics = [
+  const metrics = useHomeMetrics();
+
+  const cards = [
     {
       icon: Egg,
-      value: '1,234',
+      value: metrics.eggs,
       label: 'Huevos Hoy',
-      trend: { value: 5, isPositive: true },
       iconBgClassName: 'bg-primary/10',
       iconClassName: 'text-primary',
     },
     {
       icon: Activity,
-      value: '94.5%',
-      label: 'Tasa Postura',
-      trend: { value: 2, isPositive: true },
+      value: metrics.rate,
+      label: 'Huevos/Gallina',
       iconBgClassName: 'bg-success/10',
       iconClassName: 'text-success',
     },
     {
       icon: Skull,
-      value: '3',
+      value: metrics.deaths,
       label: 'Mortalidad Hoy',
-      trend: { value: 1, isPositive: false },
       iconBgClassName: 'bg-error/10',
       iconClassName: 'text-error',
     },
     {
       icon: Wheat,
-      value: '450 kg',
+      value: metrics.feed,
       label: 'Alimento Hoy',
-      trend: { value: 0, isPositive: true },
       iconBgClassName: 'bg-warning/10',
       iconClassName: 'text-warning',
     },
@@ -50,17 +153,14 @@ export function MetricSection() {
 
   return (
     <View className="space-y-3">
-      {/* Header */}
-
       <Text className="text-sm font-semibold text-textSecondary uppercase tracking-wide mb-md">
         Métricas
       </Text>
 
-      {/* Grid 2x2 */}
       <View className="flex-row flex-wrap gap-3">
-        {metrics.map((metric) => (
-          <View key={metric.label} className="w-[48%]">
-            <MetricCard {...metric} />
+        {cards.map((card) => (
+          <View key={card.label} className="w-[48%]">
+            <MetricCard {...card} />
           </View>
         ))}
       </View>
@@ -68,21 +168,18 @@ export function MetricSection() {
   );
 }
 
+// ─── MetricCard ───────────────────────────────────────────────────────────────
+
 interface MetricCardProps {
   icon: React.ComponentType<{ size?: number; color?: string }>;
   value: string | number;
   label: string;
-  trend?: {
-    value: number;
-    isPositive?: boolean;
-  };
   iconBgClassName?: string;
   iconClassName?: string;
 }
 
 const AnimatedView = Animated.createAnimatedComponent(View);
 
-// Helper to convert className to color value
 const getColorFromClassName = (className: string): string => {
   const colorMap: Record<string, string> = {
     'text-primary': theme.colors.primary['500'] || theme.colors.primary.DEFAULT,
@@ -98,36 +195,10 @@ function MetricCard({
   icon: Icon,
   value,
   label,
-  trend,
   iconBgClassName = '',
   iconClassName = '',
 }: MetricCardProps) {
-  const TrendIcon = trend
-    ? trend.value === 0
-      ? Minus
-      : trend.isPositive
-        ? TrendingUp
-        : TrendingDown
-    : null;
-
-  const trendContainerClass = trend
-    ? trend.value === 0
-      ? 'bg-gray-200'
-      : trend.isPositive
-        ? 'bg-success/10'
-        : 'bg-error/10'
-    : '';
-
-  const trendTextClass = trend
-    ? trend.value === 0
-      ? 'text-gray-600'
-      : trend.isPositive
-        ? 'text-success'
-        : 'text-error'
-    : '';
-
   const iconColor = getColorFromClassName(iconClassName);
-  const trendColor = getColorFromClassName(trendTextClass);
 
   return (
     <AnimatedView
@@ -135,24 +206,11 @@ function MetricCard({
       className="rounded-xl p-4 bg-background border border-gray-200 shadow-card"
     >
       <View className="flex-row items-start justify-between mb-3">
-        {/* Icon */}
         <View
           className={`h-10 w-10 rounded-xl items-center justify-center ${iconBgClassName}`}
         >
           <Icon size={20} color={iconColor} />
         </View>
-
-        {/* Trend */}
-        {trend && TrendIcon && (
-          <View
-            className={`flex-row items-center gap-0.5 px-2 py-0.5 rounded-full ${trendContainerClass}`}
-          >
-            <TrendIcon size={12} color={trendColor} />
-            <Text className={`text-xs font-medium ${trendTextClass}`}>
-              {Math.abs(trend.value)}%
-            </Text>
-          </View>
-        )}
       </View>
 
       <Text className="text-2xl font-bold text-textPrimary">{value}</Text>

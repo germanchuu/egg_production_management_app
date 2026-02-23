@@ -3,6 +3,7 @@ import { ExpoConfig } from '@expo/config-types';
 const config: ExpoConfig = {
   name: 'Granja Avícola San Vicente de Paúl',
   slug: 'granja-avicola-svp',
+  owner: 'germanchuu',
   scheme: 'granjaavicola',
   version: '1.0.0',
   orientation: 'portrait',
@@ -57,7 +58,7 @@ const config: ExpoConfig = {
   extra: {
     router: {},
     eas: {
-      projectId: '7badc327-5849-46af-be22-9c66af4fe23b',
+      projectId: 'e74b380a-e203-4686-8063-882cbf0f082c',
     },
     firebaseApiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
     firebaseAuthDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -72,7 +73,7 @@ const config: ExpoConfig = {
     policy: 'appVersion',
   },
   updates: {
-    url: 'https://u.expo.dev/7badc327-5849-46af-be22-9c66af4fe23b',
+    url: 'https://u.expo.dev/e74b380a-e203-4686-8063-882cbf0f082c',
   },
 };
 

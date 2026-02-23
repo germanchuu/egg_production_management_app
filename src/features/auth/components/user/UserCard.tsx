@@ -39,6 +39,7 @@ function statusBadgeStyle(status: AuthStatus): { bg: string; text: string } {
 interface UserCardProps {
   user: User;
   animationDelay: number;
+  isGenerating?: boolean;
   onGenerateInvitation: (user: User) => void;
   onRevokeUser: (user: User) => void;
   onEdit: (user: User) => void;
@@ -48,7 +49,7 @@ interface UserCardProps {
 
 export const UserCard: React.FC<UserCardProps> = ({
   user,
-  animationDelay,
+  isGenerating = false,
   onGenerateInvitation,
   onRevokeUser,
   onEdit,
@@ -99,11 +100,7 @@ export const UserCard: React.FC<UserCardProps> = ({
     : null;
 
   return (
-    <MotiView
-      from={{ opacity: 0, translateY: 20 }}
-      animate={{ opacity: 1, translateY: 0 }}
-      transition={{ type: 'timing', duration: 300, delay: animationDelay }}
-    >
+    <View>
       <View className="bg-white rounded-md border border-gray-200 shadow-sm mb-sm overflow-hidden">
 
         {/* Header */}
@@ -149,7 +146,9 @@ export const UserCard: React.FC<UserCardProps> = ({
           {hasActions && (
             <Pressable
               onPress={openMenu}
+              disabled={isGenerating}
               className="p-sm rounded-md bg-white border border-gray-200 active:bg-gray-50"
+              style={{ opacity: isGenerating ? 0.4 : 1 }}
             >
               <MoreVertical size={16} color={theme.colors.gray['600']} />
             </Pressable>
@@ -297,6 +296,6 @@ export const UserCard: React.FC<UserCardProps> = ({
         }}
         onCancel={() => setShowRevokeDialog(false)}
       />
-    </MotiView>
+    </View>
   );
 };

@@ -1,11 +1,7 @@
 /**
- * Debug Screen - Para Testing Manual
+ * Sync Screen
  *
- * Permite inspeccionar:
- * - Usuarios en BD local
- * - Sync Queue
- * - Ejecutar sincronización manual
- * - Ver logs
+ * Manual synchronization controls and queue inspection.
  */
 
 import React, { useState, useEffect } from 'react';
@@ -17,10 +13,10 @@ import {
   RefreshControl,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { RefreshCw, CloudOff, Wifi, Trash2, CheckCircle, Clock } from 'lucide-react-native';
 import { theme } from '@/core/theme';
 import { getDatabase } from '@/shared/database';
-import { UserRepository } from '@/shared/database/repositories';
-import { SyncQueue } from '@/shared/sync/SyncQueue';
 import { useSyncContext } from '@/shared/contexts';
 
 interface SyncQueueItem {
@@ -34,388 +30,249 @@ interface SyncQueueItem {
   error: string | null;
 }
 
-export default function DebugScreen() {
-  const { sync, status, isOnline, error, pendingCount } = useSyncContext();
+const ENTITY_LABELS: Record<string, string> = {
+  chicken_houses: 'Galpón',
+  chicken_lots: 'Lote',
+  production_records: 'Registro de producción',
+  mortality_records: 'Registro de mortalidad',
+  feeding_records: 'Registro de alimentación',
+  feed_batches: 'Lote de alimento',
+  lot_events: 'Evento sanitario',
+  invitations: 'Invitación',
+  users: 'Usuario',
+};
+
+const OPERATION_LABELS: Record<string, string> = {
+  CREATE: 'Creación',
+  UPDATE: 'Actualización',
+  DELETE: 'Eliminación',
+};
+
+function getEntityLabel(entityType: string): string {
+  return ENTITY_LABELS[entityType] ?? entityType;
+}
+
+function getOperationLabel(operation: string): string {
+  return OPERATION_LABELS[operation] ?? operation;
+}
+
+export default function SyncScreen() {
+  const { sync, status, isOnline, lastSyncAt, pendingCount } = useSyncContext();
   const isSyncing = status === 'syncing';
 
-  const [users, setUsers] = useState<any[]>([]);
   const [syncQueue, setSyncQueue] = useState<SyncQueueItem[]>([]);
-  const [logs, setLogs] = useState<string[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'users' | 'queue' | 'logs'>('users');
 
-  const addLog = (message: string) => {
-    const timestamp = new Date().toISOString().split('T')[1].split('.')[0];
-    setLogs(prev => [`[${timestamp}] ${message}`, ...prev].slice(0, 50));
-  };
-
-  const loadData = async () => {
+  const loadQueue = async () => {
     try {
-      addLog('Cargando datos...');
       const db = getDatabase();
-      const userRepo = new UserRepository(db);
-
-      // Cargar usuarios
-      const usersList = await userRepo.findAll();
-      setUsers(usersList);
-      addLog(`✅ Usuarios cargados: ${usersList.length}`);
-
-      // Cargar sync queue
-      const queueResults = await db.getAllAsync<SyncQueueItem>(
-        'SELECT * FROM sync_queue ORDER BY local_timestamp DESC LIMIT 50'
+      const items = await db.getAllAsync<SyncQueueItem>(
+        'SELECT * FROM sync_queue ORDER BY local_timestamp DESC LIMIT 100'
       );
-      setSyncQueue(queueResults);
-      addLog(`✅ Sync queue cargado: ${queueResults.length} items`);
-
-    } catch (error) {
-      addLog(`❌ Error cargando datos: ${error}`);
-      console.error('Error loading debug data:', error);
+      setSyncQueue(items);
+    } catch (err) {
+      console.error('Error loading sync queue:', err);
     }
   };
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await loadData();
+    await loadQueue();
     setRefreshing(false);
   };
 
-  const handleSync = async () => {
-    try {
-      addLog('🔄 Iniciando sincronización...');
-      addLog(`📡 Online: ${isOnline}`);
-      addLog(`📊 Status antes: ${status}`);
-
-      if (error) {
-        addLog(`⚠️ Error previo: ${error.message}`);
-      }
-
-      await sync();
-
-      addLog(`📊 Status después: ${status}`);
-      addLog(`✅ Sync completado`);
-
-      await loadData();
-    } catch (error) {
-      addLog(`❌ Error en sync: ${error}`);
-      Alert.alert('Error', 'Error al sincronizar. Ver logs.');
-    }
+  const handleFastSync = async () => {
+    await sync(false);
+    await loadQueue();
   };
 
-  const handleClearSyncQueue = async () => {
+  const handleFullSync = async () => {
+    await sync(true);
+    await loadQueue();
+  };
+
+  const handleClearQueue = () => {
     Alert.alert(
-      'Limpiar Sync Queue',
-      '¿Estás seguro? Esto eliminará todos los items pendientes de sincronización.',
+      'Limpiar cola de sincronización',
+      '¿Estás seguro? Esto eliminará todos los elementos pendientes de sincronización.',
       [
         { text: 'Cancelar', style: 'cancel' },
         {
           text: 'Limpiar',
           style: 'destructive',
           onPress: async () => {
-            try {
-              const db = getDatabase();
-              await db.runAsync('DELETE FROM sync_queue');
-              addLog('🗑️ Sync queue limpiado');
-              await loadData();
-            } catch (error) {
-              addLog(`❌ Error limpiando queue: ${error}`);
-            }
+            const db = getDatabase();
+            await db.runAsync('DELETE FROM sync_queue');
+            await loadQueue();
           },
         },
       ]
     );
   };
 
-  const handleClearLogs = () => {
-    setLogs([]);
-    addLog('Logs limpiados');
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { loadQueue(); }, []);
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  const pendingItems = syncQueue.filter((q) => q.synced_at === null);
+  const syncedItems = syncQueue.filter((q) => q.synced_at !== null);
+
+  const lastSyncStr = lastSyncAt
+    ? lastSyncAt.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+    : null;
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.colors.background.DEFAULT }}>
-      {/* Header */}
-      <View style={{
-        padding: 16,
-        backgroundColor: theme.colors.primary['500'],
-        borderBottomWidth: 1,
-        borderBottomColor: theme.colors.gray['300'],
-      }}>
-        <Text style={{
-          fontSize: 24,
-          fontWeight: 'bold',
-          color: '#fff',
-          marginBottom: 8,
-        }}>
-          🛠️ Debug / Testing
-        </Text>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={{ fontSize: 14, color: '#fff', opacity: 0.9 }}>
-            Inspección de BD Local y Sync Queue
-          </Text>
-          <View style={{
-            backgroundColor: pendingCount > 0 ? '#f59e0b' : '#10b981',
-            paddingHorizontal: 12,
-            paddingVertical: 4,
-            borderRadius: 12,
-          }}>
-            <Text style={{ color: '#fff', fontWeight: '600', fontSize: 12 }}>
-              {pendingCount} Pendientes
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Action Buttons */}
-      <View style={{
-        flexDirection: 'row',
-        padding: 12,
-        gap: 8,
-        backgroundColor: theme.colors.background.secondary,
-        borderBottomWidth: 1,
-        borderBottomColor: theme.colors.gray['300'],
-      }}>
-        <TouchableOpacity
-          onPress={handleSync}
-          disabled={isSyncing}
-          style={{
-            flex: 1,
-            backgroundColor: isSyncing ? theme.colors.gray['400'] : '#10b981',
-            padding: 12,
-            borderRadius: 8,
-            alignItems: 'center',
-          }}
-        >
-          <Text style={{ color: '#fff', fontWeight: '600' }}>
-            {isSyncing ? '⏳ Syncing...' : '🔄 Sync Now'}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={handleRefresh}
-          style={{
-            flex: 1,
-            backgroundColor: theme.colors.primary['500'],
-            padding: 12,
-            borderRadius: 8,
-            alignItems: 'center',
-          }}
-        >
-          <Text style={{ color: '#fff', fontWeight: '600' }}>
-            🔃 Refresh
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Tabs */}
-      <View style={{
-        flexDirection: 'row',
-        backgroundColor: theme.colors.background.DEFAULT,
-        borderBottomWidth: 1,
-        borderBottomColor: theme.colors.gray['300'],
-      }}>
-        {(['users', 'queue', 'logs'] as const).map((tab) => (
-          <TouchableOpacity
-            key={tab}
-            onPress={() => setActiveTab(tab)}
-            style={{
-              flex: 1,
-              padding: 16,
-              borderBottomWidth: 2,
-              borderBottomColor: activeTab === tab ? theme.colors.primary['500'] : 'transparent',
-            }}
-          >
-            <Text style={{
-              textAlign: 'center',
-              fontWeight: activeTab === tab ? '600' : '400',
-              color: activeTab === tab ? theme.colors.primary['500'] : theme.colors.textSecondary.DEFAULT,
-            }}>
-              {tab === 'users' && `👤 Users (${users.length})`}
-              {tab === 'queue' && `📋 Queue (${syncQueue.filter(q => q.synced_at === null).length})`}
-              {tab === 'logs' && `📝 Logs (${logs.length})`}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {/* Content */}
+    <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-background">
       <ScrollView
-        style={{ flex: 1 }}
+        className="flex-1"
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
       >
-        {activeTab === 'users' && (
-          <View style={{ padding: 16 }}>
-            <Text style={{
-              fontSize: 18,
-              fontWeight: '600',
-              color: theme.colors.textPrimary.DEFAULT,
-              marginBottom: 12,
-            }}>
-              Usuarios en BD Local
+        {/* Header */}
+        <View className="px-lg pt-xl pb-md border-b border-gray-200">
+          <View className="flex-row items-center gap-md">
+            <RefreshCw size={28} color={theme.colors.primary['500']} />
+            <Text className="text-2xl font-bold text-textPrimary">
+              Sincronización
             </Text>
-            {users.length === 0 ? (
-              <Text style={{ color: theme.colors.textSecondary.DEFAULT, fontStyle: 'italic' }}>
-                No hay usuarios
-              </Text>
+          </View>
+
+          {/* Status row */}
+          <View className="flex-row items-center gap-sm mt-sm">
+            {isOnline ? (
+              <Wifi size={14} color={theme.colors.success.DEFAULT} />
             ) : (
-              users.map((user, index) => (
-                <View
-                  key={user.id}
-                  style={{
-                    backgroundColor: theme.colors.background.DEFAULT,
-                    padding: 12,
-                    borderRadius: 8,
-                    marginBottom: 12,
-                    borderWidth: 1,
-                    borderColor: theme.colors.gray['300'],
-                  }}
-                >
-                  <Text style={{ fontSize: 16, fontWeight: '600', color: theme.colors.textPrimary.DEFAULT }}>
-                    {index + 1}. {user.displayName}
-                  </Text>
-                  <Text style={{ fontSize: 12, color: theme.colors.textSecondary.DEFAULT, marginTop: 4 }}>
-                    ID: {user.id}
-                  </Text>
-                  <Text style={{ fontSize: 12, color: theme.colors.textSecondary.DEFAULT }}>
-                    Role: {user.role} | Status: {user.authStatus}
-                  </Text>
-                  <Text style={{ fontSize: 12, color: theme.colors.textSecondary.DEFAULT }}>
-                    Active: {user.isActive ? '✅' : '❌'}
-                  </Text>
-                  <Text style={{ fontSize: 12, color: theme.colors.textSecondary.DEFAULT }}>
-                    Authorized Devices: {user.authorizedDevices?.length || 0}
-                  </Text>
-                  {user.authorizedDevices && user.authorizedDevices.length > 0 && (
-                    <View style={{ marginTop: 8, paddingLeft: 8 }}>
-                      {user.authorizedDevices.map((device: any, idx: number) => (
-                        <Text key={idx} style={{ fontSize: 11, color: theme.colors.textSecondary.DEFAULT }}>
-                          • {device.deviceName} ({device.deviceId.slice(0, 8)}...)
-                        </Text>
-                      ))}
-                    </View>
-                  )}
-                  <Text style={{ fontSize: 11, color: theme.colors.textSecondary.DEFAULT, marginTop: 4 }}>
-                    Created: {new Date(user.createdAt).toLocaleString()}
-                  </Text>
-                  <Text style={{ fontSize: 11, color: theme.colors.textSecondary.DEFAULT }}>
-                    Updated: {new Date(user.updatedAt).toLocaleString()}
-                  </Text>
-                </View>
-              ))
+              <CloudOff size={14} color={theme.colors.error.DEFAULT} />
+            )}
+            <Text className="text-sm text-textSecondary">
+              {isOnline ? 'En línea' : 'Sin conexión'}
+              {lastSyncStr ? ` · Última sync: ${lastSyncStr}` : ''}
+            </Text>
+            {pendingCount > 0 && (
+              <View className="ml-auto bg-warning/10 px-sm py-0.5 rounded-full">
+                <Text className="text-xs font-semibold text-warning">
+                  {pendingCount} pendiente{pendingCount !== 1 ? 's' : ''}
+                </Text>
+              </View>
             )}
           </View>
-        )}
+        </View>
 
-        {activeTab === 'queue' && (
-          <View style={{ padding: 16 }}>
-            <View style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: 12,
-            }}>
-              <Text style={{ fontSize: 18, fontWeight: '600', color: theme.colors.textPrimary.DEFAULT }}>
-                Sync Queue
-              </Text>
-              <TouchableOpacity onPress={handleClearSyncQueue}>
-                <Text style={{ color: '#ef4444', fontWeight: '600' }}>
-                  🗑️ Limpiar
-                </Text>
+        {/* Sync Buttons */}
+        <View className="px-lg py-md gap-sm">
+          <TouchableOpacity
+            onPress={handleFastSync}
+            disabled={isSyncing || !isOnline}
+            className="bg-primary-500 rounded-xl p-md items-center"
+            style={{ opacity: isSyncing || !isOnline ? 0.5 : 1 }}
+          >
+            <Text className="text-white font-semibold text-base">
+              {isSyncing ? 'Sincronizando...' : 'Sincronización rápida'}
+            </Text>
+            <Text className="text-white/70 text-xs mt-0.5">
+              Inserciones y actualizaciones recientes
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={handleFullSync}
+            disabled={isSyncing || !isOnline}
+            className="bg-white border border-primary-300 rounded-xl p-md items-center"
+            style={{ opacity: isSyncing || !isOnline ? 0.5 : 1 }}
+          >
+            <Text className="text-primary-600 font-semibold text-base">
+              Sincronización completa
+            </Text>
+            <Text className="text-textTertiary text-xs mt-0.5">
+              Incluye detección de eliminaciones
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Queue section */}
+        <View className="px-lg pb-xl">
+          {/* Section header */}
+          <View className="flex-row items-center justify-between mb-sm">
+            <Text className="text-sm font-semibold text-textSecondary uppercase tracking-wide">
+              Cola de sincronización
+            </Text>
+            {syncQueue.length > 0 && (
+              <TouchableOpacity onPress={handleClearQueue} className="flex-row items-center gap-xs">
+                <Trash2 size={14} color={theme.colors.error.DEFAULT} />
+                <Text className="text-xs font-medium text-error">Limpiar</Text>
               </TouchableOpacity>
-            </View>
+            )}
+          </View>
 
-            {syncQueue.length === 0 ? (
-              <Text style={{ color: theme.colors.textSecondary.DEFAULT, fontStyle: 'italic' }}>
-                Queue vacío
+          {syncQueue.length === 0 && (
+            <View className="items-center py-xl">
+              <CheckCircle size={40} color={theme.colors.success.DEFAULT} />
+              <Text className="text-base font-medium text-textPrimary mt-md">
+                Todo sincronizado
               </Text>
-            ) : (
-              syncQueue.map((item) => (
+              <Text className="text-sm text-textSecondary mt-xs text-center">
+                No hay elementos pendientes de sincronizar.
+              </Text>
+            </View>
+          )}
+
+          {/* Pending items */}
+          {pendingItems.length > 0 && (
+            <View className="mb-md">
+              <Text className="text-xs font-semibold text-warning uppercase mb-xs">
+                Pendientes ({pendingItems.length})
+              </Text>
+              {pendingItems.map((item) => (
                 <View
                   key={item.id}
-                  style={{
-                    backgroundColor: theme.colors.background.DEFAULT,
-                    padding: 12,
-                    borderRadius: 8,
-                    marginBottom: 8,
-                    borderWidth: 1,
-                    borderColor: item.synced_at !== null ? '#10b981' : '#f59e0b',
-                  }}
+                  className="bg-white border border-warning/40 rounded-xl p-md mb-xs"
                 >
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Text style={{ fontSize: 14, fontWeight: '600', color: theme.colors.textPrimary.DEFAULT }}>
-                      {item.operation} - {item.entity_type}
-                    </Text>
-                    <Text style={{
-                      fontSize: 12,
-                      fontWeight: '600',
-                      color: item.synced_at !== null ? '#10b981' : '#f59e0b',
-                    }}>
-                      {item.synced_at !== null ? '✅ Synced' : '⏳ Pending'}
+                  <View className="flex-row items-center gap-xs">
+                    <Clock size={14} color={theme.colors.warning.DEFAULT} />
+                    <Text className="text-sm font-medium text-textPrimary flex-1">
+                      {getOperationLabel(item.operation)} · {getEntityLabel(item.entity_type)}
                     </Text>
                   </View>
-                  <Text style={{ fontSize: 12, color: theme.colors.textSecondary.DEFAULT, marginTop: 4 }}>
-                    Entity ID: {item.entity_id}
+                  <Text className="text-xs text-textTertiary mt-xs">
+                    {new Date(item.local_timestamp).toLocaleString('es-ES')}
                   </Text>
-                  <Text style={{ fontSize: 11, color: theme.colors.textSecondary.DEFAULT }}>
-                    Created: {new Date(item.local_timestamp).toLocaleString()}
-                  </Text>
-                  {item.synced_at && (
-                    <Text style={{ fontSize: 11, color: theme.colors.textSecondary.DEFAULT }}>
-                      Synced: {new Date(item.synced_at).toLocaleString()}
-                    </Text>
+                  {item.error && (
+                    <Text className="text-xs text-error mt-xs">{item.error}</Text>
                   )}
                 </View>
-              ))
-            )}
-          </View>
-        )}
-
-        {activeTab === 'logs' && (
-          <View style={{ padding: 16 }}>
-            <View style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: 12,
-            }}>
-              <Text style={{ fontSize: 18, fontWeight: '600', color: theme.colors.textPrimary.DEFAULT }}>
-                Logs de Actividad
-              </Text>
-              <TouchableOpacity onPress={handleClearLogs}>
-                <Text style={{ color: '#ef4444', fontWeight: '600' }}>
-                  🗑️ Limpiar
-                </Text>
-              </TouchableOpacity>
+              ))}
             </View>
+          )}
 
-            {logs.length === 0 ? (
-              <Text style={{ color: theme.colors.textSecondary.DEFAULT, fontStyle: 'italic' }}>
-                No hay logs
+          {/* Synced items */}
+          {syncedItems.length > 0 && (
+            <View>
+              <Text className="text-xs font-semibold text-success uppercase mb-xs">
+                Sincronizados ({syncedItems.length})
               </Text>
-            ) : (
-              logs.map((log, index) => (
-                <Text
-                  key={index}
-                  style={{
-                    fontSize: 12,
-                    fontFamily: 'monospace',
-                    color: theme.colors.textPrimary.DEFAULT,
-                    paddingVertical: 4,
-                    borderBottomWidth: 1,
-                    borderBottomColor: theme.colors.gray['200'],
-                  }}
+              {syncedItems.map((item) => (
+                <View
+                  key={item.id}
+                  className="bg-white border border-success/30 rounded-xl p-md mb-xs"
                 >
-                  {log}
-                </Text>
-              ))
-            )}
-          </View>
-        )}
+                  <View className="flex-row items-center gap-xs">
+                    <CheckCircle size={14} color={theme.colors.success.DEFAULT} />
+                    <Text className="text-sm font-medium text-textSecondary flex-1">
+                      {getOperationLabel(item.operation)} · {getEntityLabel(item.entity_type)}
+                    </Text>
+                  </View>
+                  <Text className="text-xs text-textTertiary mt-xs">
+                    Sincronizado:{' '}
+                    {item.synced_at
+                      ? new Date(item.synced_at).toLocaleString('es-ES')
+                      : '—'}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }

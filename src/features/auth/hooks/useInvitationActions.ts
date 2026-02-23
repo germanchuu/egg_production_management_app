@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { User } from '@/shared/types/entities';
 import { InvitationApiService } from '@/features/auth/services/InvitationApiService';
 import {
@@ -8,6 +8,15 @@ import {
 } from '@/shared/utils/shareInvitation';
 import { useAuth } from '@/features/auth/contexts';
 import { AuthService } from '@/features/auth/services/AuthService';
+import { firestore } from '@/core/config/firebase';
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  updateDoc,
+} from 'firebase/firestore';
 
 export interface UseInvitationActionsProps {
   showToast: (message: string, type: 'success' | 'error') => void;
@@ -15,12 +24,14 @@ export interface UseInvitationActionsProps {
 
 export const useInvitationActions = ({ showToast }: UseInvitationActionsProps) => {
   const { user: adminUser } = useAuth();
+  const [isGenerating, setIsGenerating] = useState(false);
   const invitationService = new InvitationApiService(
     process.env.EXPO_PUBLIC_FIREBASE_FUNCTION_URL || ''
   );
 
   const handleGenerateInvitation = useCallback(
     async (user: User) => {
+      setIsGenerating(true);
       try {
         // Get admin's device ID from session
         const session = await AuthService.getStoredSession();
@@ -41,6 +52,26 @@ export const useInvitationActions = ({ showToast }: UseInvitationActionsProps) =
         // const deviceId = DEV_MODE
         //   ? process.env.EXPO_PUBLIC_DEV_ADMIN_DEVICE_ID || session.deviceId
         //   : session.deviceId;
+
+        // Invalidate any existing pending invitations for this user
+        try {
+          const invitationsRef = collection(firestore, 'invitations');
+          const pendingQuery = query(
+            invitationsRef,
+            where('targetUserId', '==', user.id),
+            where('status', '==', 'pending')
+          );
+          const snapshot = await getDocs(pendingQuery);
+          await Promise.all(
+            snapshot.docs.map((d) =>
+              updateDoc(doc(firestore, 'invitations', d.id), {
+                status: 'expired',
+              })
+            )
+          );
+        } catch (invalidateError) {
+          console.warn('Could not invalidate previous invitations:', invalidateError);
+        }
 
         // ORIGINAL IMPLEMENTATION (restore this later):
         // const result = await invitationService.generateInvitation(
@@ -84,6 +115,8 @@ export const useInvitationActions = ({ showToast }: UseInvitationActionsProps) =
           'No se pudo generar la invitación. Verifica tu conexión.',
           'error'
         );
+      } finally {
+        setIsGenerating(false);
       }
     },
     [invitationService, showToast, adminUser]
@@ -114,5 +147,5 @@ export const useInvitationActions = ({ showToast }: UseInvitationActionsProps) =
     [invitationService, showToast]
   );
 
-  return { handleGenerateInvitation, handleRevokeUser };
+  return { handleGenerateInvitation, handleRevokeUser, isGenerating };
 };
