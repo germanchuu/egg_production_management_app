@@ -11,15 +11,20 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, router } from 'expo-router';
 import * as Device from 'expo-device';
+import * as SecureStore from 'expo-secure-store';
 import { MotiView } from 'moti';
 
 import {
   InvitationConfirmation,
   InvalidInvitation,
 } from '@/features/auth/components';
-import type { Invitation } from '@/shared/types/entities';
+import type { Invitation, User, AuthorizedDevice } from '@/shared/types/entities';
+import { AuthStatus, UserRole } from '@/shared/types/entities';
 import { AppLogo } from '@/shared/components/AppLogo';
 import { useAuth } from '@/features/auth/contexts';
+import { AuthService } from '@/features/auth/services/AuthService';
+import { getDatabase } from '@/shared/database';
+import { UserRepository } from '@/shared/database/repositories/UserRepository';
 import { useToast } from '@/shared/hooks/useToast';
 import { Toast } from '@/shared/components/Toast';
 
@@ -80,12 +85,13 @@ async function acceptInvitationOnServer(
 
 export default function InviteTokenScreen() {
   const { token } = useLocalSearchParams<{ token: string }>();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, refreshUser } = useAuth();
   const { toast, success, error: showError, hide } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [accepting, setAccepting] = useState(false);
   const [invitation, setInvitation] = useState<Invitation | null>(null);
+  const [invitedUser, setInvitedUser] = useState<User | null>(null);
   const [userName, setUserName] = useState('');
   const [error, setError] = useState('');
 
@@ -116,6 +122,7 @@ export default function InviteTokenScreen() {
 
       if (result.invitation && result.user) {
         setInvitation(result.invitation);
+        setInvitedUser(result.user);
         setUserName(result.user.displayName);
       }
 
@@ -128,12 +135,22 @@ export default function InviteTokenScreen() {
   /* ------------------------------ Accept ----------------------------------- */
 
   const handleAccept = async () => {
-    if (!token) return;
+    if (!token || !invitedUser) return;
 
     setAccepting(true);
     setError('');
 
-    const deviceId = Device.osInternalBuildId || Device.modelId || 'unknown';
+    // Use the persistent SecureStore UUID as device ID so it matches what's
+    // stored in the local session during validation.
+    let deviceId = await SecureStore.getItemAsync('device_id');
+    if (!deviceId) {
+      deviceId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = (Math.random() * 16) | 0;
+        const v = c === 'x' ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+      });
+      await SecureStore.setItemAsync('device_id', deviceId);
+    }
 
     const deviceName =
       `${Device.brand} ${Device.modelName}` || 'Dispositivo desconocido';
@@ -144,6 +161,42 @@ export default function InviteTokenScreen() {
       setError(result.error || 'Error al aceptar la invitación');
       setAccepting(false);
       return;
+    }
+
+    // Persist the authenticated user to the local DB and create a local session.
+    // Without this step, AuthContext finds no session on the next app launch
+    // and the user appears unauthenticated.
+    try {
+      const db = getDatabase();
+      const userRepo = new UserRepository(db);
+      const now = new Date().toISOString();
+
+      const newDevice: AuthorizedDevice = { deviceId, deviceName, authorizedAt: now };
+      const existingDevices: AuthorizedDevice[] = invitedUser.authorizedDevices ?? [];
+
+      await userRepo.upsert({
+        id: invitedUser.id,
+        displayName: invitedUser.displayName,
+        role: (invitedUser.role as UserRole) ?? UserRole.User,
+        authStatus: AuthStatus.Authenticated,
+        authorizedDevices: [...existingDevices, newDevice],
+        isActive: (invitedUser as any).isActive ?? true,
+        invitationId: (invitedUser as any).invitationId ?? undefined,
+        createdAt: (invitedUser as any).createdAt ?? now,
+        updatedAt: now,
+      });
+
+      await AuthService.storeSession({
+        userId: invitedUser.id,
+        deviceId,
+        authenticatedAt: now,
+        lastValidatedAt: now,
+      });
+
+      await refreshUser();
+    } catch (sessionError) {
+      console.error('[InviteScreen] Error saving local session:', sessionError);
+      // Non-blocking — user still navigates but may need to re-accept on next open
     }
 
     setAccepting(false);

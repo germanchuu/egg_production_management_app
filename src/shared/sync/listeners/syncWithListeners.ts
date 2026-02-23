@@ -379,27 +379,27 @@ export async function syncWithListeners(detectDeletions = true): Promise<SyncRes
     const usersConfig = COLLECTIONS.find((c) => c.name === 'users')!;
     allResults.push(await syncCollection(usersConfig, db, detectDeletions));
 
-    // Level 2: Collections that depend only on users (can run in parallel)
+    // Level 2: Collections that depend only on users (sequential to avoid SQLite lock conflicts)
+    // NOTE: Promise.all was causing "table is locked" due to concurrent TEMP TABLE DDL inside
+    // the same transaction. Sequential execution eliminates the concurrency issue.
     const level2Configs = COLLECTIONS.filter((c) =>
       ['invitations', 'chicken_houses', 'feed_batches', 'biosecurity_events'].includes(c.name)
     );
-    const level2Results = await Promise.all(
-      level2Configs.map((config) => syncCollection(config, db, detectDeletions))
-    );
-    allResults.push(...level2Results);
+    for (const config of level2Configs) {
+      allResults.push(await syncCollection(config, db, detectDeletions));
+    }
 
     // Level 3: chicken_lots (depends on chicken_houses)
     const lotsConfig = COLLECTIONS.find((c) => c.name === 'chicken_lots')!;
     allResults.push(await syncCollection(lotsConfig, db, detectDeletions));
 
-    // Level 4: Collections that depend on lots (can run in parallel)
+    // Level 4: Collections that depend on lots (sequential for same reason as level 2)
     const level4Configs = COLLECTIONS.filter((c) =>
       ['production_records', 'mortality_records', 'feeding_records', 'health_events'].includes(c.name)
     );
-    const level4Results = await Promise.all(
-      level4Configs.map((config) => syncCollection(config, db, detectDeletions))
-    );
-    allResults.push(...level4Results);
+    for (const config of level4Configs) {
+      allResults.push(await syncCollection(config, db, detectDeletions));
+    }
 
     const totalTime = Date.now() - startTime;
     const totals = allResults.reduce(

@@ -21,6 +21,7 @@ import { useEffect, useState } from 'react';
 import { View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Slot, SplashScreen as ExpoSplashScreen } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { initDatabase } from '@/shared/database';
 import { SplashScreen, ErrorBoundary } from '@/shared/components';
 import { AuthProvider } from '@/features/auth/contexts';
@@ -91,6 +92,7 @@ export default function RootLayout() {
       <AuthProvider>
         <SyncProvider>
           <ToastProvider>
+            <StatusBar style="dark" />
             <Slot />
           </ToastProvider>
         </SyncProvider>
