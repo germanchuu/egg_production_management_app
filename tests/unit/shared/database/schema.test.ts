@@ -3,7 +3,7 @@ import { getSchemaSQL, getSchemaVersion, CREATE_TABLES_SQL, CREATE_INDEXES_SQL }
 describe('Database Schema', () => {
   describe('getSchemaVersion', () => {
     it('should return correct schema version', () => {
-      expect(getSchemaVersion()).toBe(1);
+      expect(getSchemaVersion()).toBe(6);
     });
   });
 
@@ -19,7 +19,7 @@ describe('Database Schema', () => {
       expect(schema.length).toBeGreaterThan(0);
     });
 
-    it('should include all 11 core tables', () => {
+    it('should include all 13 core tables', () => {
       const schemaString = schema.join('\n');
 
       expect(schemaString).toContain('CREATE TABLE IF NOT EXISTS users');
@@ -30,9 +30,11 @@ describe('Database Schema', () => {
       expect(schemaString).toContain('CREATE TABLE IF NOT EXISTS mortality_records');
       expect(schemaString).toContain('CREATE TABLE IF NOT EXISTS feed_batches');
       expect(schemaString).toContain('CREATE TABLE IF NOT EXISTS feeding_records');
-      expect(schemaString).toContain('CREATE TABLE IF NOT EXISTS lot_events');
+      expect(schemaString).toContain('CREATE TABLE IF NOT EXISTS health_events');
+      expect(schemaString).toContain('CREATE TABLE IF NOT EXISTS biosecurity_events');
       expect(schemaString).toContain('CREATE TABLE IF NOT EXISTS sync_queue');
       expect(schemaString).toContain('CREATE TABLE IF NOT EXISTS audit_log_local');
+      expect(schemaString).toContain('CREATE TABLE IF NOT EXISTS sync_metadata');
     });
 
     it('should define foreign key constraints', () => {
@@ -61,9 +63,6 @@ describe('Database Schema', () => {
       expect(schemaString).toContain('CHECK(hens_died > 0)');
       expect(schemaString).toContain('CHECK(eggs_collected >= 0)');
 
-      // Event type checks
-      expect(schemaString).toContain("CHECK(event_type IN ('vaccination', 'disinfection'))");
-
       // Sync operation checks
       expect(schemaString).toContain("CHECK(operation IN ('CREATE', 'UPDATE', 'DELETE'))");
     });
@@ -76,9 +75,6 @@ describe('Database Schema', () => {
 
       // House name uniqueness
       expect(schemaString).toContain('name TEXT UNIQUE NOT NULL');
-
-      // Composite unique constraint for production records
-      expect(schemaString).toContain('UNIQUE(lot_id, date)');
     });
 
     it('should include indexes for query optimization', () => {
@@ -110,8 +106,8 @@ describe('Database Schema', () => {
   });
 
   describe('CREATE_TABLES_SQL', () => {
-    it('should have 11 table definitions', () => {
-      expect(CREATE_TABLES_SQL).toHaveLength(11);
+    it('should have 13 table definitions', () => {
+      expect(CREATE_TABLES_SQL).toHaveLength(13);
     });
 
     it('should define all tables with IF NOT EXISTS', () => {

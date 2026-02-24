@@ -1,6 +1,9 @@
 // Minimal Jest setup to avoid React Native setup issues
 // This file is loaded BEFORE setupFilesAfterEnv
 
+// React Native global
+global.__DEV__ = false;
+
 // Set up mock Firebase environment variables
 process.env.EXPO_PUBLIC_FIREBASE_API_KEY = 'test-api-key';
 process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN = 'test-domain.firebaseapp.com';

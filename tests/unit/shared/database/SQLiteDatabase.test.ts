@@ -32,7 +32,8 @@ describe('SQLiteDatabase', () => {
       expect(tableNames).toContain('mortality_records');
       expect(tableNames).toContain('feed_batches');
       expect(tableNames).toContain('feeding_records');
-      expect(tableNames).toContain('lot_events');
+      expect(tableNames).toContain('health_events');
+      expect(tableNames).toContain('biosecurity_events');
       expect(tableNames).toContain('sync_queue');
       expect(tableNames).toContain('audit_log_local');
     });
@@ -52,7 +53,7 @@ describe('SQLiteDatabase', () => {
         'PRAGMA user_version'
       );
 
-      expect(version?.user_version).toBe(1);
+      expect(version?.user_version).toBe(6);
     });
   });
 

@@ -26,11 +26,11 @@ describe('ProductionService', () => {
   const mockLot: ChickenLot = {
     id: 'lot-1',
     name: 'Lote A',
-    houseId: 'house-1',
+    chickenHouseId: 'house-1',
     initialHenCount: 100,
     liveHenCount: 95,
     purchaseDate: '2024-01-01',
-    ageInWeeks: 20,
+    ageWeeks: 20,
     createdBy: 'user-1',
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-01T00:00:00Z',
@@ -59,6 +59,7 @@ describe('ProductionService', () => {
       findByDateRange: jest.fn(),
       getTotalEggsForLot: jest.fn(),
       findByLotAndDate: jest.fn(),
+      getDailyTotal: jest.fn().mockResolvedValue(80),
     } as any;
 
     mockLotRepo = {
@@ -90,8 +91,8 @@ describe('ProductionService', () => {
   describe('recordProduction', () => {
     it('should successfully record production', async () => {
       mockLotRepo.findById.mockResolvedValue(mockLot);
-      mockProductionRepo.findByLotAndDate.mockResolvedValue(null);
       mockProductionRepo.create.mockResolvedValue(mockProductionRecord);
+      mockProductionRepo.getDailyTotal.mockResolvedValue(80);
       mockSyncQueue.enqueue.mockResolvedValue(undefined);
 
       const result = await service.recordProduction(
@@ -102,7 +103,7 @@ describe('ProductionService', () => {
       );
 
       expect(result.success).toBe(true);
-      expect(result.data).toEqual(mockProductionRecord);
+      expect(result.data?.record).toEqual(mockProductionRecord);
       expect(mockProductionRepo.create).toHaveBeenCalled();
       expect(mockSyncQueue.enqueue).toHaveBeenCalledWith({
         entityType: 'production_records',
@@ -146,28 +147,21 @@ describe('ProductionService', () => {
       expect(mockProductionRepo.create).not.toHaveBeenCalled();
     });
 
-    it('should reject duplicate production for same lot and date', async () => {
+    it('should reject production for lot with no valid date format', async () => {
       mockLotRepo.findById.mockResolvedValue(mockLot);
-      mockProductionRepo.findByLotAndDate.mockResolvedValue(
-        mockProductionRecord
-      );
 
       const result = await service.recordProduction(
         'lot-1',
-        '2024-02-11',
+        '',
         80,
         'user-1'
       );
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Ya existe un registro');
       expect(mockProductionRepo.create).not.toHaveBeenCalled();
     });
 
     it('should reject zero eggs collected', async () => {
-      mockLotRepo.findById.mockResolvedValue(mockLot);
-      mockProductionRepo.findByLotAndDate.mockResolvedValue(null);
-
       const result = await service.recordProduction(
         'lot-1',
         '2024-02-11',
@@ -176,14 +170,11 @@ describe('ProductionService', () => {
       );
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('mayor a 0');
+      expect(result.error).toContain('número positivo');
       expect(mockProductionRepo.create).not.toHaveBeenCalled();
     });
 
     it('should reject negative eggs collected', async () => {
-      mockLotRepo.findById.mockResolvedValue(mockLot);
-      mockProductionRepo.findByLotAndDate.mockResolvedValue(null);
-
       const result = await service.recordProduction(
         'lot-1',
         '2024-02-11',
@@ -192,14 +183,14 @@ describe('ProductionService', () => {
       );
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('mayor a 0');
+      expect(result.error).toContain('número positivo');
     });
 
     it('should warn but not reject high production (>2 eggs per hen)', async () => {
       const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
       mockLotRepo.findById.mockResolvedValue(mockLot);
-      mockProductionRepo.findByLotAndDate.mockResolvedValue(null);
       mockProductionRepo.create.mockResolvedValue(mockProductionRecord);
+      mockProductionRepo.getDailyTotal.mockResolvedValue(200);
 
       // 200 eggs for 95 hens = 2.1 eggs/hen (should warn)
       const result = await service.recordProduction(
@@ -352,16 +343,15 @@ describe('ProductionService', () => {
       };
       mockLotRepo.findById.mockResolvedValue(mockLot);
       mockProductionRepo.findByLot.mockResolvedValue([recentRecord]);
-      mockProductionRepo.getTotalEggsForLot.mockResolvedValue(500);
 
       const result = await service.calculateMetrics('lot-1');
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual({
         dailyEggsPerHen: 0.89, // 85 / 95 live hens
-        lifetimeEggsPerHen: 5.0, // 500 / 100 initial hens
-        totalEggs: 500,
-        averageDaily: 500, // 500 / 1 record
+        lifetimeEggsPerHen: 0.85, // 85 / 100 initial hens
+        totalEggs: 85,
+        averageDaily: 85, // 85 / 1 day
       });
     });
 

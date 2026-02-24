@@ -7,11 +7,42 @@
 
 // Mock modules are already set up in tests/setup.ts
 
+const MOCK_EXTRA = {
+  firebaseApiKey: 'test-api-key',
+  firebaseAuthDomain: 'test.firebaseapp.com',
+  firebaseProjectId: 'test-project',
+  firebaseStorageBucket: 'test.appspot.com',
+  firebaseMessagingSenderId: '123456789',
+  firebaseAppId: '1:123456789:web:abcdef',
+};
+
 describe('Firebase Configuration', () => {
   beforeEach(() => {
     // Clear mocks and reset module cache to force re-initialization
     jest.clearAllMocks();
     jest.resetModules();
+
+    // Re-apply mocks that are cleared by resetModules
+    jest.doMock('expo-constants', () => ({
+      default: { expoConfig: { extra: MOCK_EXTRA } },
+      expoConfig: { extra: MOCK_EXTRA },
+    }));
+    jest.doMock('firebase/app', () => ({
+      initializeApp: jest.fn(() => ({})),
+      getApp: jest.fn(() => { throw new Error('no app'); }),
+    }));
+    jest.doMock('firebase/auth', () => ({
+      getAuth: jest.fn(() => ({})),
+      initializeAuth: jest.fn(() => ({})),
+      getReactNativePersistence: jest.fn(),
+    }));
+    jest.doMock('firebase/firestore', () => ({
+      getFirestore: jest.fn(() => ({})),
+    }));
+    jest.doMock('@react-native-async-storage/async-storage', () => ({
+      setItem: jest.fn(),
+      getItem: jest.fn(),
+    }));
   });
 
   describe('Firebase App Initialization', () => {

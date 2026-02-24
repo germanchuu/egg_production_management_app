@@ -340,7 +340,7 @@ describe('US2: Chicken Lot and Facility Management — Acceptance Scenarios', ()
 
     it('should enqueue lot update for sync when modified offline', async () => {
       // Simulate offline update to lot description
-      const updateResult = await facilityService.updateLot(lotId, { name: 'Lote Feb 2024 (rev)' });
+      const updateResult = await facilityService.updateLot(lotId, 'Lote Feb 2024 (rev)', adminId);
 
       expect(updateResult.success).toBe(true);
 
@@ -350,7 +350,7 @@ describe('US2: Chicken Lot and Facility Management — Acceptance Scenarios', ()
 
     it('should accumulate multiple offline changes in sync queue', async () => {
       // Multiple changes while offline
-      await facilityService.updateLot(lotId, { name: 'Lote Actualizado' });
+      await facilityService.updateLot(lotId, 'Lote Actualizado', adminId);
       await mortalityService.recordMortality(lotId, '2024-02-10', 5, userId);
 
       const pending = await syncQueue.getPending();

@@ -147,21 +147,16 @@ describe('US3: Invitation-Based User Authentication — Acceptance Scenarios', (
     it('validateInvitationToken should return the invitation when token is valid', async () => {
       const token = 'valid-token-abc';
 
-      // Mock server response for token validation
-      const mockValidate = jest.fn().mockResolvedValue({
-        valid: true,
-        invitation: {
-          id: 'inv-001',
-          userId: pendingUser.id,
-          token,
-          status: 'pending',
-          createdAt: new Date().toISOString(),
-          expiresAt: new Date(Date.now() + 86400000).toISOString(),
-        },
-        error: undefined,
+      const mockGetFromFirestore = jest.fn().mockResolvedValue({
+        id: 'inv-001',
+        userId: pendingUser.id,
+        token,
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 86400000).toISOString(),
       });
 
-      const result = await InvitationService.validateInvitationToken(token, mockValidate);
+      const result = await InvitationService.validateInvitationToken(token, mockGetFromFirestore);
 
       expect(result.valid).toBe(true);
       expect(result.invitation).toBeDefined();
@@ -169,15 +164,17 @@ describe('US3: Invitation-Based User Authentication — Acceptance Scenarios', (
     });
 
     it('validateInvitationToken should return error for expired token', async () => {
-      const mockValidate = jest.fn().mockResolvedValue({
-        valid: false,
-        error: 'expired',
-        message: 'Invitation expired',
+      const mockGetFromFirestore = jest.fn().mockResolvedValue({
+        id: 'inv-exp',
+        token: 'expired-token',
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() - 86400000).toISOString(),
       });
 
       const result = await InvitationService.validateInvitationToken(
         'expired-token',
-        mockValidate
+        mockGetFromFirestore
       );
 
       expect(result.valid).toBe(false);
@@ -185,15 +182,17 @@ describe('US3: Invitation-Based User Authentication — Acceptance Scenarios', (
     });
 
     it('validateInvitationToken should return error for already-accepted token', async () => {
-      const mockValidate = jest.fn().mockResolvedValue({
-        valid: false,
-        error: 'already_accepted',
-        message: 'Already accepted',
+      const mockGetFromFirestore = jest.fn().mockResolvedValue({
+        id: 'inv-used',
+        token: 'used-token',
+        status: 'accepted',
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 86400000).toISOString(),
       });
 
       const result = await InvitationService.validateInvitationToken(
         'used-token',
-        mockValidate
+        mockGetFromFirestore
       );
 
       expect(result.valid).toBe(false);

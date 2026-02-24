@@ -33,6 +33,36 @@ jest.mock('firebase/firestore', () => ({
 jest.mock('expo-secure-store');
 jest.mock('expo-sqlite'); // Uses improved mock with better-sqlite3
 jest.mock('@react-native-community/netinfo');
+jest.mock('expo-constants', () => ({
+  default: {
+    expoConfig: {
+      extra: {},
+      scheme: 'granjaavicola',
+      name: 'Granja Avícola',
+      slug: 'granja-avicola',
+      version: '1.0.0',
+    },
+    appOwnership: null,
+  },
+  expoConfig: {
+    extra: {},
+    scheme: 'granjaavicola',
+    name: 'Granja Avícola',
+    slug: 'granja-avicola',
+    version: '1.0.0',
+  },
+  appOwnership: null,
+}));
+jest.mock('expo-linking', () => ({
+  createURL: jest.fn((path: string) => `granjaavicola://${path}`),
+  openURL: jest.fn(),
+  canOpenURL: jest.fn(),
+  addEventListener: jest.fn(),
+}));
+jest.mock('expo-application', () => ({
+  androidId: 'test-android-id',
+  getIosIdForVendorAsync: jest.fn().mockResolvedValue('test-ios-id'),
+}), { virtual: true });
 jest.mock('expo-router', () => ({
   useRouter: jest.fn(() => ({
     push: jest.fn(),

@@ -639,7 +639,7 @@ describe('Production Recording - Offline and Sync Integration Tests', () => {
 
       // Assert
       expect(result.success).toBe(false);
-      expect(result.error).toContain('mayor a 0');
+      expect(result.error).toContain('número positivo');
 
       // Verify nothing saved or queued
       const records = await db.getAllAsync('SELECT * FROM production_records');

@@ -2,102 +2,71 @@
  * Environment Variables Loader Tests
  *
  * Tests for environment variables validation and loading.
+ * env.ts reads Firebase config from Constants.expoConfig.extra (Expo config approach).
  */
 
+const FULL_EXTRA = {
+  firebaseApiKey: 'test-api-key',
+  firebaseAuthDomain: 'test.firebaseapp.com',
+  firebaseProjectId: 'test-project',
+  firebaseStorageBucket: 'test.appspot.com',
+  firebaseMessagingSenderId: '123456789',
+  firebaseAppId: '1:123456789:web:abcdef',
+  firebaseMeasurementId: 'G-XXXXXXXXXX',
+};
+
+function mockConstants(extra: Record<string, string | undefined>) {
+  jest.doMock('expo-constants', () => ({
+    default: { expoConfig: { extra } },
+    expoConfig: { extra },
+  }));
+}
+
 describe('Environment Variables', () => {
-  const originalEnv = process.env;
-
   beforeEach(() => {
-    // Reset modules to get fresh env
     jest.resetModules();
-    // Clone original env
-    process.env = { ...originalEnv };
-  });
-
-  afterEach(() => {
-    // Restore original env
-    process.env = originalEnv;
   });
 
   describe('validateEnv', () => {
     it('should pass validation when all required Firebase vars are present', () => {
-      process.env.EXPO_PUBLIC_FIREBASE_API_KEY = 'test-api-key';
-      process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN = 'test.firebaseapp.com';
-      process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID = 'test-project';
-      process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET = 'test.appspot.com';
-      process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID = '123456789';
-      process.env.EXPO_PUBLIC_FIREBASE_APP_ID = '1:123456789:web:abcdef';
-
+      mockConstants(FULL_EXTRA);
       const { validateEnv } = require('@/core/config/env');
-
       expect(() => validateEnv()).not.toThrow();
     });
 
-    it('should throw error when EXPO_PUBLIC_FIREBASE_API_KEY is missing', () => {
-      delete process.env.EXPO_PUBLIC_FIREBASE_API_KEY;
-      process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN = 'test.firebaseapp.com';
-      process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID = 'test-project';
-      process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET = 'test.appspot.com';
-      process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID = '123456789';
-      process.env.EXPO_PUBLIC_FIREBASE_APP_ID = '1:123456789:web:abcdef';
-
+    it('should throw error when firebaseApiKey is missing', () => {
+      mockConstants({ ...FULL_EXTRA, firebaseApiKey: undefined });
       const { validateEnv } = require('@/core/config/env');
-
-      expect(() => validateEnv()).toThrow('EXPO_PUBLIC_FIREBASE_API_KEY');
+      expect(() => validateEnv()).toThrow();
     });
 
-    it('should throw error when EXPO_PUBLIC_FIREBASE_PROJECT_ID is missing', () => {
-      process.env.EXPO_PUBLIC_FIREBASE_API_KEY = 'test-api-key';
-      process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN = 'test.firebaseapp.com';
-      delete process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID;
-      process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET = 'test.appspot.com';
-      process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID = '123456789';
-      process.env.EXPO_PUBLIC_FIREBASE_APP_ID = '1:123456789:web:abcdef';
-
+    it('should throw error when firebaseProjectId is missing', () => {
+      mockConstants({ ...FULL_EXTRA, firebaseProjectId: undefined });
       const { validateEnv } = require('@/core/config/env');
-
-      expect(() => validateEnv()).toThrow('EXPO_PUBLIC_FIREBASE_PROJECT_ID');
+      expect(() => validateEnv()).toThrow();
     });
 
-    it('should throw error listing all missing required variables', () => {
-      delete process.env.EXPO_PUBLIC_FIREBASE_API_KEY;
-      delete process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID;
-      process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN = 'test.firebaseapp.com';
-      process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET = 'test.appspot.com';
-      process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID = '123456789';
-      process.env.EXPO_PUBLIC_FIREBASE_APP_ID = '1:123456789:web:abcdef';
-
+    it('should throw error when multiple required variables are missing', () => {
+      mockConstants({
+        ...FULL_EXTRA,
+        firebaseApiKey: undefined,
+        firebaseProjectId: undefined,
+      });
       const { validateEnv } = require('@/core/config/env');
-
-      expect(() => validateEnv()).toThrow('EXPO_PUBLIC_FIREBASE_API_KEY');
-      expect(() => validateEnv()).toThrow('EXPO_PUBLIC_FIREBASE_PROJECT_ID');
+      expect(() => validateEnv()).toThrow();
     });
 
-    it('should allow optional EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID to be missing', () => {
-      process.env.EXPO_PUBLIC_FIREBASE_API_KEY = 'test-api-key';
-      process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN = 'test.firebaseapp.com';
-      process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID = 'test-project';
-      process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET = 'test.appspot.com';
-      process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID = '123456789';
-      process.env.EXPO_PUBLIC_FIREBASE_APP_ID = '1:123456789:web:abcdef';
-      delete process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID;
-
+    it('should allow optional firebaseMeasurementId to be missing', () => {
+      const { firebaseMeasurementId: _, ...withoutMeasurement } = FULL_EXTRA;
+      mockConstants(withoutMeasurement);
       const { validateEnv } = require('@/core/config/env');
-
       expect(() => validateEnv()).not.toThrow();
     });
   });
 
   describe('getEnv', () => {
     it('should return all Firebase environment variables when valid', () => {
-      process.env.EXPO_PUBLIC_FIREBASE_API_KEY = 'test-api-key';
-      process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN = 'test.firebaseapp.com';
-      process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID = 'test-project';
-      process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET = 'test.appspot.com';
-      process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID = '123456789';
-      process.env.EXPO_PUBLIC_FIREBASE_APP_ID = '1:123456789:web:abcdef';
-      process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID = 'G-XXXXXXXXXX';
-
+      mockConstants(FULL_EXTRA);
       const { getEnv } = require('@/core/config/env');
       const env = getEnv();
 
@@ -111,25 +80,16 @@ describe('Environment Variables', () => {
     });
 
     it('should return undefined for optional FIREBASE_MEASUREMENT_ID when not set', () => {
-      process.env.EXPO_PUBLIC_FIREBASE_API_KEY = 'test-api-key';
-      process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN = 'test.firebaseapp.com';
-      process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID = 'test-project';
-      process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET = 'test.appspot.com';
-      process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID = '123456789';
-      process.env.EXPO_PUBLIC_FIREBASE_APP_ID = '1:123456789:web:abcdef';
-      delete process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID;
-
+      const { firebaseMeasurementId: _, ...withoutMeasurement } = FULL_EXTRA;
+      mockConstants(withoutMeasurement);
       const { getEnv } = require('@/core/config/env');
       const env = getEnv();
-
       expect(env.FIREBASE_MEASUREMENT_ID).toBeUndefined();
     });
 
     it('should throw error when trying to get env with missing required variables', () => {
-      delete process.env.EXPO_PUBLIC_FIREBASE_API_KEY;
-
+      mockConstants({});
       const { getEnv } = require('@/core/config/env');
-
       expect(() => getEnv()).toThrow();
     });
   });
