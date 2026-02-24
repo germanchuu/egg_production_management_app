@@ -1,0 +1,101 @@
+/**
+ * Firebase Configuration
+ *
+ * Initializes Firebase app with environment variables and exports
+ * auth and firestore instances for use throughout the app.
+ *
+ * Usage:
+ * ```typescript
+ * import { auth, firestore } from '@/core/config/firebase';
+ *
+ * // Authentication
+ * await signInWithEmailAndPassword(auth, email, password);
+ *
+ * // Firestore
+ * const usersRef = collection(firestore, 'users');
+ * const snapshot = await getDocs(usersRef);
+ * ```
+ */
+
+import { initializeApp, getApp, FirebaseApp } from 'firebase/app';
+import {
+  getAuth,
+  Auth,
+  initializeAuth,
+  // @ts-expect-error - getReactNativePersistence exists but TypeScript can't find it due to Metro bundler resolution (see: https://github.com/firebase/firebase-js-sdk/issues/7584)
+  getReactNativePersistence,
+} from 'firebase/auth';
+import { getFirestore, Firestore } from 'firebase/firestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getEnv } from './env';
+
+/**
+ * Initializes Firebase app
+ *
+ * Creates or retrieves existing Firebase app instance.
+ * Configuration is validated by getEnv() at module load time.
+ *
+ * @returns Firebase app instance
+ */
+function initializeFirebaseApp(): FirebaseApp {
+  try {
+    // Try to get existing app instance
+    return getApp();
+  } catch {
+    // App doesn't exist, initialize new one
+    console.log('Initializing Firebase app...');
+    const env = getEnv();
+
+    const firebaseConfig = {
+      apiKey: env.FIREBASE_API_KEY,
+      authDomain: env.FIREBASE_AUTH_DOMAIN,
+      projectId: env.FIREBASE_PROJECT_ID,
+      storageBucket: env.FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: env.FIREBASE_MESSAGING_SENDER_ID,
+      appId: env.FIREBASE_APP_ID,
+      measurementId: env.FIREBASE_MEASUREMENT_ID, // Optional
+    };
+
+    const app = initializeApp(firebaseConfig);
+    console.log('✅ Firebase app initialized');
+    return app;
+  }
+}
+
+/**
+ * Initializes Firebase Auth with React Native persistence
+ *
+ * Uses AsyncStorage for auth state persistence across app restarts.
+ *
+ * @param app Firebase app instance
+ * @returns Auth instance
+ */
+function initializeFirebaseAuth(app: FirebaseApp): Auth {
+  try {
+    // Try to get existing auth instance
+    return getAuth(app);
+  } catch {
+    // Initialize auth with React Native persistence
+    console.log('Initializing Firebase Auth with AsyncStorage persistence...');
+    const auth = initializeAuth(app, {
+      persistence: getReactNativePersistence(AsyncStorage),
+    });
+    console.log('✅ Firebase Auth initialized');
+    return auth;
+  }
+}
+
+// Initialize Firebase app
+const app = initializeFirebaseApp();
+
+// Initialize Firebase Auth with React Native persistence
+export const auth = initializeFirebaseAuth(app);
+
+// Initialize Firestore
+export const firestore = getFirestore(app);
+
+// Export app for advanced use cases
+export { app };
+
+// Export types for convenience
+export type { Auth, Firestore, FirebaseApp };

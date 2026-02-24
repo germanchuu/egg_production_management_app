@@ -47,15 +47,20 @@ The system must support secure, closed-access authentication where administrator
 
 **Why this priority**: Security and access control are critical for a closed farm management system. Without proper authentication, the system cannot be deployed. Offline-first session management is essential for field workers.
 
-**Independent Test**: Can be fully tested by having an admin create an invitation, sending it to a new user, the user accepting and creating credentials, then verifying offline access works after first login and background validation occurs when online. Delivers security and enables offline work.
+**Independent Test**: Can be fully tested by having an admin create a user, generate an invitation deep link, share it via native sharing, user opens and accepts the invitation, then verifying offline access works after first authentication and background validation occurs when online. Delivers security and enables offline work.
 
 **Acceptance Scenarios**:
 
-1. **Given** an administrator is logged in, **When** they create a new user invitation with email and role, **Then** a unique invitation link is generated and can be shared
-2. **Given** a user receives an invitation link, **When** they click it and provide required credentials, **Then** their account is activated and they can log in
-3. **Given** a user has logged in once, **When** they open the app offline, **Then** they can access the app using cached session data without requiring internet
-4. **Given** a user opens the app with internet connectivity, **When** the app loads, **Then** session validation occurs in the background and invalid sessions prompt re-authentication
-5. **Given** an invitation has been sent, **When** the administrator views user management, **Then** they see invitation status (pending, accepted, expired)
+1. **Given** an administrator is logged in, **When** they create a new user with display name and role, **Then** the user is saved as "pending authentication"
+2. **Given** a pending user exists, **When** the administrator generates an invitation deep link (Custom URL Scheme), **Then** a unique link is created and can be shared via native share sheet (WhatsApp, SMS, etc.)
+3. **Given** a user receives an invitation deep link and has the app installed, **When** they open the link, **Then** they see a confirmation screen showing "Esta es una invitación para: [user_name]"
+4. **Given** a user sees the invitation confirmation, **When** they accept the invitation, **Then** they are marked as authenticated and can access the app
+5. **Given** a user has authenticated once, **When** they open the app offline, **Then** they can access the app using cached session data without requiring internet
+6. **Given** a user opens the app with internet connectivity and cached session, **When** the app loads, **Then** session validation occurs in the background before any sync, and invalid sessions prompt re-authentication
+7. **Given** invitations have been generated, **When** the administrator views user management, **Then** they see user authentication status (pending, authenticated, revoked)
+8. **Given** an authenticated user exists, **When** the administrator revokes the user, **Then** the user's authStatus is set to 'revoked' and all authorized devices are cleared
+9. **Given** a user has been revoked, **When** they open the app and go online, **Then** session validation fails and they see "Access Denied" message
+10. **Given** a user has been revoked, **When** the administrator tries to re-enable them, **Then** the system prevents re-activation (revocation is permanent)
 
 ---
 
@@ -114,21 +119,35 @@ Users need to record health events (vaccinations) and biosecurity events (disinf
 
 **Authentication & Access Control:**
 
-- **FR-001**: System MUST support invitation-based user registration where administrators create invitations with unique links
-- **FR-002**: System MUST allow users to set credentials (password/PIN) when accepting invitation links
-- **FR-003**: System MUST cache session data locally after first successful login to enable offline access
-- **FR-004**: System MUST perform background session validation when internet connectivity is detected
-- **FR-005**: System MUST support administrator role with permissions to create users and invitations
-- **FR-006**: System MUST support standard user role with permissions to record operational data
-- **FR-007**: Invitation links MUST expire 7 days after creation for security purposes
-- **FR-008**: Administrators MUST be able to resend expired invitations to users
+- **FR-001**: System MUST allow administrators to create users directly in the database with display name and role, marking them as "pending authentication"
+- **FR-002**: System MUST allow administrators to generate invitation deep links (Custom URL Scheme: myapp://invite/[token]) for pending users and share them via native share sheet
+- **FR-003**: System MUST display user confirmation screen when opening invitation deep link showing "Esta es una invitación para: [user_name]" to prevent errors
+- **FR-004**: System MUST mark user as "authenticated" when they accept the invitation, allowing immediate app access
+- **FR-005**: System MUST cache session data locally in expo-secure-store (encrypted storage) after first authentication with structure: {userId, deviceId, authenticatedAt, lastValidatedAt}
+- **FR-006**: System MUST perform background session validation when internet connectivity is detected BEFORE any synchronization operations, validating device exists in user's authorizedDevices array
+- **FR-007**: System MUST perform background session validation at app start when online, redirecting to pending state if device was revoked by administrator
+- **FR-008**: System MUST support multi-device authentication with maximum 3 authorized devices per user
+- **FR-009**: System MUST store authorizedDevices array in user document containing {deviceId, deviceName, authorizedAt} for each authorized device
+- **FR-010**: Administrators MUST be able to revoke device access by removing device from user's authorizedDevices array, causing next online session validation to fail
+- **FR-011**: System MUST use Firestore ONLY for data validation and sync (NO Firebase Authentication service)
+- **FR-012**: System MUST support administrator role with permissions to create users, generate invitations, and manage device authorization
+- **FR-013**: System MUST support standard user role with permissions to record operational data
+- **FR-014**: Invitation deep links MUST expire 7 days after creation for security purposes
+- **FR-015**: Invitation tokens MUST be one-time use only, becoming invalid after acceptance
+- **FR-016**: Administrators MUST be able to regenerate expired invitations for pending users
+- **FR-017**: Administrators MUST be able to permanently revoke user access by setting authStatus to 'revoked'
+- **FR-018**: User revocation MUST be permanent and irreversible (revoked users cannot be re-enabled)
+- **FR-019**: When a user is revoked, all authorized devices MUST be cleared immediately
+- **FR-020**: Revoked users MUST be denied access on next session validation (background check at app start or before sync)
+- **FR-021**: Revoked users MUST see "Access Denied" message and cannot access the app
+- **FR-022**: Revoked users MUST NOT be able to accept new invitations
 
 **Facility & Lot Management:**
 
-- **FR-009**: Administrators MUST be able to register chicken houses with unique names/identifiers
-- **FR-010**: Administrators MUST be able to create chicken lots with purchase date, initial hen count, current age, and assigned chicken house
-- **FR-011**: System MUST display current live hen count for each lot
-- **FR-012**: System MUST allow viewing lot details including creation date, current age, house assignment, and historical metrics
+- **FR-011**: Administrators MUST be able to register chicken houses with unique names/identifiers
+- **FR-012**: Administrators MUST be able to create chicken lots with purchase date, initial hen count, current age, and assigned chicken house
+- **FR-013**: System MUST display current live hen count for each lot
+- **FR-014**: System MUST allow viewing lot details including creation date, current age, house assignment, and historical metrics
 
 **Production Tracking:**
 
@@ -185,7 +204,7 @@ Users need to record health events (vaccinations) and biosecurity events (disinf
 
 ### Key Entities
 
-- **User**: Represents system users with roles (administrator or standard user), authentication credentials, invitation status, and device session data
+- **User**: Represents system users with roles (administrator or standard user), authentication status (pending/authenticated), authorized devices array (max 3 devices), and local session data stored in expo-secure-store
 - **Chicken House (Galpón)**: Physical facility where chicken lots are housed, identified by unique name/identifier
 - **Chicken Lot**: Group of chickens purchased together, tracked with purchase date, initial hen count, current age, current live hen count, assigned house, and relationships to all operational records
 - **Production Record**: Daily egg collection data including lot reference, date, total eggs collected, calculated eggs per hen
@@ -226,7 +245,7 @@ Users need to record health events (vaccinations) and biosecurity events (disinf
 4. **User Device Ownership**: Each user will have access to their own mobile device or a shared farm device
 5. **Language**: Application will be developed in Spanish as primary language based on user description language
 6. **Date Handling**: All dates use the device's local timezone and date format preferences
-7. **Invitation Delivery**: Invitation links can be shared via any communication method (email, SMS, messaging apps) - system generates link but doesn't mandate delivery method
+7. **Invitation Delivery**: Invitation deep links (Custom URL Scheme) are shared via native share sheet to communication apps (WhatsApp, SMS, messaging apps) - system generates link and opens share sheet but doesn't mandate specific delivery method
 8. **Data Retention**: All historical production, mortality, feeding, and event data is retained indefinitely for reporting and analysis
 9. **Chicken Age Tracking**: Lot age is tracked in weeks from purchase date and updates automatically
 10. **Feed Batch Tracking**: System tracks feed at batch level but doesn't track individual ingredient inventory

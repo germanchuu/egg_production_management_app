@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.germanchuu.granja_avicola_svp",
+      "sha256_cert_fingerprints": [
+        "9DF59CDF0A56C51BAB10DE4A02AC47129A4CDAB47B2018DBEA80756BEB818E49"
+      ]
+    }
+  }
+]

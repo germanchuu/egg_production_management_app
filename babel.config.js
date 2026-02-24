@@ -1,31 +1,23 @@
 module.exports = function (api) {
   api.cache(true);
+
   return {
-    presets: ['babel-preset-expo'],
+    presets: [
+      ["babel-preset-expo", { jsxImportSource: "nativewind" }],
+      "nativewind/babel",
+    ],
     plugins: [
-      // NativeWind Babel plugin
-      'nativewind/babel',
-      // Module resolver for path aliases
       [
         'module-resolver',
         {
-          root: ['./'],
+          root: ['./src'],
           alias: {
             '@': './src',
           },
-          extensions: [
-            '.ios.ts',
-            '.android.ts',
-            '.ts',
-            '.ios.tsx',
-            '.android.tsx',
-            '.tsx',
-            '.jsx',
-            '.js',
-            '.json',
-          ],
+          extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
         },
       ],
+      'react-native-worklets/plugin',
     ],
   };
 };

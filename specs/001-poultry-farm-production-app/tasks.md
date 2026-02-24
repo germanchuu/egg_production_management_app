@@ -33,13 +33,13 @@ Per Constitution II (Feature-Based Organization):
 - [x] T003 [P] Install Firebase dependencies: firebase (JS SDK - compatible with Expo managed workflow)
 - [x] T004 [P] Configure NativeWind in babel.config.js and create tailwind.config.ts with theme (colors, spacing, typography)
 - [x] T005 [P] Configure ESLint and Prettier in .eslintrc.js and .prettierrc
-- [X] T006 [P] Create .env.example file with Firebase config placeholders (EXPO*PUBLIC_FIREBASE*\*)
-- [X] T007 Create src/ directory structure: features/, shared/, core/, app/
-- [X] T008 [P] Create feature directories: src/features/auth/, src/features/facilities/, src/features/production/, src/features/mortality/, src/features/feeding/, src/features/health-biosecurity/ (each with models/, services/, components/, screens/ subdirectories)
-- [X] T009 [P] Create shared directories: src/shared/database/, src/shared/sync/, src/shared/components/, src/shared/hooks/, src/shared/utils/, src/shared/types/
-- [X] T010 [P] Create core directories: src/core/config/, src/core/theme/
-- [X] T011 Configure TypeScript paths in tsconfig.json for @/* alias mapping to src/*
-- [X] T012 [P] Add .gitignore entries: .env, node_modules/, .expo/, dist/
+- [x] T006 [P] Create .env.example file with Firebase config placeholders (EXPO*PUBLIC_FIREBASE*\*)
+- [x] T007 Create src/ directory structure: features/, shared/, core/, app/
+- [x] T008 [P] Create feature directories: src/features/auth/, src/features/facilities/, src/features/production/, src/features/mortality/, src/features/feeding/, src/features/health-biosecurity/ (each with models/, services/, components/, screens/ subdirectories)
+- [x] T009 [P] Create shared directories: src/shared/database/, src/shared/sync/, src/shared/components/, src/shared/hooks/, src/shared/utils/, src/shared/types/
+- [x] T010 [P] Create core directories: src/core/config/, src/core/theme/
+- [x] T011 Configure TypeScript paths in tsconfig.json for @/_ alias mapping to src/_
+- [x] T012 [P] Add .gitignore entries: .env, node_modules/, .expo/, dist/
 
 **Checkpoint**: Project structure and tooling configured
 
@@ -53,43 +53,43 @@ Per Constitution II (Feature-Based Organization):
 
 ### Database & Storage
 
-- [ ] T013 Create SQLite schema initialization in src/shared/database/schema.ts with all tables (users, invitations, chicken_houses, chicken_lots, production_records, mortality_records, feed_batches, feeding_records, health_events, biosecurity_events, sync_queue, audit_log_local)
-- [ ] T014 Implement database initialization function in src/shared/database/SQLiteDatabase.ts to open database and run schema migrations
-- [ ] T015 Create database connection singleton in src/shared/database/index.ts
-- [ ] T016 [P] Create shared TypeScript types in src/shared/types/entities.ts for all entities (User, Invitation, ChickenHouse, ChickenLot, ProductionRecord, MortalityRecord, FeedBatch, FeedingRecord, HealthEvent, BiosecurityEvent)
+- [x] T013 Create SQLite schema initialization in src/shared/database/schema.ts with all tables (users, invitations, chicken_houses, chicken_lots, production_records, mortality_records, feed_batches, feeding_records, health_events, biosecurity_events, sync_queue, audit_log_local)
+- [x] T014 Implement database initialization function in src/shared/database/SQLiteDatabase.ts to open database and run schema migrations
+- [x] T015 Create database connection singleton in src/shared/database/index.ts
+- [x] T016 [P] Create shared TypeScript types in src/shared/types/entities.ts for all entities (User, Invitation, ChickenHouse, ChickenLot, ProductionRecord, MortalityRecord, FeedBatch, FeedingRecord, LotEvent)
 
 ### Firebase Configuration
 
-- [ ] T017 [P] Create Firebase config initialization in src/core/config/firebase.ts with app initialization, auth, and firestore exports
-- [ ] T018 [P] Create Firebase security rules in firestore.rules file for all collections
-- [ ] T019 [P] Create environment variables loader in src/core/config/env.ts to validate EXPO*PUBLIC_FIREBASE*\* variables
+- [x] T017 [P] Create Firebase config initialization in src/core/config/firebase.ts with app initialization, auth, and firestore exports
+- [x] T018 [P] Create Firebase security rules in firestore.rules file for all collections
+- [x] T019 [P] Create environment variables loader in src/core/config/env.ts to validate EXPO*PUBLIC_FIREBASE*\* variables
 
 ### Sync Infrastructure
 
-- [ ] T020 Create SyncQueue service in src/shared/sync/SyncQueue.ts to manage local sync queue (insert, query pending, mark synced)
-- [ ] T021 Create ConflictResolver in src/shared/sync/ConflictResolver.ts implementing Last-Write-Wins (LWW) based on timestamp comparison
-- [ ] T022 Create SyncService in src/shared/sync/SyncService.ts with batch sync logic (upload pending changes, download updates, apply conflict resolution)
-- [ ] T023 [P] Create network detection hook in src/shared/hooks/useNetInfo.ts using @react-native-community/netinfo
-- [ ] T024 [P] Create sync status hook in src/shared/hooks/useSync.ts to trigger sync on connectivity and provide sync status (synced/pending/syncing/failed)
+- [x] T020 Create SyncQueue service in src/shared/sync/SyncQueue.ts to manage local sync queue (insert, query pending, mark synced)
+- [x] T021 Create ConflictResolver in src/shared/sync/ConflictResolver.ts implementing Last-Write-Wins (LWW) based on timestamp comparison
+- [x] T022 Create SyncService in src/shared/sync/SyncService.ts with batch sync logic (upload pending changes, download updates, apply conflict resolution)
+- [x] T023 [P] Create network detection hook in src/shared/hooks/useNetInfo.ts using @react-native-community/netinfo
+- [x] T024 [P] Create sync status hook in src/shared/hooks/useSync.ts to trigger sync on connectivity and provide sync status (synced/pending/syncing/failed)
 
 ### Shared UI Components (Constitution III: Simplicity-First)
 
-- [ ] T025 [P] Create FormInput component in src/shared/components/FormInput.tsx with numeric keyboard support and 48dp touch target
-- [ ] T026 [P] Create DatePicker component in src/shared/components/DatePicker.tsx with native date picker integration
-- [ ] T027 [P] Create Button component in src/shared/components/Button.tsx with large touch targets (min 48dp) and haptic feedback
-- [ ] T028 [P] Create SyncStatusIndicator component in src/shared/components/SyncStatusIndicator.tsx showing synced/pending/syncing/failed states with icons
+- [x] T025 [P] Create FormInput component in src/shared/components/FormInput.tsx with numeric keyboard support and 48dp touch target
+- [x] T026 [P] Create DatePicker component in src/shared/components/DatePicker.tsx with native date picker integration
+- [x] T027 [P] Create Button component in src/shared/components/Button.tsx with large touch targets (min 48dp) and haptic feedback
+- [x] T028 [P] Create SyncStatusIndicator component in src/shared/components/SyncStatusIndicator.tsx showing synced/pending/syncing/failed states with icons
 
 ### Shared Utilities
 
-- [ ] T029 [P] Create validation schemas in src/shared/utils/validation.ts with Zod schemas for date (no future), positive integers, decimals, email, UUID
-- [ ] T030 [P] Create date utilities in src/shared/utils/date.ts for date formatting, week calculations, and ISO-8601 conversions
-- [ ] T031 [P] Create ID generation utility in src/shared/utils/id.ts using UUID v4
+- [x] T029 [P] Create validation schemas in src/shared/utils/validation.ts with Zod schemas for date (no future), positive integers, decimals, UUID
+- [x] T030 [P] Create date utilities in src/shared/utils/date.ts for date formatting, week calculations, and ISO-8601 conversions
+- [x] T031 [P] Create ID generation utility in src/shared/utils/id.ts using UUID v4
 
 ### App Layout & Navigation
 
-- [ ] T032 Create root layout in src/app/\_layout.tsx with database initialization on mount
-- [ ] T033 Create tabs layout in src/app/(tabs)/\_layout.tsx for main navigation (Home, Production, Lots, Profile)
-- [ ] T034 [P] Create auth layout in src/app/(auth)/\_layout.tsx for login/invitation flows
+- [x] T032 Create root layout in src/app/\_layout.tsx with database initialization on mount
+- [x] T033 Create tabs layout in src/app/(tabs)/\_layout.tsx for main navigation (Home, Production, Lots, Profile)
+- [x] T034 [P] Create auth layout in src/app/(auth)/\_layout.tsx for invitation acceptance flow
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -103,35 +103,39 @@ Per Constitution II (Feature-Based Organization):
 
 ### Models & Services
 
-- [ ] T035 [P] [US3] Create User model in src/features/auth/models/User.ts with TypeScript interface matching data-model.md
-- [ ] T036 [P] [US3] Create Invitation model in src/features/auth/models/Invitation.ts with status transitions (pending → accepted/expired)
-- [ ] T037 [US3] Create AuthService in src/features/auth/services/AuthService.ts with methods: login(), logout(), validateSession(), getStoredToken(), storeToken() using expo-secure-store
-- [ ] T038 [US3] Create InvitationService in src/features/auth/services/InvitationService.ts with methods: createInvitation(), validateInvitationToken(), acceptInvitation(), resendInvitation()
-- [ ] T039 [US3] Implement session caching in AuthService using expo-secure-store for auth token persistence
-- [ ] T040 [US3] Implement background token validation in AuthService when online (check Firebase token expiry, refresh if needed)
+- [x] T035 [P] [US3] Create User model in src/features/auth/models/User.ts with TypeScript interface matching data-model.md
+- [x] T036 [P] [US3] Create Invitation model in src/features/auth/models/Invitation.ts with status transitions (pending → accepted/expired)
+- [x] T037 [US3] Create AuthService in src/features/auth/services/AuthService.ts with methods: acceptInvitation(), logout(), validateSession(), getStoredSession(), storeSession(), revokeUser() using expo-secure-store
+- [x] T038 [US3] Create InvitationService in src/features/auth/services/InvitationService.ts with methods: generateDeepLink(), validateInvitationToken(), acceptInvitation(), regenerateInvitation()
+- [x] T039 [US3] Implement session caching in AuthService using expo-secure-store for session persistence
+- [x] T040 [US3] Implement background session validation in AuthService when online BEFORE any sync (validate authStatus != 'revoked' AND device in authorizedDevices, show "Access Denied" if revoked)
+- [x] T040a [US3] Implement user revocation in AuthService.revokeUser() (set authStatus='revoked', clear authorizedDevices array, audit log)
 
 ### Firebase Functions
 
-- [ ] T041 [P] [US3] Create createInvitation Firebase Function in functions/src/invitations/createInvitation.ts (admin only, generates token, saves to Firestore, returns invitation link)
-- [ ] T042 [P] [US3] Create validateInvitation Firebase Function in functions/src/invitations/validateInvitation.ts (public, checks token validity and expiry)
-- [ ] T043 [P] [US3] Create acceptInvitation Firebase Function in functions/src/invitations/acceptInvitation.ts (creates Firebase auth user, updates invitation status, creates user document)
-- [ ] T044 [P] [US3] Create resendInvitation Firebase Function in functions/src/invitations/resendInvitation.ts (admin only, creates new invitation with new token)
+- [x] T041 [P] [US3] Create generateInvitation Firebase Function in functions/src/auth/generateInvitation.ts (admin only, generates token for user, saves to Firestore, returns deep link, prevents invitations for revoked users)
+- [x] T042 [P] [US3] Create validateInvitation Firebase Function in functions/src/auth/validateInvitation.ts (public, checks token validity, expiry, user not revoked, and returns user info)
+- [x] T043 [P] [US3] Create acceptInvitation Firebase Function in functions/src/auth/acceptInvitation.ts (marks user as authenticated, updates user document, invalidates invitation token, prevents acceptance if user is revoked)
+- [x] T044 [P] [US3] Create regenerateInvitation Firebase Function in functions/src/auth/regenerateInvitation.ts (admin only, creates new invitation token for pending users, prevents regeneration for revoked users)
+- [x] T044a [P] [US3] Create revokeUser Firebase Function in functions/src/auth/revokeUser.ts (admin only, sets authStatus='revoked', clears authorizedDevices, creates audit log, prevents revocation of other admins)
 
 ### UI Components & Screens
 
-- [ ] T045 [P] [US3] Create LoginForm component in src/features/auth/components/LoginForm.tsx with email/password inputs using React Hook Form + Zod validation
-- [ ] T046 [P] [US3] Create InvitationAcceptanceForm component in src/features/auth/components/InvitationAcceptanceForm.tsx for setting password and display name
-- [ ] T047 [US3] Create login screen in src/app/(auth)/login.tsx with offline access message and login form
-- [ ] T048 [US3] Create invitation acceptance screen in src/app/(auth)/invite/[token].tsx that validates token and shows acceptance form
-- [ ] T049 [P] [US3] Create user management screen in src/app/(tabs)/admin/users.tsx (admin only) showing invitation status, create invitation button, resend option
-- [ ] T050 [US3] Add auth state management using React Context in src/features/auth/contexts/AuthContext.tsx to track current user and auth status
+- [x] T045 [P] [US3] Create InvitationConfirmation component in src/features/auth/components/InvitationConfirmation.tsx showing "Esta es una invitación para: [user_name]" with accept button
+- [x] T046 [US3] Create invitation acceptance screen in src/app/(auth)/invite/[token].tsx that validates deep link token and shows confirmation component
+- [x] T047 [P] [US3] Create user management screen in src/app/(tabs)/admin/users.tsx (admin only) showing user list with authentication status (pending, authenticated, revoked), generate invitation button, and revoke user button (disabled for already revoked users)
+- [x] T048 [US3] Implement deep link generation in InvitationService for Custom URL Scheme (myapp://invite/[token])
+- [x] T049 [US3] Implement native share sheet integration for sharing invitation deep links (WhatsApp, SMS, etc.)
+- [x] T050 [US3] Add auth state management using React Context in src/features/auth/contexts/AuthContext.tsx to track current user and auth status
 
 ### Integration & Validation
 
-- [ ] T051 [US3] Add validation for 7-day invitation expiry in InvitationService
-- [ ] T052 [US3] Add audit logging for invitation creation and acceptance in src/shared/sync/AuditService.ts
-- [ ] T053 [US3] Test offline login with cached credentials (SC-010: <3s app launch offline)
-- [ ] T054 [US3] Test background token validation when online
+- [x] T051 [US3] Add validation for 7-day invitation expiry in InvitationService
+- [x] T052 [US3] Add audit logging for user creation and invitation acceptance in src/shared/sync/AuditService.ts
+- [x] T053 [US3] Test offline app access with cached session (SC-010: <3s app launch offline)
+- [X] T054 [US3] Test background session validation when online BEFORE any sync operations
+- [X] T054a [US3] Test user revocation flow: admin revokes user → user goes online → session validation fails → "Access Denied" shown → user cannot access app
+- [X] T054b [US3] Test revocation is permanent: revoked user cannot be re-enabled, cannot accept new invitations
 
 **Checkpoint**: Authentication system complete and independently testable
 
@@ -145,38 +149,38 @@ Per Constitution II (Feature-Based Organization):
 
 ### Models & Services
 
-- [ ] T055 [P] [US2] Create ChickenHouse model in src/features/facilities/models/ChickenHouse.ts with TypeScript interface
-- [ ] T056 [P] [US2] Create ChickenLot model in src/features/facilities/models/ChickenLot.ts with computed fields (currentAgeWeeks, totalMortality, mortalityRate)
-- [ ] T057 [P] [US2] Create MortalityRecord model in src/features/mortality/models/MortalityRecord.ts
-- [ ] T058 [US2] Create FacilityService in src/features/facilities/services/FacilityService.ts with methods: createHouse(), listHouses(), createLot(), listLots(), getLotDetails(), updateLiveHenCount()
-- [ ] T059 [US2] Create MortalityService in src/features/mortality/services/MortalityService.ts with methods: recordMortality(), getMortalityHistory() (includes transaction to update lot live_hen_count)
-- [ ] T060 [US2] Implement SQLite transaction in MortalityService to ensure atomic mortality record creation + lot update
-- [ ] T061 [US2] Add sync queue integration in FacilityService and MortalityService to enqueue all CREATE/UPDATE operations
+- [x] T055 [P] [US2] Create ChickenHouse model in src/features/facilities/models/ChickenHouse.ts with TypeScript interface
+- [x] T056 [P] [US2] Create ChickenLot model in src/features/facilities/models/ChickenLot.ts with computed fields (currentAgeWeeks, totalMortality, mortalityRate)
+- [x] T057 [P] [US2] Create MortalityRecord model in src/features/mortality/models/MortalityRecord.ts
+- [x] T058 [US2] Create FacilityService in src/features/facilities/services/FacilityService.ts with methods: createHouse(), listHouses(), createLot(), listLots(), getLotDetails(), updateLiveHenCount()
+- [x] T059 [US2] Create MortalityService in src/features/mortality/services/MortalityService.ts with methods: recordMortality(), getMortalityHistory() (includes transaction to update lot live_hen_count)
+- [x] T060 [US2] Implement SQLite transaction in MortalityService to ensure atomic mortality record creation + lot update
+- [x] T061 [US2] Add sync queue integration in FacilityService and MortalityService to enqueue all CREATE/UPDATE operations
 
 ### Validation & Business Logic
 
-- [ ] T062 [P] [US2] Create validation schema in src/features/facilities/utils/validation.ts for chicken house (name required, unique) and lot (purchase date not future, initial hen count > 0)
-- [ ] T063 [P] [US2] Create validation schema in src/features/mortality/utils/validation.ts (hensDied > 0, hensDied <= currentLiveHenCount)
-- [ ] T064 [US2] Implement edge case handling: prevent mortality if hensDied > liveHenCount, show validation error (FR-020)
-- [ ] T065 [US2] Implement audit logging for lot creation/deletion and mortality >10% threshold in MortalityService
+- [x] T062 [P] [US2] Create validation schema in src/features/facilities/utils/validation.ts for chicken house (name required, unique) and lot (purchase date not future, initial hen count > 0)
+- [x] T063 [P] [US2] Create validation schema in src/features/mortality/utils/validation.ts (hensDied > 0, hensDied <= currentLiveHenCount)
+- [x] T064 [US2] Implement edge case handling: prevent mortality if hensDied > liveHenCount, show validation error (FR-020)
+- [x] T065 [US2] Implement audit logging for lot creation/deletion and mortality >10% threshold in MortalityService
 
 ### UI Components & Screens
 
-- [ ] T066 [P] [US2] Create HouseForm component in src/features/facilities/components/HouseForm.tsx with name and description inputs
-- [ ] T067 [P] [US2] Create LotForm component in src/features/facilities/components/LotForm.tsx with house selector, purchase date picker, hen count input, age input
-- [ ] T068 [P] [US2] Create LotCard component in src/features/facilities/components/LotCard.tsx displaying lot name, house, live hens, age
-- [ ] T069 [P] [US2] Create MortalityForm component in src/features/mortality/components/MortalityForm.tsx with lot selector, date picker, mortality count input
-- [ ] T070 [US2] Create chicken houses list screen in src/app/(tabs)/admin/houses.tsx (admin only) with create house button
-- [ ] T071 [US2] Create lots list screen in src/app/(tabs)/lots.tsx showing all active lots with live hen counts
-- [ ] T072 [US2] Create lot details screen in src/app/(tabs)/lots/[lotId].tsx displaying lot info, current age, mortality history, production summary
-- [ ] T073 [US2] Create mortality entry screen in src/app/(tabs)/mortality/index.tsx with form and recent entries list
+- [x] T066 [P] [US2] Create HouseForm component in src/features/facilities/components/HouseForm.tsx with name and description inputs
+- [x] T067 [P] [US2] Create LotForm component in src/features/facilities/components/LotForm.tsx with house selector, purchase date picker, hen count input, age input
+- [x] T068 [P] [US2] Create LotCard component in src/features/facilities/components/LotCard.tsx displaying lot name, house, live hens, age
+- [x] T069 [P] [US2] Create MortalityForm component in src/features/mortality/components/MortalityForm.tsx with lot selector, date picker, mortality count input
+- [x] T070 [US2] Create chicken houses list screen in src/app/(tabs)/admin/houses.tsx (admin only) with create house button
+- [x] T071 [US2] Create lots list screen in src/app/(tabs)/lots.tsx showing all active lots with live hen counts
+- [x] T072 [US2] Create lot details screen in src/app/(tabs)/lots/[lotId].tsx displaying lot info, current age, mortality history, production summary
+- [x] T073 [US2] Create mortality entry screen in src/app/(tabs)/mortality/index.tsx with form and recent entries list
 
 ### Integration & Validation
 
-- [ ] T074 [US2] Test automatic live hen count update when mortality recorded (SC-002: <10s to see update)
-- [ ] T075 [US2] Test offline lot creation and mortality recording with sync queue
-- [ ] T076 [US2] Test edge case: mortality exceeds live hen count (should reject)
-- [ ] T077 [US2] Test edge case: lot with zero live hens (should prevent new production/feeding records)
+- [x] T074 [US2] Test automatic live hen count update when mortality recorded (SC-002: <10s to see update)
+- [x] T075 [US2] Test offline lot creation and mortality recording with sync queue
+- [x] T076 [US2] Test edge case: mortality exceeds live hen count (should reject)
+- [x] T077 [US2] Test edge case: lot with zero live hens (should prevent new production/feeding records)
 
 **Checkpoint**: Facility and lot management complete and independently testable
 
@@ -190,39 +194,39 @@ Per Constitution II (Feature-Based Organization):
 
 ### Models & Services
 
-- [ ] T078 [P] [US1] Create ProductionRecord model in src/features/production/models/ProductionRecord.ts with computed field eggsPerHen
-- [ ] T079 [US1] Create ProductionService in src/features/production/services/ProductionService.ts with methods: recordProduction(), getProductionHistory(), calculateLifetimeEggsPerHen(), getRecentLot()
-- [ ] T080 [US1] Implement smart defaults in ProductionService: getRecentLot() returns most recently used lot ID from localStorage
-- [ ] T081 [US1] Implement metrics calculation: daily eggs/hen = eggs / liveHenCount, lifetime eggs/hen = SUM(eggs) / initialHenCount
-- [ ] T082 [US1] Add sync queue integration in ProductionService to enqueue CREATE/UPDATE operations
+- [x] T078 [P] [US1] Create ProductionRecord model in src/features/production/models/ProductionRecord.ts with computed field eggsPerHen
+- [x] T079 [US1] Create ProductionService in src/features/production/services/ProductionService.ts with methods: recordProduction(), getProductionHistory(), calculateLifetimeEggsPerHen(), getRecentLot()
+- [x] T080 [US1] Implement smart defaults in ProductionService: getRecentLot() returns most recently used lot ID from localStorage
+- [x] T081 [US1] Implement metrics calculation: daily eggs/hen = eggs / liveHenCount, lifetime eggs/hen = SUM(eggs) / initialHenCount
+- [x] T082 [US1] Add sync queue integration in ProductionService to enqueue CREATE/UPDATE operations
 
 ### Validation & Business Logic
 
-- [ ] T083 [P] [US1] Create validation schema in src/features/production/utils/validation.ts (date not future, eggsCollected >= 0, lotId exists, unique lot+date per day)
-- [ ] T084 [US1] Implement edge case handling: prevent future dates (FR-017), prevent production for lots with liveHenCount = 0
-- [ ] T085 [US1] Add sanity check warning (not blocking) if eggsCollected > liveHenCount \* 2
+- [x] T083 [P] [US1] Create validation schema in src/features/production/utils/validation.ts (date not future, eggsCollected >= 0, lotId exists, unique lot+date per day)
+- [x] T084 [US1] Implement edge case handling: prevent future dates (FR-017), prevent production for lots with liveHenCount = 0
+- [x] T085 [US1] Add sanity check warning (not blocking) if eggsCollected > liveHenCount \* 2
 
 ### UI Components & Screens (Constitution III: ≤3 taps)
 
-- [ ] T086 [P] [US1] Create ProductionEntryForm component in src/features/production/components/ProductionEntryForm.tsx with lot selector (defaulted to recent), date picker (defaulted to today), numeric input for eggs
-- [ ] T087 [P] [US1] Create ProductionHistoryList component in src/features/production/components/ProductionHistoryList.tsx showing chronological records with dates, eggs, eggs/hen
-- [ ] T088 [P] [US1] Create ProductionMetricsCard component in src/features/production/components/ProductionMetricsCard.tsx displaying daily eggs/hen and lifetime eggs/hen
-- [ ] T089 [US1] Create production entry screen in src/app/(tabs)/production.tsx with form at top (≤3 taps: lot, eggs, save) and recent entries below
-- [ ] T090 [US1] Add production history to lot details screen (integrate with T072)
+- [x] T086 [P] [US1] Create ProductionEntryForm component in src/features/production/components/ProductionEntryForm.tsx with lot selector (defaulted to recent), date picker (defaulted to today), numeric input for eggs
+- [x] T087 [P] [US1] Create ProductionHistoryList component in src/features/production/components/ProductionHistoryList.tsx showing chronological records with dates, eggs, eggs/hen
+- [x] T088 [P] [US1] Create ProductionMetricsCard component in src/features/production/components/ProductionMetricsCard.tsx displaying daily eggs/hen and lifetime eggs/hen
+- [x] T089 [US1] Create production entry screen in src/app/(tabs)/production.tsx with form at top (≤3 taps: lot, eggs, save) and recent entries below
+- [x] T090 [US1] Add production history to lot details screen (integrate with T072)
 
 ### Performance & UX
 
-- [ ] T091 [US1] Optimize form for <100ms UI response (FR-UX-003) using React Hook Form uncontrolled components
-- [ ] T092 [US1] Ensure numeric keyboard opens automatically for egg count input (FR-UX-005)
-- [ ] T093 [US1] Test 3-tap workflow: tap lot dropdown (default selected), tap egg input, tap save (SC-001: <30s total time)
+- [x] T091 [US1] Optimize form for <100ms UI response (FR-UX-003) using React Hook Form uncontrolled components
+- [x] T092 [US1] Ensure numeric keyboard opens automatically for egg count input (FR-UX-005)
+- [x] T093 [US1] Test 3-tap workflow: tap lot dropdown (default selected), tap egg input, tap save (SC-001: <30s total time)
 
 ### Integration & Validation
 
-- [ ] T094 [US1] Test production recording offline and sync when online
-- [ ] T095 [US1] Test metrics calculation accuracy (daily and lifetime eggs/hen)
-- [ ] T096 [US1] Test smart defaults (current date, recent lot pre-selected)
-- [ ] T097 [US1] Test edge case: future date rejection
-- [ ] T098 [US1] Test edge case: production for lot with zero hens (should prevent)
+- [x] T094 [US1] Test production recording offline and sync when online
+- [x] T095 [US1] Test metrics calculation accuracy (daily and lifetime eggs/hen)
+- [x] T096 [US1] Test smart defaults (current date, recent lot pre-selected)
+- [x] T097 [US1] Test edge case: future date rejection
+- [x] T098 [US1] Test edge case: production for lot with zero hens (should prevent)
 
 **Checkpoint**: Production tracking complete - MVP READY (US1 + US2 + US3 deliver core value)
 
@@ -236,34 +240,43 @@ Per Constitution II (Feature-Based Organization):
 
 ### Sync Logic Completion
 
-- [ ] T099 Implement batch upload in SyncService.batchSync() to upload up to 500 records per batch from sync queue
-- [ ] T100 Implement incremental download in SyncService.downloadUpdates() querying Firestore for changes since lastSyncTimestamp
-- [ ] T101 Implement LWW conflict resolution in ConflictResolver for all entity types (compare localTimestamp vs serverTimestamp)
-- [ ] T102 Add automatic sync trigger on connectivity restoration using useNetInfo hook
-- [ ] T103 [P] Add manual sync trigger in app header (pull-to-refresh gesture on home screen)
-- [ ] T104 Implement sync retry logic with exponential backoff for failed syncs (max 3 retries)
-- [ ] T105 Update SyncStatusIndicator to show real-time sync status based on useSync hook state
+- [X] T099 Implement batch upload in SyncService.batchSync() to upload up to 500 records per batch from sync queue
+- [X] T100 Implement incremental download in SyncService.downloadUpdates() querying Firestore for changes since lastSyncTimestamp
+- [X] T101 Implement LWW conflict resolution in ConflictResolver for all entity types (compare localTimestamp vs serverTimestamp)
+- [X] T102 Add automatic sync trigger on connectivity restoration using useNetInfo hook
+- [X] T103 [P] Add manual sync trigger in app header (pull-to-refresh gesture on home screen)
+- [X] T104 Implement sync retry logic with exponential backoff for failed syncs (max 3 retries)
+- [X] T105 Update SyncStatusIndicator to show real-time sync status based on useSync hook state
 
 ### Firebase Firestore Listeners
 
-- [ ] T106 [P] Create Firestore listener for users collection in src/shared/sync/listeners/usersListener.ts
-- [ ] T107 [P] Create Firestore listener for chicken_lots collection in src/shared/sync/listeners/lotsListener.ts
-- [ ] T108 [P] Create Firestore listener for production_records collection in src/shared/sync/listeners/productionListener.ts
-- [ ] T109 [P] Create Firestore listener for mortality_records collection in src/shared/sync/listeners/mortalityListener.ts
+NOTE: Implemented as "one-shot listeners" instead of persistent listeners for better battery/performance.
+All 10 collections handled by syncWithListeners() in src/shared/sync/listeners/syncWithListeners.ts
+
+- [X] T106 [P] Create Firestore listener for users collection (one-shot)
+- [X] T107 [P] Create Firestore listener for chicken_lots collection (one-shot)
+- [X] T108 [P] Create Firestore listener for production_records collection (one-shot)
+- [X] T109 [P] Create Firestore listener for mortality_records collection (one-shot)
+- [X] T109a [P] Create Firestore listener for invitations collection (one-shot)
+- [X] T109b [P] Create Firestore listener for chicken_houses collection (one-shot)
+- [X] T109c [P] Create Firestore listener for feed_batches collection (one-shot)
+- [X] T109d [P] Create Firestore listener for feeding_records collection (one-shot)
+- [X] T109e [P] Create Firestore listener for health_events collection (one-shot)
+- [X] T109f [P] Create Firestore listener for biosecurity_events collection (one-shot)
 
 ### Cloud Functions for Server-Side Logic
 
-- [ ] T110 Create onMortalityRecordCreated Firestore trigger in functions/src/triggers/onMortalityRecordCreated.ts to update lot liveHenCount atomically on server
-- [ ] T111 [P] Create batchSync Firebase Function in functions/src/sync/batchSync.ts to handle batch uploads from clients
-- [ ] T112 Add audit logging in Cloud Functions for critical operations (lot creation, mortality >10%)
+- [X] T110 Create onMortalityRecordCreated Firestore trigger in functions/src/mortality/onMortalityRecordCreated.ts to update lot liveHenCount atomically on server
+- [X] T111 [P] Create batchSync Firebase Function in functions/src/sync/batchSync.ts to handle batch uploads from clients
+- [X] T112 Add audit logging in Cloud Functions for critical operations (lot creation, mortality >10%)
 
 ### Integration & Validation
 
-- [ ] T113 Test offline changes sync when connectivity returns (SC-003: <30s for 50 records)
-- [ ] T114 Test LWW conflict resolution: two users edit same record offline, last write wins on sync
-- [ ] T115 Test sync status indicator updates (synced → pending → syncing → synced)
-- [ ] T116 Test sync retry logic on network failure
-- [ ] T117 Test SC-009: 100% automatic conflict resolution without user intervention
+- [X] T113 Test offline changes sync when connectivity returns (SC-003: <30s for 50 records)
+- [X] T114 Test LWW conflict resolution: two users edit same record offline, last write wins on sync
+- [X] T115 Test sync status indicator updates (synced → pending → syncing → synced)
+- [X] T116 Test sync retry logic on network failure
+- [X] T117 Test SC-009: 100% automatic conflict resolution without user intervention
 
 **Checkpoint**: Sync system complete and battle-tested with offline scenarios
 
@@ -277,30 +290,30 @@ Per Constitution II (Feature-Based Organization):
 
 ### Models & Services
 
-- [ ] T118 [P] [US4] Create FeedBatch model in src/features/feeding/models/FeedBatch.ts with computed field remainingQuantityKg
-- [ ] T119 [P] [US4] Create FeedingRecord model in src/features/feeding/models/FeedingRecord.ts with computed field feedPerHen
-- [ ] T120 [US4] Create FeedingService in src/features/feeding/services/FeedingService.ts with methods: createFeedBatch(), listFeedBatches(), recordFeeding(), getFeedingHistory(), calculateTotalFeedConsumed(), calculateAverageFeedPerHen()
-- [ ] T121 [US4] Add sync queue integration in FeedingService
+- [X] T118 [P] [US4] Create FeedBatch model in src/features/feeding/models/FeedBatch.ts with computed field remainingQuantityKg
+- [X] T119 [P] [US4] Create FeedingRecord model in src/features/feeding/models/FeedingRecord.ts with computed field feedPerHen
+- [X] T120 [US4] Create FeedingService in src/features/feeding/services/FeedingService.ts with methods: createFeedBatch(), listFeedBatches(), recordFeeding(), getFeedingHistory(), calculateTotalFeedConsumed(), calculateAverageFeedPerHen()
+- [X] T121 [US4] Add sync queue integration in FeedingService
 
 ### Validation & Business Logic
 
-- [ ] T122 [P] [US4] Create validation schema in src/features/feeding/utils/validation.ts (preparationDate not future, quantityKg > 0, quantityFedKg > 0)
-- [ ] T123 [US4] Implement edge case handling: warn if quantityFedKg > batch.remainingQuantityKg (not blocking, just warning)
+- [X] T122 [P] [US4] Create validation schema in src/features/feeding/utils/validation.ts (preparationDate not future, quantityKg > 0, quantityFedKg > 0)
+- [X] T123 [US4] Implement edge case handling: warn if quantityFedKg > batch.remainingQuantityKg (not blocking, just warning)
 
 ### UI Components & Screens
 
-- [ ] T124 [P] [US4] Create FeedBatchForm component in src/features/feeding/components/FeedBatchForm.tsx with batch name, date picker, quantity input (decimal, 2 places)
-- [ ] T125 [P] [US4] Create FeedingForm component in src/features/feeding/components/FeedingForm.tsx with lot selector, feed batch selector, date picker, quantity fed input
-- [ ] T126 [P] [US4] Create FeedingHistoryList component in src/features/feeding/components/FeedingHistoryList.tsx showing feeding records with dates, batches, quantities
-- [ ] T127 [US4] Create feed batches screen in src/app/(tabs)/feeding/batches.tsx with create batch button and batch list
-- [ ] T128 [US4] Create feeding entry screen in src/app/(tabs)/feeding/index.tsx with form and recent entries
-- [ ] T129 [US4] Add feeding metrics to lot details screen: total feed consumed, average feed/hen
+- [X] T124 [P] [US4] Create FeedBatchForm component in src/features/feeding/components/FeedBatchForm.tsx with batch name, date picker, quantity input (decimal, 2 places)
+- [X] T125 [P] [US4] Create FeedingForm component in src/features/feeding/components/FeedingForm.tsx with lot selector, feed batch selector, date picker, quantity fed input
+- [X] T126 [P] [US4] Create FeedingHistoryList component in src/features/feeding/components/FeedingHistoryList.tsx showing feeding records with dates, batches, quantities
+- [X] T127 [US4] Create feed batches screen in src/app/(tabs)/feeding/batches.tsx with create batch button and batch list
+- [X] T128 [US4] Create feeding entry screen in src/app/(tabs)/feeding/index.tsx with form and recent entries
+- [X] T129 [US4] Add feeding metrics to lot details screen: total feed consumed, average feed/hen
 
 ### Integration & Validation
 
-- [ ] T130 [US4] Test offline feed batch registration and feeding recording with sync
-- [ ] T131 [US4] Test metrics calculation (total consumed, average per hen)
-- [ ] T132 [US4] Test edge case: feeding quantity exceeds batch remaining (should warn)
+- [X] T130 [US4] Test offline feed batch registration and feeding recording with sync
+- [X] T131 [US4] Test metrics calculation (total consumed, average per hen)
+- [X] T132 [US4] Test edge case: feeding quantity exceeds batch remaining (should warn)
 
 **Checkpoint**: Feed management complete and independently testable
 
@@ -314,29 +327,29 @@ Per Constitution II (Feature-Based Organization):
 
 ### Models & Services
 
-- [ ] T133 [P] [US5] Create HealthEvent model in src/features/health-biosecurity/models/HealthEvent.ts with eventType enum (vaccination)
-- [ ] T134 [P] [US5] Create BiosecurityEvent model in src/features/health-biosecurity/models/BiosecurityEvent.ts with eventType enum (disinfection)
-- [ ] T135 [US5] Create EventService in src/features/health-biosecurity/services/EventService.ts with methods: recordHealthEvent(), recordBiosecurityEvent(), getEventHistory()
-- [ ] T136 [US5] Add sync queue integration in EventService
+- [X] T133 [P] [US5] Create HealthEvent model in src/features/health-biosecurity/models/HealthEvent.ts with eventType enum (vaccination)
+- [X] T134 [P] [US5] Create BiosecurityEvent model in src/features/health-biosecurity/models/BiosecurityEvent.ts with eventType enum (disinfection)
+- [X] T135 [US5] Create EventService in src/features/health-biosecurity/services/EventService.ts with methods: recordHealthEvent(), recordBiosecurityEvent(), getEventHistory()
+- [X] T136 [US5] Add sync queue integration in EventService
 
 ### Validation & Business Logic
 
-- [ ] T137 [P] [US5] Create validation schema in src/features/health-biosecurity/utils/validation.ts (eventDate not future, productName required, notes max 2000 chars)
+- [X] T137 [P] [US5] Create validation schema in src/features/health-biosecurity/utils/validation.ts (eventDate not future, productName required, notes max 2000 chars)
 
 ### UI Components & Screens
 
-- [ ] T138 [P] [US5] Create HealthEventForm component in src/features/health-biosecurity/components/HealthEventForm.tsx with lot selector, date picker, product name input, notes textarea (multi-line)
-- [ ] T139 [P] [US5] Create BiosecurityEventForm component in src/features/health-biosecurity/components/BiosecurityEventForm.tsx (same fields as health event)
-- [ ] T140 [P] [US5] Create EventHistoryList component in src/features/health-biosecurity/components/EventHistoryList.tsx showing chronological events with type, date, product, notes
-- [ ] T141 [US5] Create health events screen in src/app/(tabs)/health/index.tsx with vaccination form and event history
-- [ ] T142 [US5] Create biosecurity events screen in src/app/(tabs)/biosecurity/index.tsx with disinfection form and event history
-- [ ] T143 [US5] Add event history to lot details screen showing all health and biosecurity events
+- [X] T138 [P] [US5] Create HealthEventForm component in src/features/health-biosecurity/components/HealthEventForm.tsx with lot selector, date picker, product name input, notes textarea (multi-line)
+- [X] T139 [P] [US5] Create BiosecurityEventForm component in src/features/health-biosecurity/components/BiosecurityEventForm.tsx (same fields as health event)
+- [X] T140 [P] [US5] Create EventHistoryList component in src/features/health-biosecurity/components/EventHistoryList.tsx showing chronological events with type, date, product, notes
+- [X] T141 [US5] Create health events screen in src/app/(tabs)/health/index.tsx with vaccination form and event history
+- [X] T142 [US5] Create biosecurity events screen in src/app/(tabs)/biosecurity/index.tsx with disinfection form and event history (merged into health/index.tsx as Bioseguridad tab)
+- [X] T143 [US5] Add event history to lot details screen showing all health and biosecurity events
 
 ### Integration & Validation
 
-- [ ] T144 [US5] Test offline event recording with sync
-- [ ] T145 [US5] Test multi-line notes support
-- [ ] T146 [US5] Test event history display in chronological order
+- [X] T144 [US5] Test offline event recording with sync
+- [X] T145 [US5] Test multi-line notes support
+- [X] T146 [US5] Test event history display in chronological order
 
 **Checkpoint**: Health and biosecurity tracking complete and independently testable
 
@@ -348,54 +361,54 @@ Per Constitution II (Feature-Based Organization):
 
 ### Performance Optimization
 
-- [ ] T147 [P] Profile production entry screen with React DevTools Profiler to verify <100ms UI response (SC-001, FR-UX-003)
-- [ ] T148 [P] Profile sync service with 50 records to verify <5s sync time (SC-003)
-- [ ] T149 [P] Profile app launch time to verify <2s cold start (Constitution performance goal)
-- [ ] T150 Optimize SQLite queries with proper indexes (verified via EXPLAIN QUERY PLAN)
-- [ ] T151 [P] Test app on physical device with 2GB RAM for responsiveness
+- [X] T147 [P] Profile production entry screen with React DevTools Profiler to verify <100ms UI response (SC-001, FR-UX-003)
+- [X] T148 [P] Profile sync service with 50 records to verify <5s sync time (SC-003)
+- [X] T149 [P] Profile app launch time to verify <2s cold start (Constitution performance goal)
+- [X] T150 Optimize SQLite queries with proper indexes (verified via EXPLAIN QUERY PLAN)
+- [X] T151 [P] Test app on physical device with 2GB RAM for responsiveness
 
 ### Bundle Size & Memory
 
-- [ ] T152 Run `npx expo export --dump-sourcemap` to check bundle size (<50MB target)
-- [ ] T153 [P] Tree-shake unused Firebase modules to reduce bundle size
-- [ ] T154 [P] Enable Hermes JavaScript engine for faster startup and lower memory usage
+- [X] T152 Run `npx expo export --dump-sourcemap` to check bundle size (<50MB target)
+- [X] T153 [P] Tree-shake unused Firebase modules to reduce bundle size
+- [X] T154 [P] Enable Hermes JavaScript engine for faster startup and lower memory usage
 
 ### Error Handling & UX
 
-- [ ] T155 [P] Add plain language error messages throughout the app (Constitution III)
-- [ ] T156 [P] Add loading states and skeleton screens for all async operations
-- [ ] T157 [P] Add haptic feedback on button presses (Constitution III: optimized for field use)
-- [ ] T158 Implement error boundary component in src/shared/components/ErrorBoundary.tsx to catch React errors gracefully
+- [X] T155 [P] Add plain language error messages throughout the app (Constitution III)
+- [X] T156 [P] Add loading states and skeleton screens for all async operations
+- [X] T157 [P] Add haptic feedback on button presses (Constitution III: optimized for field use)
+- [X] T158 Implement error boundary component in src/shared/components/ErrorBoundary.tsx to catch React errors gracefully
 
 ### Accessibility & Localization
 
-- [ ] T159 [P] Add Spanish language strings in src/shared/i18n/es.ts (app primary language per assumption 5)
-- [ ] T160 [P] Ensure all interactive elements have accessible labels for screen readers
-- [ ] T161 [P] Test font scaling support for users with vision impairments
+- [X] T159 [P] Add Spanish language strings in src/shared/i18n/es.ts (app primary language per assumption 5)
+- [X] T160 [P] Ensure all interactive elements have accessible labels for screen readers
+- [X] T161 [P] Test font scaling support for users with vision impairments
 
 ### Testing & Documentation
 
-- [ ] T162 [P] Create integration test for User Story 1 acceptance scenarios in src/features/production/tests/production.integration.test.ts using React Native Testing Library
-- [ ] T163 [P] Create integration test for User Story 2 acceptance scenarios in src/features/facilities/tests/facilities.integration.test.ts
-- [ ] T164 [P] Create integration test for User Story 3 acceptance scenarios in src/features/auth/tests/auth.integration.test.ts
-- [ ] T165 [P] Create E2E test for offline workflow using Detox: record production offline → go online → verify sync in e2e/offlineSync.test.ts
-- [ ] T166 [P] Create E2E test for invitation acceptance flow using Detox in e2e/invitation.test.ts
-- [ ] T167 Run quickstart.md validation: verify all setup steps work on fresh clone
-- [ ] T168 [P] Update README.md with project overview, setup instructions, and run commands
+- [X] T162 [P] Create integration test for User Story 1 acceptance scenarios in src/features/production/tests/production.integration.test.ts using React Native Testing Library
+- [X] T163 [P] Create integration test for User Story 2 acceptance scenarios in src/features/facilities/tests/facilities.integration.test.ts
+- [X] T164 [P] Create integration test for User Story 3 acceptance scenarios in src/features/auth/tests/auth.integration.test.ts
+- [X] T165 [P] Create E2E test for offline workflow using Detox: record production offline → go online → verify sync in e2e/offlineSync.test.ts
+- [X] T166 [P] Create E2E test for invitation acceptance flow using Detox in e2e/invitation.test.ts
+- [X] T167 Run quickstart.md validation: verify all setup steps work on fresh clone
+- [X] T168 [P] Update README.md with project overview, setup instructions, and run commands
 
 ### Security & Audit
 
-- [ ] T169 [P] Review Firestore security rules to ensure proper access control (admin vs user permissions)
-- [ ] T170 [P] Audit expo-secure-store implementation to verify auth tokens are encrypted at rest
-- [ ] T171 Test audit logging for critical operations (invitation creation, lot creation/deletion, mortality >10%)
+- [X] T169 [P] Review Firestore security rules to ensure proper access control (admin vs user permissions)
+- [X] T170 [P] Audit expo-secure-store implementation to verify auth tokens are encrypted at rest
+- [X] T171 Test audit logging for critical operations (invitation creation, lot creation/deletion, mortality >10%)
 
 ### Deployment Preparation
 
-- [ ] T172 Configure EAS Build for iOS in eas.json with production profile
-- [ ] T173 Configure EAS Build for Android in eas.json with production profile
-- [ ] T174 [P] Configure EAS Update for OTA updates in eas.json
-- [ ] T175 Create app.json with correct bundle identifier, version, splash screen, and icon
-- [ ] T176 [P] Generate app icons and splash screens using Expo asset tools
+- [X] T172 Configure EAS Build for iOS in eas.json with production profile
+- [X] T173 Configure EAS Build for Android in eas.json with production profile
+- [X] T174 [P] Configure EAS Update for OTA updates in eas.json
+- [X] T175 Create app.json with correct bundle identifier, version, splash screen, and icon
+- [X] T176 [P] Generate app icons and splash screens using Expo asset tools
 
 **Checkpoint**: App polished, tested, and ready for production deployment
 
@@ -548,6 +561,8 @@ Each increment adds value without breaking previous functionality.
 **MVP Scope**: Phases 1-6 (134 tasks) deliver fully functional offline-first production tracking system
 
 **Format Validation**: ✅ All 176 tasks follow checklist format: `- [ ] [ID] [P?] [Story?] Description with file path`
+
+> **Nota**: La Phase 10 (Background Sync) fue eliminada del plan. No se implementará.
 
 ---
 

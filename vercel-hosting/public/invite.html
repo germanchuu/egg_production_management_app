@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invitación - Granja Avícola San Vicente de Paúl</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #0097A7 0%, #00838F 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 24px;
+      padding: 40px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+      text-align: center;
+    }
+
+    .icon {
+      width: 80px;
+      height: 80px;
+      background: #0097A7;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      font-size: 40px;
+    }
+
+    h1 {
+      color: #1a1a1a;
+      font-size: 28px;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    p {
+      color: #666;
+      font-size: 16px;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .info-box {
+      background: #f0f9fa;
+      border: 2px solid #b2ebf2;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+
+    .info-box p {
+      color: #00838F;
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .button {
+      background: #0097A7;
+      color: white;
+      text-decoration: none;
+      padding: 16px 32px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 16px;
+      display: inline-block;
+      margin: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .button:hover {
+      background: #00838F;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 151, 167, 0.3);
+    }
+
+    .button-secondary {
+      background: white;
+      color: #0097A7;
+      border: 2px solid #0097A7;
+    }
+
+    .button-secondary:hover {
+      background: #f0f9fa;
+    }
+
+    .steps {
+      text-align: left;
+      margin-top: 32px;
+      padding: 24px;
+      background: #f9f9f9;
+      border-radius: 12px;
+    }
+
+    .steps h3 {
+      color: #1a1a1a;
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+
+    .steps ol {
+      padding-left: 20px;
+      color: #666;
+      line-height: 1.8;
+    }
+
+    .steps li {
+      margin-bottom: 8px;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 24px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .button {
+        width: 100%;
+        margin: 8px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">🥚</div>
+    <h1>Has sido invitado</h1>
+    <p>Se te ha enviado una invitación para unirte a la aplicación de Granja Avícola San Vicente de Paúl.</p>
+
+    <div class="info-box">
+      <p>Para aceptar esta invitación, necesitas tener la app instalada en tu dispositivo.</p>
+    </div>
+
+    <a href="#" class="button" id="openApp">Abrir App</a>
+    <a href="https://expo.dev/accounts/germanchuu/projects/granja-avicola-svp/builds" class="button button-secondary">Descargar App</a>
+
+    <div class="steps">
+      <h3>¿Cómo funciona?</h3>
+      <ol>
+        <li>Descarga e instala la aplicación</li>
+        <li>Vuelve a abrir este enlace desde tu dispositivo</li>
+        <li>La app se abrirá automáticamente</li>
+        <li>Acepta la invitación para comenzar</li>
+      </ol>
+    </div>
+  </div>
+
+  <script>
+    // Extract token from URL
+    const urlPath = window.location.pathname;
+    const token = urlPath.split('/invite/')[1];
+
+    // Try to open the app with deep link
+    const openAppButton = document.getElementById('openApp');
+    if (openAppButton && token) {
+      // Try HTTPS deep link first (Android App Links)
+      openAppButton.href = `https://${window.location.host}/invite/${token}`;
+
+      // Fallback to custom scheme after a delay
+      openAppButton.addEventListener('click', function(e) {
+        setTimeout(() => {
+          window.location.href = `granjaavicola://invite/${token}`;
+        }, 500);
+      });
+    }
+
+    // Auto-redirect attempt (try to open app automatically)
+    window.addEventListener('load', function() {
+      if (token) {
+        // Try custom scheme
+        window.location.href = `granjaavicola://invite/${token}`;
+      }
+    });
+  </script>
+</body>
+</html>
