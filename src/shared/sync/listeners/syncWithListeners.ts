@@ -1,17 +1,18 @@
 /**
  * One-Shot Firestore Listeners for Full Sync
  *
- * Executes all Firestore listeners ONCE to download complete state,
- * then automatically unsubscribes. This hybrid approach:
- * - Detects deletions (which regular queries can't)
- * - Downloads full state efficiently
- * - Doesn't keep persistent connections (saves battery)
+ * Two-phase approach to avoid "database table is locked":
+ *   Phase 1 – Fetch all Firestore data (no DB writes, no transaction open).
+ *   Phase 2 – Write everything inside a single db.withTransactionAsync() so
+ *              expo-sqlite's internal lock serialises concurrent DB access.
+ *
+ * Using a manual `BEGIN TRANSACTION` via execAsync bypasses expo-sqlite's
+ * internal locking mechanism and causes "table is locked" when any other
+ * async operation (UI load, MortalityService, etc.) tries to access the DB
+ * while the transaction is open and Firestore snapshots are being awaited.
  *
  * Usage:
  * ```typescript
- * import { syncWithListeners } from '@/shared/sync/listeners/syncWithListeners';
- *
- * // On app open or pull-to-refresh
  * await syncWithListeners();
  * ```
  */
@@ -25,6 +26,21 @@ interface SyncResult {
   added: number;
   modified: number;
   removed: number;
+}
+
+/** Raw Firestore document (id + data map) */
+interface FirestoreDoc {
+  id: string;
+  data: Record<string, any>;
+}
+
+/** Result of Phase 1 for one collection */
+interface CollectionSnapshot {
+  name: string;
+  tableName: string;
+  insertSQL: string;
+  mapData: (data: any, docId: string) => any[];
+  docs: FirestoreDoc[];
 }
 
 /**
@@ -75,7 +91,7 @@ const COLLECTIONS = [
       docId,
       data.name,
       data.description ?? null,
-      data.createdBy ?? data.created_by, // Support both camelCase and snake_case
+      data.createdBy ?? data.created_by,
       data.createdAt ?? data.created_at,
       data.updatedAt ?? data.updated_at,
     ],
@@ -205,95 +221,52 @@ const COLLECTIONS = [
   },
 ];
 
-/**
- * Syncs a single collection using one-shot listener
- *
- * @param collectionConfig Collection configuration
- * @param db Database instance
- * @param detectDeletions Whether to detect and delete removed documents
- */
-function syncCollection(
-  collectionConfig: typeof COLLECTIONS[0],
-  db: any,
-  detectDeletions: boolean
-): Promise<SyncResult> {
-  return new Promise((resolve, reject) => {
-    const collectionRef = collection(firestore, collectionConfig.name);
+// ─────────────────────────────────────────────────────────────────────────────
+// Phase 1 helpers
+// ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Fetches ONE Firestore collection as a one-shot listener (no DB writes).
+ * Unsubscribes immediately upon receiving the first snapshot.
+ */
+function fetchFirestoreCollection(
+  config: (typeof COLLECTIONS)[0]
+): Promise<CollectionSnapshot> {
+  return new Promise((resolve, reject) => {
+    const collectionRef = collection(firestore, config.name);
+    let done = false;
     let unsubscribe: Unsubscribe;
-    const result: SyncResult = {
-      collection: collectionConfig.name,
-      added: 0,
-      modified: 0,
-      removed: 0,
-    };
 
     const timeoutId = setTimeout(() => {
+      if (done) return;
+      done = true;
       if (unsubscribe) unsubscribe();
-      reject(new Error(`Timeout syncing ${collectionConfig.name}`));
-    }, 30000); // 30s timeout
+      reject(new Error(`Timeout fetching ${config.name}`));
+    }, 30_000);
 
     unsubscribe = onSnapshot(
       collectionRef,
-      { includeMetadataChanges: false }, // Force server read, ignore cache
-      async (snapshot) => {
+      { includeMetadataChanges: false },
+      (snapshot) => {
+        if (done) return;
+        done = true;
+        clearTimeout(timeoutId);
         try {
-          const tempTableName = `temp_sync_${collectionConfig.tableName}`;
-
-          // Create temporary table for Firestore IDs
-          await db.execAsync(
-            `CREATE TEMP TABLE IF NOT EXISTS ${tempTableName} (id TEXT PRIMARY KEY)`
-          );
-
-          // Clear temp table in case it exists from a previous failed sync
-          await db.execAsync(`DELETE FROM ${tempTableName}`);
-
-          // Insert all Firestore document IDs and upsert records
-          for (const doc of snapshot.docs) {
-            const data = doc.data();
-            const params = collectionConfig.mapData(data, doc.id);
-
-            // Upsert the document
-            await db.runAsync(collectionConfig.insertSQL, params);
-            result.added++;
-
-            // Track this ID in temp table
-            await db.runAsync(
-              `INSERT OR IGNORE INTO ${tempTableName} (id) VALUES (?)`,
-              [doc.id]
-            );
-          }
-
-          // Detect deletions only if requested (deep refresh mode)
-          if (detectDeletions) {
-            // Efficiently delete all local records NOT in Firestore using temp table
-            // This is O(M + N) instead of O(M×N) and has no placeholder limit
-            const deleteResult = await db.runAsync(
-              `DELETE FROM ${collectionConfig.tableName}
-               WHERE id NOT IN (SELECT id FROM ${tempTableName})`
-            );
-            result.removed = deleteResult.changes;
-          }
-
-          // Clean up temp table
-          await db.execAsync(`DROP TABLE IF EXISTS ${tempTableName}`);
-
-          // Unsubscribe immediately after processing
-          clearTimeout(timeoutId);
           unsubscribe();
-
-          console.log(
-            `[SyncListeners] ${collectionConfig.name}: +${result.added} ~${result.modified} -${result.removed}`
-          );
-
-          resolve(result);
-        } catch (error) {
-          clearTimeout(timeoutId);
-          unsubscribe();
-          reject(error);
+        } catch {
+          // noop
         }
+        resolve({
+          name: config.name,
+          tableName: config.tableName,
+          insertSQL: config.insertSQL,
+          mapData: config.mapData,
+          docs: snapshot.docs.map((d) => ({ id: d.id, data: d.data() })),
+        });
       },
       (error) => {
+        if (done) return;
+        done = true;
         clearTimeout(timeoutId);
         if (unsubscribe) unsubscribe();
         reject(error);
@@ -302,104 +275,155 @@ function syncCollection(
   });
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Main export
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
- * Executes one-shot sync for all collections using Firestore listeners
+ * Executes one-shot sync for all collections using Firestore listeners.
  *
- * This function:
- * 1. Starts listeners for all collections IN DEPENDENCY ORDER
- * 2. Waits for initial snapshot (full download)
- * 3. Processes added/modified documents (always)
- * 4. Processes removed documents (only if detectDeletions = true)
- * 5. Automatically unsubscribes
- * 6. Returns sync statistics
+ * Collections are fetched in dependency order to respect FK constraints:
+ *   Level 1 – users
+ *   Level 2 – invitations, chicken_houses, feed_batches, biosecurity_events
+ *   Level 3 – chicken_lots
+ *   Level 4 – production_records, mortality_records, feeding_records, health_events
  *
- * Collections are synced in order to respect foreign key constraints:
- * - Level 1: users (no dependencies)
- * - Level 2: invitations, chicken_houses, feed_batches (depend on users)
- * - Level 3: chicken_lots (depends on chicken_houses)
- * - Level 4: production_records, mortality_records, feeding_records, health_events, biosecurity_events
- *
- * @param detectDeletions Whether to detect and delete removed documents (default: true for backward compatibility)
- * @returns Promise with sync results for all collections
+ * @param detectDeletions Whether to delete local records absent from Firestore (default true)
  */
-export async function syncWithListeners(detectDeletions = true): Promise<SyncResult[]> {
-  const mode = detectDeletions ? 'FULL SYNC (with deletions)' : 'FAST SYNC (inserts/updates only)';
+export async function syncWithListeners(
+  detectDeletions = true
+): Promise<SyncResult[]> {
+  const mode = detectDeletions
+    ? 'FULL SYNC (with deletions)'
+    : 'FAST SYNC (inserts/updates only)';
   console.log(`[SyncListeners] Starting ${mode} for all collections...`);
 
   const startTime = Date.now();
   const db = getDatabase();
 
+  // ── Ensure optional tables exist (lazy migration for v4→v5) ──────────────
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS health_events (
+      id TEXT PRIMARY KEY,
+      lot_id TEXT NOT NULL,
+      event_type TEXT NOT NULL,
+      event_date TEXT NOT NULL,
+      product_name TEXT NOT NULL,
+      notes TEXT,
+      recorded_by TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (lot_id) REFERENCES chicken_lots(id),
+      FOREIGN KEY (recorded_by) REFERENCES users(id)
+    );
+  `);
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS biosecurity_events (
+      id TEXT PRIMARY KEY,
+      event_type TEXT NOT NULL,
+      event_date TEXT NOT NULL,
+      product_name TEXT NOT NULL,
+      notes TEXT,
+      recorded_by TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (recorded_by) REFERENCES users(id)
+    );
+  `);
+  console.log('[SyncListeners] Tables verified/created');
+
+  // ── PHASE 1: Fetch all Firestore data (NO DB writes, NO transaction) ──────
+  // Firestore I/O happens here while the DB is free for other operations.
+  // Collections are fetched sequentially to maintain dependency order.
+  const level1Config = COLLECTIONS.find((c) => c.name === 'users')!;
+  const level2Configs = COLLECTIONS.filter((c) =>
+    ['invitations', 'chicken_houses', 'feed_batches', 'biosecurity_events'].includes(c.name)
+  );
+  const level3Config = COLLECTIONS.find((c) => c.name === 'chicken_lots')!;
+  const level4Configs = COLLECTIONS.filter((c) =>
+    ['production_records', 'mortality_records', 'feeding_records', 'health_events'].includes(c.name)
+  );
+
+  const orderedConfigs = [
+    level1Config,
+    ...level2Configs,
+    level3Config,
+    ...level4Configs,
+  ];
+
+  const snapshots: CollectionSnapshot[] = [];
+  for (const config of orderedConfigs) {
+    snapshots.push(await fetchFirestoreCollection(config));
+  }
+
+  // Log fetch counts for visibility
+  for (const snap of snapshots) {
+    console.log(`[SyncListeners] Fetched ${snap.name}: ${snap.docs.length} docs`);
+  }
+
+  // ── If deletions needed, read current local IDs BEFORE the transaction ────
+  let localIds: Map<string, Set<string>> | null = null;
+  if (detectDeletions) {
+    localIds = new Map();
+    for (const snap of snapshots) {
+      const rows = await db.getAllAsync<{ id: string }>(
+        `SELECT id FROM ${snap.tableName}`
+      );
+      localIds.set(snap.name, new Set(rows.map((r) => r.id)));
+    }
+  }
+
+  // ── PHASE 2: Write all data inside a proper withTransactionAsync ──────────
+  // Using withTransactionAsync instead of manual BEGIN/COMMIT ensures expo-sqlite's
+  // internal lock serialises our writes against any concurrent DB access.
+  const allResults: SyncResult[] = [];
+
+  // PRAGMA foreign_keys must be set outside the transaction
+  await db.execAsync('PRAGMA foreign_keys = OFF');
+  console.log('[SyncListeners] Foreign keys disabled for sync');
+
   try {
-    // IMPORTANT: Disable foreign keys BEFORE starting transaction
-    // PRAGMA statements cannot be executed inside a transaction
-    await db.execAsync('PRAGMA foreign_keys = OFF');
-    console.log('[SyncListeners] Foreign keys disabled for sync');
+    await db.withTransactionAsync(async () => {
+      for (const snap of snapshots) {
+        const result: SyncResult = {
+          collection: snap.name,
+          added: 0,
+          modified: 0,
+          removed: 0,
+        };
 
-    // Ensure all tables exist (lazy initialization for v4→v5 migration)
-    // This handles cases where app is running with old DB version
-    await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS health_events (
-        id TEXT PRIMARY KEY,
-        lot_id TEXT NOT NULL,
-        event_type TEXT NOT NULL,
-        event_date TEXT NOT NULL,
-        product_name TEXT NOT NULL,
-        notes TEXT,
-        recorded_by TEXT NOT NULL,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        FOREIGN KEY (lot_id) REFERENCES chicken_lots(id),
-        FOREIGN KEY (recorded_by) REFERENCES users(id)
-      );
-    `);
+        const firestoreIds = new Set<string>();
 
-    await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS biosecurity_events (
-        id TEXT PRIMARY KEY,
-        event_type TEXT NOT NULL,
-        event_date TEXT NOT NULL,
-        product_name TEXT NOT NULL,
-        notes TEXT,
-        recorded_by TEXT NOT NULL,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        FOREIGN KEY (recorded_by) REFERENCES users(id)
-      );
-    `);
+        for (const doc of snap.docs) {
+          const params = snap.mapData(doc.data, doc.id);
+          await db.runAsync(snap.insertSQL, params);
+          result.added++;
+          firestoreIds.add(doc.id);
+        }
 
-    console.log('[SyncListeners] Tables verified/created');
+        if (detectDeletions && localIds) {
+          const local = localIds.get(snap.name) ?? new Set<string>();
+          for (const id of local) {
+            if (!firestoreIds.has(id)) {
+              await db.runAsync(
+                `DELETE FROM ${snap.tableName} WHERE id = ?`,
+                [id]
+              );
+              result.removed++;
+            }
+          }
+        }
 
-    // Begin transaction for all sync operations (major performance boost)
-    await db.execAsync('BEGIN TRANSACTION');
-    console.log('[SyncListeners] Transaction started');
+        console.log(
+          `[SyncListeners] ${snap.name}: +${result.added} ~${result.modified} -${result.removed}`
+        );
+        allResults.push(result);
+      }
+    });
 
-    const allResults: SyncResult[] = [];
-
-    // Level 1: Users (no dependencies)
-    const usersConfig = COLLECTIONS.find((c) => c.name === 'users')!;
-    allResults.push(await syncCollection(usersConfig, db, detectDeletions));
-
-    // Level 2: Collections that depend only on users (sequential to avoid SQLite lock conflicts)
-    // NOTE: Promise.all was causing "table is locked" due to concurrent TEMP TABLE DDL inside
-    // the same transaction. Sequential execution eliminates the concurrency issue.
-    const level2Configs = COLLECTIONS.filter((c) =>
-      ['invitations', 'chicken_houses', 'feed_batches', 'biosecurity_events'].includes(c.name)
-    );
-    for (const config of level2Configs) {
-      allResults.push(await syncCollection(config, db, detectDeletions));
-    }
-
-    // Level 3: chicken_lots (depends on chicken_houses)
-    const lotsConfig = COLLECTIONS.find((c) => c.name === 'chicken_lots')!;
-    allResults.push(await syncCollection(lotsConfig, db, detectDeletions));
-
-    // Level 4: Collections that depend on lots (sequential for same reason as level 2)
-    const level4Configs = COLLECTIONS.filter((c) =>
-      ['production_records', 'mortality_records', 'feeding_records', 'health_events'].includes(c.name)
-    );
-    for (const config of level4Configs) {
-      allResults.push(await syncCollection(config, db, detectDeletions));
-    }
+    // Re-enable FK constraints after successful commit
+    await db.execAsync('PRAGMA foreign_keys = ON');
+    console.log('[SyncListeners] Foreign keys re-enabled');
 
     const totalTime = Date.now() - startTime;
     const totals = allResults.reduce(
@@ -411,15 +435,6 @@ export async function syncWithListeners(detectDeletions = true): Promise<SyncRes
       { added: 0, modified: 0, removed: 0 }
     );
 
-    // Commit all changes at once (writes to disk in one operation)
-    await db.execAsync('COMMIT');
-    console.log('[SyncListeners] Transaction committed');
-
-    // IMPORTANT: Re-enable foreign keys AFTER committing transaction
-    // PRAGMA statements cannot be executed inside a transaction
-    await db.execAsync('PRAGMA foreign_keys = ON');
-    console.log('[SyncListeners] Foreign keys re-enabled');
-
     console.log(
       `[SyncListeners] ✅ Sync complete in ${totalTime}ms: ` +
         `+${totals.added} ~${totals.modified} -${totals.removed}`
@@ -429,15 +444,7 @@ export async function syncWithListeners(detectDeletions = true): Promise<SyncRes
   } catch (error) {
     console.error('[SyncListeners] ❌ Sync failed:', error);
 
-    // Rollback transaction on error (must be before PRAGMA)
-    try {
-      await db.execAsync('ROLLBACK');
-      console.log('[SyncListeners] Transaction rolled back');
-    } catch (rollbackError) {
-      console.error('[SyncListeners] Failed to rollback transaction:', rollbackError);
-    }
-
-    // Re-enable foreign key constraints after rollback (PRAGMA must be outside transaction)
+    // Re-enable FK constraints even on error
     try {
       await db.execAsync('PRAGMA foreign_keys = ON');
       console.log('[SyncListeners] Foreign keys re-enabled after error');

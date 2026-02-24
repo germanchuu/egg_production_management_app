@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Text } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import {
   TrendingUp,
   TrendingDown,
   Minus,
   Egg,
-  Activity,
+  Bird,
   Skull,
   Wheat,
 } from 'lucide-react-native';
@@ -21,7 +22,7 @@ import { FeedingServiceProvider } from '@/features/feeding/services/FeedingServi
 
 interface HomeMetrics {
   eggs: string;
-  rate: string;
+  activeLots: string;
   deaths: string;
   feed: string;
 }
@@ -29,12 +30,13 @@ interface HomeMetrics {
 function useHomeMetrics() {
   const [metrics, setMetrics] = useState<HomeMetrics>({
     eggs: '—',
-    rate: '—',
+    activeLots: '—',
     deaths: '—',
     feed: '—',
   });
 
-  useEffect(() => {
+  useFocusEffect(
+    useCallback(() => {
     async function load() {
       try {
         const today = formatDate(new Date());
@@ -43,7 +45,12 @@ function useHomeMetrics() {
           await FacilityServiceProvider.getFacilityService();
         const lotsResult = await facilityService.listActiveLots();
         if (!lotsResult.success || !lotsResult.data) {
-          setMetrics({ eggs: 'N/A', rate: 'N/A', deaths: 'N/A', feed: 'N/A' });
+          setMetrics({
+            eggs: 'N/A',
+            activeLots: 'N/A',
+            deaths: 'N/A',
+            feed: 'N/A',
+          });
           return;
         }
 
@@ -57,14 +64,11 @@ function useHomeMetrics() {
           ]);
 
         let totalEggs = 0;
-        let totalHens = 0;
         let totalDeaths = 0;
         let totalFeed = 0;
 
         await Promise.all(
           lots.map(async (lot) => {
-            totalHens += lot.liveHenCount;
-
             const [prodResult, mortResult, feedResult] = await Promise.all([
               productionService.getProductionByDay(lot.id, today),
               mortalityService.getMortalityByDay(lot.id, today),
@@ -93,24 +97,25 @@ function useHomeMetrics() {
           })
         );
 
-        const rate =
-          totalHens > 0
-            ? `${((totalEggs / totalHens) * 100).toFixed(1)}%`
-            : '0.0%';
-
         setMetrics({
           eggs: totalEggs.toLocaleString('es-ES'),
-          rate,
+          activeLots: String(lots.length),
           deaths: String(totalDeaths),
           feed: `${totalFeed.toFixed(1)} kg`,
         });
       } catch {
-        setMetrics({ eggs: 'N/A', rate: 'N/A', deaths: 'N/A', feed: 'N/A' });
+        setMetrics({
+          eggs: 'N/A',
+          activeLots: 'N/A',
+          deaths: 'N/A',
+          feed: 'N/A',
+        });
       }
     }
 
     load();
-  }, []);
+    }, [])
+  );
 
   return metrics;
 }
@@ -129,9 +134,9 @@ export function MetricSection() {
       iconClassName: 'text-primary',
     },
     {
-      icon: Activity,
-      value: metrics.rate,
-      label: 'Huevos/Gallina',
+      icon: Bird,
+      value: metrics.activeLots,
+      label: 'Lotes activos',
       iconBgClassName: 'bg-success/10',
       iconClassName: 'text-success',
     },

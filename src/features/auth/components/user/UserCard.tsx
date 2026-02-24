@@ -6,6 +6,7 @@
 
 import React, { useState } from 'react';
 import { View, Text, Pressable, Modal } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MotiView } from 'moti';
 import {
   UserX,
@@ -54,6 +55,7 @@ export const UserCard: React.FC<UserCardProps> = ({
   onRevokeUser,
   onEdit,
 }) => {
+  const insets = useSafeAreaInsets();
   // Two states: modalVisible keeps the Modal mounted during close animation;
   // menuOpen drives the Moti animations (backdrop fade + sheet slide).
   const [modalVisible, setModalVisible]   = useState(false);
@@ -278,7 +280,7 @@ export const UserCard: React.FC<UserCardProps> = ({
             )}
           </View>
 
-          <View className="pb-xl" />
+          <View style={{ height: Math.max(insets.bottom, 16) }} />
         </MotiView>
       </Modal>
 

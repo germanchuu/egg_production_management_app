@@ -88,35 +88,6 @@ export function UserHeader() {
           </View>
         </View>
 
-        {/* Stats row */}
-        <View className="relative mt-6 pt-4 flex-row justify-between border-t border-white/20">
-          <View className="flex-1 items-center">
-            <Text className="text-2xl font-bold text-white">
-              8
-            </Text>
-            <Text className="text-xs text-white/70">
-              Lotes activos
-            </Text>
-          </View>
-
-          <View className="flex-1 items-center border-l border-r border-white/20">
-            <Text className="text-2xl font-bold text-white">
-              1,234
-            </Text>
-            <Text className="text-xs text-white/70">
-              Huevos hoy
-            </Text>
-          </View>
-
-          <View className="flex-1 items-center">
-            <Text className="text-2xl font-bold text-white">
-              98%
-            </Text>
-            <Text className="text-xs text-white/70">
-              Productividad
-            </Text>
-          </View>
-        </View>
       </View>
     </AnimatedView>
   );

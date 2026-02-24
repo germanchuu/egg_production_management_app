@@ -31,6 +31,7 @@ import {
   FlatList,
   Pressable,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 
 export interface SelectOption<T = string> {
@@ -79,6 +80,7 @@ export function SelectPicker<T = string>({
   placeholder = 'Seleccionar...',
 }: SelectPickerProps<T>) {
   const [open, setOpen] = useState(false);
+  const insets = useSafeAreaInsets();
   const hasError = Boolean(error);
 
   const selectedOption = options.find((opt) => opt.value === value);
@@ -150,7 +152,10 @@ export function SelectPicker<T = string>({
           className="flex-1 bg-black/30 justify-end"
           onPress={() => setOpen(false)}
         >
-          <View className="bg-white rounded-t-2xl p-lg max-h-[60%]">
+          <View
+            className="bg-white rounded-t-2xl p-lg max-h-[60%]"
+            style={{ paddingBottom: Math.max(insets.bottom, 16) }}
+          >
             <Text className="text-base font-semibold mb-md">{label}</Text>
 
             <FlatList
